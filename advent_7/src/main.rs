@@ -199,23 +199,16 @@ fn parameter_indices(program_vector: &mut Vec<i32>, index: &usize) -> Vec<usize>
     };
 
     let mut parameter_string = instruction / 100;
-    let mut modes: Vec<i32> = Vec::new();
-
-    for _i in 0..num_params {
-        let next_mode = parameter_string % 10;
-        modes.push(next_mode);
-        parameter_string /= 10;
-    }
-
     let mut return_indices: Vec<usize> = Vec::new();
 
     for i in 0..num_params {
-        let return_index = match modes[i] {
+        let return_index = match parameter_string % 10 {
             0 => program_vector[index + i + 1] as usize,
             1 => index + i + 1,
-            _ => panic!("Param type was {} for index {}", modes[i], index),
+            _ => panic!("Param type was {} for index {}", parameter_string % 10, index),
         };
         return_indices.push(return_index);
+        parameter_string /= 10;
     }
 
     return_indices
