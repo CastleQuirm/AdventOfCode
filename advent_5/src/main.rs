@@ -15,41 +15,17 @@ fn main() {
     let mut program_vector: Vec<i32> = program_iter.collect();
     let mut index = 0;
     let mut instruction = program_vector[index];
-    let mut happy = true;
 
     while instruction != 99 {
-        // println!("Value at index {} is {}", index, instruction);
-        if !happy {
-            panic!("program is unhappy at new index {}", index);
-        }
-
         match instruction - (instruction / 100) * 100 {
-            1 => {
-                add(&mut program_vector, &index);
-                index += 4;
-            }
-            2 => {
-                multiply(&mut program_vector, &index);
-                index += 4;
-            }
-            3 => {
-                input(&mut program_vector, &index);
-                index += 2;
-            }
-            4 => {
-                happy = output(&mut program_vector, &index);
-                index += 2;
-            }
-            5 => index = jump_if_true(&mut program_vector, &index),
-            6 => index = jump_if_false(&mut program_vector, &index),
-            7 => {
-                less_than(&mut program_vector, &index);
-                index += 4;
-            }
-            8 => {
-                equals_to(&mut program_vector, &index);
-                index += 4;
-            }
+            1 => add(&mut program_vector, &mut index),
+            2 => multiply(&mut program_vector, &mut index),
+            3 => input(&mut program_vector, &mut index),
+            4 => output(&mut program_vector, &mut index),
+            5 => jump_if_true(&mut program_vector, &mut index),
+            6 => jump_if_false(&mut program_vector, &mut index),
+            7 => less_than(&mut program_vector, &mut index),
+            8 => equals_to(&mut program_vector, &mut index),
             _ => { panic!("Unknown command {}", instruction); }
         }
 
@@ -58,17 +34,19 @@ fn main() {
 
 }
 
-fn add(program_vector: &mut Vec<i32>, index: &usize) {
+fn add(program_vector: &mut Vec<i32>, index: &mut usize) {
     let indices = parameter_indices(program_vector, index);
     program_vector[indices[2]] = program_vector[indices[0]] + program_vector[indices[1]];
+    *index += 4;
 }
 
-fn multiply(program_vector: &mut Vec<i32>, index: &usize) {
+fn multiply(program_vector: &mut Vec<i32>, index: &mut usize) {
     let indices = parameter_indices(program_vector, index);
     program_vector[indices[2]] = program_vector[indices[0]] * program_vector[indices[1]];
+    *index += 4;
 }
 
-fn input(program_vector: &mut Vec<i32>, index: &usize) {
+fn input(program_vector: &mut Vec<i32>, index: &mut usize) {
     let mut input = String::new();
 
     println!("Provide an input:");
@@ -80,53 +58,54 @@ fn input(program_vector: &mut Vec<i32>, index: &usize) {
         Err(msg) => {println!("{}", msg); panic!("Enter a valid value"); }
     };
 
-    let output_index = program_vector[index + 1] as usize;
+    let output_index = program_vector[*index + 1] as usize;
     program_vector[output_index] = input;
+    *index += 2;
 }
 
-fn output(program_vector: &mut Vec<i32>, index: &usize) -> bool {
-    let output_value = match program_vector[*index] {
-        4 => program_vector[program_vector[index + 1] as usize],
-        104 => program_vector[(index + 1) as usize],
-        _ => panic!("Output instruction of {} didn't make sense", program_vector[*index]),
-    };
-    println!("Output {}", output_value);
-    if output_value != 0 { return false; }
-    else { return true; }
+fn output(program_vector: &mut Vec<i32>, index: &mut usize) {
+    let indices = parameter_indices(program_vector, index);
+    println!("{}", program_vector[indices[0]]);
+    *index += 2;
+    if (program_vector[indices[0]] != 0) && program_vector[*index] != 99 {
+        panic!("OH NO");
+    }
 }
 
-fn jump_if_true(program_vector: &mut Vec<i32>, index: &usize) -> usize {
+fn jump_if_true(program_vector: &mut Vec<i32>, index: &mut usize) {
     let indices = parameter_indices(program_vector, index);
     if program_vector[indices[0]] != 0 {
-        return program_vector[indices[1]] as usize;
+        *index = program_vector[indices[1]] as usize;
     }
     else {
-        return index + 3;
+        *index += 3;
     }
 }
 
-fn jump_if_false(program_vector: &mut Vec<i32>, index: &usize) -> usize {
+fn jump_if_false(program_vector: &mut Vec<i32>, index: &mut usize) {
     let indices = parameter_indices(program_vector, index);
     if program_vector[indices[0]] == 0 {
-        return program_vector[indices[1]] as usize;
+        *index = program_vector[indices[1]] as usize;
     }
     else {
-        return index + 3;
+        *index += 3;
     }
 }
 
-fn less_than(program_vector: &mut Vec<i32>, index: &usize) {
+fn less_than(program_vector: &mut Vec<i32>, index: &mut usize) {
     let indices = parameter_indices(program_vector, index);
     program_vector[indices[2]] =
         if program_vector[indices[0]] < program_vector[indices[1]] { 1 }
         else { 0 } ;
+    *index += 4;
 }
 
-fn equals_to(program_vector: &mut Vec<i32>, index: &usize) {
+fn equals_to(program_vector: &mut Vec<i32>, index: &mut usize) {
     let indices = parameter_indices(program_vector, index);
     program_vector[indices[2]] =
         if program_vector[indices[0]] == program_vector[indices[1]] { 1 }
         else { 0 } ;
+    *index += 4;
 }
 
 fn parameter_indices(program_vector: &mut Vec<i32>, index: &usize) -> Vec<usize> {
