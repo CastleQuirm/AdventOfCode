@@ -11,6 +11,31 @@ struct AmpOut {
 }
 
 fn main() {
+    part1();
+    part2();
+}
+
+fn part1() {
+    let mut best_result = 0;
+    'outer: for index in 12345..54322 {
+        let mut test_vector: Vec<usize> = Vec::new();
+
+        for digit_char in index.to_string().trim().chars() {
+            let mut digit_string: usize = digit_char.to_string().parse().expect("");
+            if digit_string == 0 { continue 'outer; }
+            digit_string -= 1;
+            if digit_string > 4 { continue 'outer; }
+            if test_vector.contains(&digit_string) { continue 'outer; }
+            test_vector.push(digit_string);
+        }
+
+        let result = trial(test_vector);
+        if best_result < result { best_result = result; }
+    }
+    println!("Part 1 Answer: {}", best_result);
+}
+
+fn part2() {
     let mut best_result = 0;
     'outer: for index in 56789..98766 {
         let mut test_vector: Vec<usize> = Vec::new();
@@ -21,13 +46,10 @@ fn main() {
             if test_vector.contains(&digit_string) { continue 'outer; }
             test_vector.push(digit_string);
         }
-
-        // println!("Run a trial with index {}", index);
         let result = trial(test_vector);
         if best_result < result { best_result = result; }
     }
-
-    println!("End result: {}", best_result);
+    println!("Part 2 Answer: {}", best_result);
 }
 
 fn trial(amplifier_order: Vec<usize>) -> usize {
@@ -53,7 +75,7 @@ fn trial(amplifier_order: Vec<usize>) -> usize {
     let mut amplifier_input = 0;
     let mut first_loop = true;
     let mut next_amplifier = 0;
-    let mut last_e_output = 0;
+    let mut last_e_output: usize;
 
     loop {
         let mut input_vec = vec![amplifier_input];
@@ -71,8 +93,8 @@ fn trial(amplifier_order: Vec<usize>) -> usize {
             first_loop = false;
             next_amplifier = 0;
             last_e_output = amplifier_input;
+            if output_amp.terminating { break; }
         }
-        if output_amp.terminating { break; }
     }
 
     return last_e_output;
@@ -85,7 +107,7 @@ fn run_amplifier(amplifier: &mut Amplifier, inputs: &mut Vec<usize>, start_index
     let mut return_value = 0;
 
     while instruction != 99 {
-        match instruction - (instruction / 100) * 100 {
+        match instruction % 100 {
             1 => add(&mut amplifier.program, &mut index),
             2 => multiply(&mut amplifier.program, &mut index),
             3 => input(&mut amplifier.program, &mut index, inputs.pop().expect("Didn't have a parameter")),
@@ -169,7 +191,7 @@ fn equals_to(program_vector: &mut Vec<i32>, index: &mut usize) {
 
 fn parameter_indices(program_vector: &mut Vec<i32>, index: &usize) -> Vec<usize> {
     let instruction = program_vector[*index];
-    let num_params = match instruction - (instruction / 100) * 100 {
+    let num_params = match instruction % 100 {
         1 | 2 | 7 | 8 => 3,
         3 | 4 => 1,
         5 | 6 => 2,
@@ -180,7 +202,7 @@ fn parameter_indices(program_vector: &mut Vec<i32>, index: &usize) -> Vec<usize>
     let mut modes: Vec<i32> = Vec::new();
 
     for _i in 0..num_params {
-        let next_mode = parameter_string - (parameter_string / 10) * 10;
+        let next_mode = parameter_string % 10;
         modes.push(next_mode);
         parameter_string /= 10;
     }
