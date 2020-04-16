@@ -25,7 +25,7 @@ fn main() {
         min_y_position: 0,
         x_out_of_bounds: false,
         y_out_of_bounds: false,
-        direction: Direction::North
+        direction: Direction::North,
     };
 
     let mut painted_cells = 0;
@@ -47,7 +47,9 @@ fn main() {
             _ => panic!("Got an output vec of length {}", output_vec.len()),
         }
         // Update painting count
-        if unpainted { painted_cells += 1; }
+        if unpainted {
+            painted_cells += 1;
+        }
         // Paint cell
         map[robot.y_index()][robot.x_index()] = match output_vec[0] {
             0 => CellColour::Black,
@@ -123,16 +125,18 @@ impl Robot {
                 Direction::North => Direction::West,
                 Direction::West => Direction::South,
                 Direction::South => Direction::East,
-                Direction::East => Direction::North
+                Direction::East => Direction::North,
             };
         } else if turn == 1 {
             self.direction = match self.direction {
                 Direction::North => Direction::East,
                 Direction::West => Direction::North,
                 Direction::South => Direction::West,
-                Direction::East => Direction::South
+                Direction::East => Direction::South,
             };
-        } else { panic!("Unknown turn command {}", turn); }
+        } else {
+            panic!("Unknown turn command {}", turn);
+        }
     }
     fn move_bot(&mut self) {
         match self.direction {
@@ -143,45 +147,41 @@ impl Robot {
                     self.x_out_of_bounds = true;
                     self.min_x_position = self.x_position;
                 }
-            },
+            }
             Direction::South => {
                 self.y_position -= 1;
                 if self.y_position < self.min_y_position {
                     self.y_out_of_bounds = true;
                     self.min_y_position = self.y_position;
                 }
-            },
+            }
             Direction::East => self.x_position += 1,
         }
     }
 }
 
 fn define_computer() -> Computer {
-    let string = fs::read_to_string("input_program.txt")
-        .expect("Failed to read file");
+    let string = fs::read_to_string("input_program.txt").expect("Failed to read file");
 
-    let program_iter = string.split(",").map(|i| {
-        match i.trim().parse() {
-            Ok(num) => num,
-            Err(_) => 7,
-        }
+    let program_iter = string.split(',').map(|i| match i.trim().parse() {
+        Ok(num) => num,
+        Err(_) => 7,
     });
 
     Computer {
         program: program_iter.collect(),
         relative_base: 0,
-        ptr: 0
+        ptr: 0,
     }
 }
 
 struct Computer {
     program: Vec<i64>,
     relative_base: usize,
-    ptr: usize
+    ptr: usize,
 }
 impl Computer {
     fn run_computer(&mut self, inputs: &mut Vec<usize>) -> Vec<i64> {
-
         let mut instruction = self.program[self.ptr];
         let mut return_pair: Vec<i64> = Vec::new();
 
@@ -192,14 +192,18 @@ impl Computer {
                 3 => self.input(inputs.pop().expect("Didn't have a parameter")),
                 4 => {
                     return_pair.push(self.output());
-                    if return_pair.len() == 2 { break; }
-                },
+                    if return_pair.len() == 2 {
+                        break;
+                    }
+                }
                 5 => self.jump_if_true(),
                 6 => self.jump_if_false(),
                 7 => self.less_than(),
                 8 => self.equals_to(),
                 9 => self.change_relative_base(),
-                _ => { panic!("Unknown command {}", instruction); }
+                _ => {
+                    panic!("Unknown command {}", instruction);
+                }
             }
 
             instruction = self.program[self.ptr];
@@ -242,8 +246,7 @@ impl Computer {
         let indices = self.parameter_indices(num_params);
         if self.program[indices[0]] != 0 {
             self.ptr = self.program[indices[1]] as usize;
-        }
-        else {
+        } else {
             self.ptr += num_params + 1;
         }
     }
@@ -253,8 +256,7 @@ impl Computer {
         let indices = self.parameter_indices(num_params);
         if self.program[indices[0]] == 0 {
             self.ptr = self.program[indices[1]] as usize;
-        }
-        else {
+        } else {
             self.ptr += num_params + 1;
         }
     }
@@ -262,18 +264,22 @@ impl Computer {
     fn less_than(&mut self) {
         let num_params = 3;
         let indices = self.parameter_indices(num_params);
-        self.program[indices[2]] =
-            if self.program[indices[0]] < self.program[indices[1]] { 1 }
-            else { 0 } ;
+        self.program[indices[2]] = if self.program[indices[0]] < self.program[indices[1]] {
+            1
+        } else {
+            0
+        };
         self.ptr += num_params + 1;
     }
 
     fn equals_to(&mut self) {
         let num_params = 3;
         let indices = self.parameter_indices(num_params);
-        self.program[indices[2]] =
-            if self.program[indices[0]] == self.program[indices[1]] { 1 }
-            else { 0 } ;
+        self.program[indices[2]] = if self.program[indices[0]] == self.program[indices[1]] {
+            1
+        } else {
+            0
+        };
         self.ptr += num_params + 1;
     }
 
@@ -294,9 +300,13 @@ impl Computer {
                 0 => self.program[self.ptr + i + 1] as usize,
                 1 => self.ptr + i + 1,
                 2 => ((self.relative_base as i64) + self.program[self.ptr + i + 1]) as usize,
-                _ => panic!("Param type was {} for index {}", parameter_string % 10, self.ptr),
+                _ => panic!(
+                    "Param type was {} for index {}",
+                    parameter_string % 10,
+                    self.ptr
+                ),
             };
-            self.append_zeroes(return_index+1);
+            self.append_zeroes(return_index + 1);
             return_indices.push(return_index);
             parameter_string /= 10;
         }
@@ -305,9 +315,9 @@ impl Computer {
     }
 
     fn append_zeroes(&mut self, length_needed: usize) {
-        if length_needed >= self.program.len()
-        {
-            self.program.append(&mut vec![0; length_needed - self.program.len()]);
+        if length_needed >= self.program.len() {
+            self.program
+                .append(&mut vec![0; length_needed - self.program.len()]);
         }
     }
 }
