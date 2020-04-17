@@ -17,7 +17,7 @@ enum CellColour {
 fn main() {
     let mut computer = define_computer();
 
-    let mut map: Vec<Vec<CellColour>> = vec![vec![CellColour::Black]];
+    let mut map: Vec<Vec<CellColour>> = vec![vec![CellColour::White]];
     let mut robot = Robot {
         x_position: 0,
         y_position: 0,

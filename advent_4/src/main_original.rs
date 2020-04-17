@@ -32,8 +32,6 @@ fn main() {
     }
 
     println!("Total number of valid passwords in part 2 {}", valid_count);
-
-
 }
 
 fn check_password(test_password: i32) -> bool {
