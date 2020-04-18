@@ -24,7 +24,6 @@ fn main() {
         in_path: None,
         other_paths: vec![Path {
             direction: North,
-            length: None,
             destination: None,
         }],
     };
@@ -46,9 +45,10 @@ fn calculate_part1_distance(start_position: (i32, i32),
     let mut current_position = target_position;
     let mut total_distance: usize = 0;
     while current_position != start_position {
-        let node_ptr: &Node = node_hash.get(&current_position).expect("");
-        total_distance += node_ptr.in_path.expect("").length.expect("");
-        current_position = node_ptr.in_path.expect("").destination.expect("");
+        current_position = node_hash.get(&current_position).expect("")
+            .in_path.expect("")
+            .destination.expect("");
+        total_distance += 1;
     }
     total_distance
 }
@@ -56,10 +56,10 @@ fn calculate_part1_distance(start_position: (i32, i32),
 fn explore_map(robot: &mut Robot,
                computer: &mut Computer,
                node_hash: &mut HashMap<(i32, i32), Node>) {
-    loop {
-        let direction = choose_direction(node_hash.get(&(robot.x_position, robot.y_position)).expect("We've stopped at a non-node"));
-        if direction.is_none() { break; }
-        let _distance = explore_single_path(robot, computer, node_hash, direction.expect(""));
+    let mut direction = choose_direction(node_hash.get(&(robot.x_position, robot.y_position)).expect("We've stopped at a non-node"));
+    while direction.is_some() {
+        explore_single_path(robot, computer, node_hash, direction.expect(""));
+        direction = choose_direction(node_hash.get(&(robot.x_position, robot.y_position)).expect("We've stopped at a non-node"));
     }
     show_display(robot);
 }
@@ -68,7 +68,7 @@ fn choose_direction(current_node: &Node) -> Option<Direction> {
     // Pick a direction in Other that hasn't got a distance, otherwise use input
     let unexplored_dirs: Vec<Direction> = current_node.other_paths
         .iter()
-        .filter(|&path| path.length.is_none())
+        .filter(|&path| path.destination.is_none())
         .map(|&path| path.direction)
         .collect();
 
@@ -87,46 +87,22 @@ fn choose_direction(current_node: &Node) -> Option<Direction> {
 fn explore_single_path(robot: &mut Robot,
                        computer: &mut Computer,
                        node_hash: &mut HashMap<(i32, i32), Node>,
-                       orig_direction: Direction) -> usize {
-    let mut entry_direction = orig_direction;
+                       direction: Direction) {
     let orig_position = (robot.x_position, robot.y_position);
 
     // Move once in the given direction.
-    // - if the move returns 0, exit the function with distance 0
-    let output_val = robot.process_command(computer, &entry_direction);
-    if output_val == 0 { return 0; }
-    let mut distance_travelled = 1;
+    let output_val = robot.process_command(computer, &direction);
+    if output_val == 0 { panic!("Why are we exploring a wall?"); }
 
-    // Loop:
-    // - Fill out all four directions
-    // - Count how many directions are Open; if != 2, break
-    // - Go the way we didn't come in and increment distance by 1
-    loop {
-        let mut closed_paths = 0;
-        let mut new_direction: Direction = entry_direction;
-        for test_dir in Direction::iterator() {
-            let cell = robot.test_direction(computer, test_dir);
-            if cell == Wall {
-                closed_paths += 1;
-            } else if entry_direction != Direction::invert(test_dir) {
-                new_direction = *test_dir;
-            }
-
-        }
-
-        if closed_paths != 2 {
-            break;
-        }
-
-        entry_direction = new_direction;
-        robot.process_command(computer, &entry_direction);
-        distance_travelled += 1;
+    // Fill out all four directions
+    for test_dir in Direction::iterator() {
+        robot.test_direction(computer, test_dir);
     }
 
     // If we haven't got a node for our location yet, create one and update the
     // original.
     if node_hash.get(&(robot.x_position, robot.y_position)).is_none() {
-        let in_direction = Direction::invert(&entry_direction);
+        let in_direction = Direction::invert(&direction);
         let other_paths: Vec<Path> = Direction::iterator()
             .filter(|dir| robot.check_direction(dir) != Wall && **dir != in_direction)
             .map(|dir| direction_to_path(dir))
@@ -135,7 +111,6 @@ fn explore_single_path(robot: &mut Robot,
         let new_node = Node {
             in_path: Some(Path {
                 direction: in_direction,
-                length: Some(distance_travelled),
                 destination: Some(orig_position),
             }),
             other_paths: other_paths,
@@ -145,12 +120,11 @@ fn explore_single_path(robot: &mut Robot,
         let old_node = node_hash.remove(&orig_position).expect("where did we come from?");
         let mut updated_old_other_paths: Vec<Path> = old_node.other_paths
             .iter()
-            .filter(|&path| path.direction != orig_direction)
+            .filter(|&path| path.direction != direction)
             .map(|&path| path)
             .collect::<Vec<Path>>();
         updated_old_other_paths.push(Path {
-                direction: orig_direction,
-                length: Some(distance_travelled),
+                direction: direction,
                 destination: Some((robot.x_position, robot.y_position)),
             });
 
@@ -160,8 +134,6 @@ fn explore_single_path(robot: &mut Robot,
         };
         node_hash.insert(orig_position, updated_old_node);
     }
-
-    distance_travelled
 }
 
 fn show_display(robot: &mut Robot) {
@@ -210,13 +182,12 @@ impl Robot {
     }
     fn test_direction(&mut self,
                       computer: &mut Computer,
-                      direction: &Direction) -> CellContent {
+                      direction: &Direction) {
         if self.check_direction(direction) == Unexplored {
             if self.process_command(computer, direction) != 0 {
                 self.process_command(computer, &Direction::invert(direction));
             }
         }
-        self.check_direction(direction)
     }
     fn move_bot(&mut self, direction: &Direction) {
         // Set existing cell to "Empty"
@@ -367,14 +338,12 @@ struct Node {
 #[derive(PartialEq, Eq, Clone, Copy)]
 struct Path {
     direction: Direction,
-    length: Option<usize>,
     destination: Option<(i32, i32)>,
 }
 
 fn direction_to_path(direction: &Direction) -> Path {
     Path {
         direction: *direction,
-        length: None,
         destination: None,
     }
 }
