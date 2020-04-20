@@ -21,6 +21,13 @@ pub struct Computer {
     ptr: usize,
 }
 impl Computer {
+    pub fn clone_computer(&self) -> Computer {
+        Computer {
+            program: self.program.clone(),
+            relative_base: self.relative_base,
+            ptr: self.ptr,
+        }
+    }
     pub fn provide_ascii_input(&mut self, input_string: &str) -> Vec<i64> {
         // println!("{}", input_string);
         let mut input_program: Vec<i64> = input_string.chars().map(|char| char as i64).collect();
