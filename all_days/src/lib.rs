@@ -15,38 +15,43 @@ pub fn define_computer(input_file: &str) -> Computer {
     }
 }
 
-pub fn run_computer(computer: &mut Computer, inputs: &mut Vec<i64>) -> Vec<i64> {
-    let mut instruction = computer.program[computer.ptr];
-    let mut return_vec: Vec<i64> = Vec::new();
-
-    while (instruction != 99) && (instruction != 3 || inputs.len() > 0) {
-        match instruction % 100 {
-            1 => computer.add(),
-            2 => computer.multiply(),
-            3 => computer.input(inputs.pop().expect("Should have inputs!")),
-            4 => return_vec.push(computer.output()),
-            5 => computer.jump_if_true(),
-            6 => computer.jump_if_false(),
-            7 => computer.less_than(),
-            8 => computer.equals_to(),
-            9 => computer.change_relative_base(),
-            _ => {
-                panic!("Unknown command {}", instruction);
-            }
-        }
-
-        instruction = computer.program[computer.ptr];
-    }
-
-    return_vec
-}
-
 pub struct Computer {
     pub program: Vec<i64>,
     relative_base: usize,
     ptr: usize,
 }
 impl Computer {
+    pub fn provide_ascii_input(&mut self, input_string: &str) -> Vec<i64> {
+        // println!("{}", input_string);
+        let mut input_program: Vec<i64> = input_string.chars().map(|char| char as i64).collect();
+        input_program.reverse();
+        self.run_computer(&mut input_program)
+    }
+    pub fn run_computer(&mut self, inputs: &mut Vec<i64>) -> Vec<i64> {
+        let mut instruction = self.program[self.ptr] % 100;
+        let mut return_vec: Vec<i64> = Vec::new();
+
+        while (instruction != 99) && (instruction != 3 || inputs.len() > 0) {
+            match instruction {
+                1 => self.add(),
+                2 => self.multiply(),
+                3 => self.input(inputs.pop().expect("Should have inputs!")),
+                4 => return_vec.push(self.output()),
+                5 => self.jump_if_true(),
+                6 => self.jump_if_false(),
+                7 => self.less_than(),
+                8 => self.equals_to(),
+                9 => self.change_relative_base(),
+                _ => {
+                    panic!("Unknown command {}", instruction);
+                }
+            }
+
+            instruction = self.program[self.ptr] % 100;
+        }
+
+        return_vec
+    }
     fn add(&mut self) {
         let num_params = 3;
         let indices = self.parameter_indices(num_params);

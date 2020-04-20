@@ -37,7 +37,7 @@ fn main() {
         };
         let mut inputs = vec![input];
         // Run computer, get output.
-        let output_vec = all_days::run_computer(&mut computer, &mut inputs);
+        let output_vec = computer.run_computer(&mut inputs);
         // If output is empty, terminate
         match output_vec.len() {
             0 => break,

@@ -1,5 +1,6 @@
-use std::{thread, time};
+// Assumed info: Game can begin with paddle stayin still for three frames.
 
+use std::{thread, time};
 
 fn main() {
     let mut computer = all_days::define_computer("input/day13.txt");
@@ -13,7 +14,7 @@ fn main() {
 
     loop {
         thread::sleep(time::Duration::from_millis(5));
-        let output_vec = all_days::run_computer(&mut computer, &mut inputs);
+        let output_vec = computer.run_computer(&mut inputs);
         if output_vec.len() % 3 !=0 {
             panic!("Non triplet output!");
         }

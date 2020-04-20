@@ -1,10 +1,14 @@
+//* SCC Uses knowledge: map is a tree (otherwise have to do Djikstra)
+//* SCC Uses knowledge: start and target are both in dead-ends (not too hard to extend)
+//* SCC Uses knowledge: start out-path is North, end out-path is East (easy to fix if needed)
+
 use std::slice::Iter;
 use all_days::Computer;
 use self::Direction::*;
 use self::CellContent::*;
 use std::collections::HashMap;
 
-//* SCC Uses knowledge: map is a tree.
+
 fn main() {
     let mut computer = all_days::define_computer("input/day15.txt");
 
@@ -266,7 +270,7 @@ impl Robot {
         }
     }
     fn process_command(&mut self,
-                       mut computer: &mut Computer,
+                       computer: &mut Computer,
                        direction: &Direction) -> i64 {
         let mut inputs = match direction {
             North => vec![1],
@@ -276,7 +280,7 @@ impl Robot {
         };
 
         // Run computer, get output
-        let mut output_vec = all_days::run_computer(&mut computer, &mut inputs);
+        let mut output_vec = computer.run_computer(&mut inputs);
         match output_vec.len() {
             1 => (),
             _ => panic!("Unexpected length of output!"),
