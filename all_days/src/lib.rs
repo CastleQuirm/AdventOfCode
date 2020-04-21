@@ -12,6 +12,7 @@ pub fn define_computer(input_file: &str) -> Computer {
         program: program_iter.collect(),
         relative_base: 0,
         ptr: 0,
+        input_stack: Vec::new(),
     }
 }
 
@@ -19,30 +20,39 @@ pub struct Computer {
     pub program: Vec<i64>,
     relative_base: usize,
     ptr: usize,
+    input_stack: Vec<i64>,
 }
 impl Computer {
+    pub fn push_to_input(&mut self, new_input: &Vec<i64>) {
+        self.input_stack.extend(new_input);
+    }
     pub fn clone_computer(&self) -> Computer {
         Computer {
             program: self.program.clone(),
             relative_base: self.relative_base,
             ptr: self.ptr,
+            input_stack: self.input_stack.clone(),
         }
     }
     pub fn provide_ascii_input(&mut self, input_string: &str) -> Vec<i64> {
         // println!("{}", input_string);
-        let mut input_program: Vec<i64> = input_string.chars().map(|char| char as i64).collect();
-        input_program.reverse();
-        self.run_computer(&mut input_program)
+        let input_program: Vec<i64> = input_string.chars().map(|char| char as i64).collect();
+        self.push_to_input(&input_program);
+        self.run_computer()
     }
-    pub fn run_computer(&mut self, inputs: &mut Vec<i64>) -> Vec<i64> {
+    pub fn push_input_and_run(&mut self, new_input: &Vec<i64>) -> Vec<i64> {
+        self.push_to_input(new_input);
+        self.run_computer()
+    }
+    pub fn run_computer(&mut self) -> Vec<i64> {
         let mut instruction = self.program[self.ptr] % 100;
         let mut return_vec: Vec<i64> = Vec::new();
 
-        while (instruction != 99) && (instruction != 3 || inputs.len() > 0) {
+        while (instruction != 99) && (instruction != 3 || self.input_stack.len() > 0) {
             match instruction {
                 1 => self.add(),
                 2 => self.multiply(),
-                3 => self.input(inputs.pop().expect("Should have inputs!")),
+                3 => self.input(),
                 4 => return_vec.push(self.output()),
                 5 => self.jump_if_true(),
                 6 => self.jump_if_false(),
@@ -59,6 +69,31 @@ impl Computer {
 
         return_vec
     }
+    pub fn tick_computer(&mut self) -> Option<i64> {
+        let instruction = self.program[self.ptr] % 100;
+        if instruction == 3 && self.input_stack.is_empty() {
+            self.input_stack.push(-1);
+        }
+
+        let mut return_val: Option<i64> = None;
+
+        match instruction {
+            1 => self.add(),
+            2 => self.multiply(),
+            3 => self.input(),
+            4 => return_val = Some(self.output()),
+            5 => self.jump_if_true(),
+            6 => self.jump_if_false(),
+            7 => self.less_than(),
+            8 => self.equals_to(),
+            9 => self.change_relative_base(),
+            _ => {
+                panic!("Unknown command {}", instruction);
+            }
+        }
+
+        return_val
+    }
     fn add(&mut self) {
         let num_params = 3;
         let indices = self.parameter_indices(num_params);
@@ -73,11 +108,13 @@ impl Computer {
         self.ptr += num_params + 1;
     }
 
-    fn input(&mut self, input: i64) {
+    fn input(&mut self) {
         let num_params = 1;
         let indices = self.parameter_indices(num_params);
-        self.program[indices[0]] = input;
+        let (input, remaining_input) = self.input_stack.split_first().expect("Should have an input");
+        self.program[indices[0]] = *input;
         self.ptr += num_params + 1;
+        self.input_stack = remaining_input.to_vec();
     }
 
     fn output(&mut self) -> i64 {

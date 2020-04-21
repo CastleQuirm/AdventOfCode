@@ -55,9 +55,9 @@ fn main() {
 
     explore_full_map(&mut robot, &mut computer, &mut node_hash);
 
-    println!("Part 1 Solution: {}", node_hash.get(&(1,1)).expect("").distance);
+    println!("Part 1 Answer: {}", node_hash.get(&(1,1)).expect("").distance);
     let distance: usize = node_hash.values().map(|node| node.distance).max().expect("");
-    println!("Part 2 Solution: {}", distance);
+    println!("Part 2 Answer: {}", distance);
 }
 
 fn explore_map_for_target(robot: &mut Robot,
@@ -79,7 +79,7 @@ fn explore_full_map(robot: &mut Robot,
         direction = choose_direction(node_hash.get(&(robot.x_position, robot.y_position)).expect("We've stopped at a non-node"));
     }
 
-    show_display(robot);
+    // show_display(robot);
 }
 
 fn choose_direction(current_node: &Node) -> Option<Direction> {
@@ -157,23 +157,23 @@ fn explore_single_path(robot: &mut Robot,
     }
 }
 
-fn show_display(robot: &mut Robot) {
-    // print!("{}[2J", 27 as char);
-    for line in &mut robot.map {
-        let mut display_line: String = String::from("");
-        for cell in line {
-            let display_char = match cell {
-                Unexplored => "#",
-                Wall => "#",
-                Space => " ",
-                Target => "X",
-                Robot => "@",
-            };
-            display_line.push_str(display_char)
-        }
-        println!("{:?}", display_line);
-    }
-}
+// fn show_display(robot: &mut Robot) {
+//     // print!("{}[2J", 27 as char);
+//     for line in &mut robot.map {
+//         let mut display_line: String = String::from("");
+//         for cell in line {
+//             let display_char = match cell {
+//                 Unexplored => "#",
+//                 Wall => "#",
+//                 Space => " ",
+//                 Target => "X",
+//                 Robot => "@",
+//             };
+//             display_line.push_str(display_char)
+//         }
+//         println!("{:?}", display_line);
+//     }
+// }
 
 struct Robot {
     x_position: i32,
@@ -280,7 +280,7 @@ impl Robot {
         };
 
         // Run computer, get output
-        let mut output_vec = computer.run_computer(&mut inputs);
+        let mut output_vec = computer.push_input_and_run(&mut inputs);
         match output_vec.len() {
             1 => (),
             _ => panic!("Unexpected length of output!"),

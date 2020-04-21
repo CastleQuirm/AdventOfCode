@@ -17,7 +17,7 @@ fn main() {
              (0..50)
              .map(|y| (0..50).map(|x|
                                   computer.clone_computer()
-                                  .run_computer(&mut vec![y, x])[0])
+                                  .push_input_and_run(&mut vec![x, y])[0])
                                   .filter(|&o| o == 1)
                                   .count())
              .sum::<usize>());
@@ -25,23 +25,23 @@ fn main() {
 
     let mut x = 100;
     let mut y = 0;
-    let mut in_beam = computer.clone_computer().run_computer(&mut vec![y, x])[0] == 1;
+    let mut in_beam = computer.clone_computer().push_input_and_run(&mut vec![x, y])[0] == 1;
 
     loop {
         // Go down until we find a cell in the beam.
         while !in_beam {
             y += 1;
-            in_beam = computer.clone_computer().run_computer(&mut vec![y, x])[0] == 1;
+            in_beam = computer.clone_computer().push_input_and_run(&mut vec![x, y])[0] == 1;
         }
 
         // Go right until we're out of the beam again.
         while in_beam {
             x += 1;
-            in_beam = computer.clone_computer().run_computer(&mut vec![y, x])[0] == 1;
+            in_beam = computer.clone_computer().push_input_and_run(&mut vec![x, y])[0] == 1;
         }
 
         // Check if the last found cell was valid.
-        if computer.clone_computer().run_computer(&mut vec![y + 99, x - 100])[0] == 1 {
+        if computer.clone_computer().push_input_and_run(&mut vec![x - 100, y + 99])[0] == 1 {
             break;
         }
     }

@@ -33,7 +33,7 @@ fn main() {
     let mut computer = all_days::define_computer("input/day17.txt");
     computer.program[0] = 2;
 
-    let output_vec = computer.run_computer(&mut Vec::new());
+    let output_vec = computer.run_computer();
     display_screen(&output_vec);
 
     let full_seq = parse_screen(&output_vec);
@@ -47,7 +47,7 @@ fn main() {
     let mut last_output = computer.provide_ascii_input("n\n");
     let final_answer = last_output.pop();
     display_screen(&last_output);
-    println!("Part 2 answer: {}", final_answer.expect("why no answer?"));
+    println!("Part 2 Answer: {}", final_answer.expect("why no answer?"));
 }
 
 fn display_screen(_output_vec: &Vec<i64>) {
@@ -119,7 +119,7 @@ fn parse_screen(output_vec: &Vec<i64>) -> String {
     }
 
     // Calculate intersection answer
-    println!("Part 1 answer: {}", checksum);
+    println!("Part 1 Answer: {}", checksum);
 
     // Return string
     result_string[0..result_string.len() - 1].to_string()

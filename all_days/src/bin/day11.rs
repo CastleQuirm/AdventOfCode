@@ -35,9 +35,8 @@ fn main() {
             CellColour::Black => (false, 0),
             CellColour::White => (false, 1),
         };
-        let mut inputs = vec![input];
         // Run computer, get output.
-        let output_vec = computer.run_computer(&mut inputs);
+        let output_vec = computer.push_input_and_run(&vec![input]);
         // If output is empty, terminate
         match output_vec.len() {
             0 => break,

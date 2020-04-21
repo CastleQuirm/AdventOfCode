@@ -14,7 +14,7 @@ fn main() {
 
     loop {
         thread::sleep(time::Duration::from_millis(5));
-        let output_vec = computer.run_computer(&mut inputs);
+        let output_vec = computer.push_input_and_run(&mut inputs);
         if output_vec.len() % 3 !=0 {
             panic!("Non triplet output!");
         }
@@ -41,9 +41,7 @@ fn main() {
 
         show_display(&display, score);
 
-        if inputs.is_empty() {
-            inputs.push(ball_direction);
-        }
+        inputs = vec![ball_direction];
     }
     // println!("Part 1: {} blocks to begin", starting_blocks);
     println!("Final score: {}", score);
