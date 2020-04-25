@@ -69,6 +69,15 @@ impl Computer {
 
         return_vec
     }
+    pub fn single_force_run_computer(&mut self) -> Vec<i64> {
+        if self.program[self.ptr] % 100 != 3 {
+            panic!("Should only call this function if instruction is INPUT");
+        }
+        if self.input_stack.is_empty() {
+            self.input_stack.push(-1);
+        }
+        self.run_computer()
+    }
     pub fn tick_computer(&mut self) -> Option<i64> {
         let instruction = self.program[self.ptr] % 100;
         if instruction == 3 && self.input_stack.is_empty() {
