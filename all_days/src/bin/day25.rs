@@ -23,19 +23,7 @@ fn main() {
 
     display_screen(&mut orig_computer.run_computer());
 
-//* SCC How we found it
-    // for i in 0..256 {
-    //     let mut computer = orig_computer.clone_computer();
-    //     collect_items(&mut computer, i);
-    //     print!("Test i {}: ", i);
-    //     check_weight(&mut computer);
-    // }
-
-    (0u32..8u32)
-        .filter(|&exp| (226 / (2usize.pow(exp))) % 2 == 1)
-        .for_each(|exp| collect_item(&mut orig_computer, 2usize.pow(exp)));
-    check_weight(&mut orig_computer);
-
+//* SCC code for handling manual input for initial exploration
     // loop {
     //     let mut input = String::new();
 
@@ -52,9 +40,26 @@ fn main() {
 
     //     display_screen(&computer.provide_ascii_input(&input))
     // }
+
+//* SCC How we tried the combinations for the right one: found it was 226
+    // for i in 0..256 {
+    //     let mut computer = orig_computer.clone_computer();
+    //     collect_items(&mut computer, i);
+    //     print!("Test i {}: ", i);
+    //     check_weight(&mut computer);
+    // }
+
+//* Automatic code for reaching Santa.
+    (0u32..8u32)
+        .filter(|&exp| (226 / (2usize.pow(exp))) % 2 == 1)
+        .for_each(|exp| collect_item(&mut orig_computer, 2usize.pow(exp)));
+    check_weight(&mut orig_computer);
+
 }
 
 fn collect_item(computer: &mut Computer, index: usize) {
+    // Note: should just have one hashmap, or if I really want to make it more readable,
+    // use an enum as the go-between.
     let item_flag: HashMap<usize, String> = [
         (1, "boulder".to_string()),
         (2, "asterisk".to_string()),
