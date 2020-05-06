@@ -7,6 +7,22 @@ fn main() {
     // Read the input number as a Vec of digits.
     let mut input_string = read_input_as_vec();
 
+    // // Run the specified number of FTT phases
+    // for i in 0..100 {
+    //     println!("Phase {}", i);
+    //     input_string = run_ftt_phase(input_string);
+    // }
+
+    // println!("Part 1 Answer: {}{}{}{}{}{}{}{}",
+    //          input_string[0],
+    //          input_string[1],
+    //          input_string[2],
+    //          input_string[3],
+    //          input_string[4],
+    //          input_string[5],
+    //          input_string[6],
+    //          input_string[7]);
+
     let mut part_2_string: Vec<usize> = Vec::new();
     for _i in 0..10_000 {
         part_2_string.extend(input_string.iter().cloned())
@@ -18,15 +34,6 @@ fn main() {
         part_2_string = run_ftt_phase(part_2_string);
     }
 
-    println!("Part 1 Answer: {}{}{}{}{}{}{}{}",
-             input_string[0],
-             input_string[1],
-             input_string[2],
-             input_string[3],
-             input_string[4],
-             input_string[5],
-             input_string[6],
-             input_string[7]);
 }
 
 fn read_input_as_vec() -> Vec<usize> {
@@ -42,34 +49,23 @@ fn run_ftt_phase(in_vec: Vec<usize>) -> Vec<usize> {
     let mut out_vec: Vec<usize> = Vec::new();
     for i in 0..in_vec.len() {
         // Calculate the i'th digit of the output vec
-        println!("Calculate digit {} out of {}", i + 1, in_vec.len());
-        let mult_vec = build_mult_vec(in_vec.len(), i);
-        assert_eq!(mult_vec.len(), in_vec.len());
-        out_vec.push((mult_and_sum_arrays(&in_vec, &mult_vec).abs() % 10) as usize);
+        println!("Calculate digit {} out of {}:", i + 1, in_vec.len());
+        out_vec.push(calc_new_digit(i, &in_vec));
     }
     out_vec
 }
 
-fn build_mult_vec(length: usize, leading_zeroes: usize) -> Vec<i8> {
-    let mut out_vec: Vec<i8> = Vec::new();
-    for i in 0..length + 1 {
-        let value = match (i % (4 * (leading_zeroes + 1))) / (leading_zeroes + 1) {
-            0 => 0,
-            1 => 1,
-            2 => 0,
-            3 => -1,
-            bad_num => panic!("Can't have value {} here", bad_num),
-        };
-        out_vec.push(value);
-    }
-    out_vec[1..].to_vec()
-}
-
-fn mult_and_sum_arrays(arr1: &Vec<usize>, arr2: &Vec<i8>) -> i64 {
-    assert_eq!(arr1.len(), arr2.len());
+fn calc_new_digit(index: usize, in_vec: &Vec<usize>) -> usize {
     let mut total: i64 = 0;
-    for i in 0..arr1.len() {
-        total += arr1[i] as i64 * arr2[i] as i64;
+    for i in 0..in_vec.len() {
+        let mult = match ((i + 1) % (4 * (index + 1))) / (index + 1) {
+                0 => 0,
+                1 => 1,
+                2 => 0,
+                3 => -1,
+                bad_num => panic!("Can't have value {} here", bad_num),
+            };
+        total += in_vec[i] as i64 * mult;
     }
-    total
+    (total.abs() % 10) as usize
 }
