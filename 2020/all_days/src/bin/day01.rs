@@ -2,12 +2,8 @@ use std::fs;
 
 fn main() {
     let input = fs::read_to_string("src/bin/input/input01").expect("Failed to read file").lines().map(|line| line.parse()).filter_map(Result::ok).collect();
-
-    let answer_1 = calculate2(&input);
-    println!("Day 1 Part 1: {}", answer_1);
-
-    let answer_2 = calculate3(&input);
-    println!("Day 1 Part 2: {}", answer_2);
+    println!("Day 1 Part 1: {}", calculate2(&input));
+    println!("Day 1 Part 2: {}", calculate3(&input));
 }
 
 fn calculate2(input: &Vec<i32>) -> i32 {
