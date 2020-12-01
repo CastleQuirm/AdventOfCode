@@ -16,9 +16,11 @@ fn main() {
         }
     });
 
-    let mut computer = Computer {program: program_iter.collect(), relative_base: 0};
-    let mut inputs: Vec<usize> = vec![2];
-    run_computer(&mut computer, &mut inputs, 0);
+    print!("Part 1 answer: ");
+    run_computer(&mut Computer {program: program_iter.clone().collect(), relative_base: 0}, &mut vec![1], 0);
+    print!("Part 2 answer: ");
+    run_computer(&mut Computer {program: program_iter.clone().collect(), relative_base: 0}, &mut vec![2], 0);
+
 }
 
 fn run_computer(computer: &mut Computer, inputs: &mut Vec<usize>, start_index: usize) {
