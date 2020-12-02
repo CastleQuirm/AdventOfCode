@@ -1,13 +1,4 @@
-mod utils;
 mod day1;
-mod day2;
-mod day3;
-mod day4;
-mod day5;
-mod day6;
-mod day7;
-mod day8;
-mod day9;
 mod day10;
 mod day11;
 mod day12;
@@ -18,12 +9,21 @@ mod day16;
 mod day17;
 mod day18;
 mod day19;
+mod day2;
 mod day20;
 mod day21;
 mod day22;
 mod day23;
 mod day24;
 mod day25;
+mod day3;
+mod day4;
+mod day5;
+mod day6;
+mod day7;
+mod day8;
+mod day9;
+mod utils;
 
 use std::env;
 
@@ -64,7 +64,9 @@ fn main() {
         min_day = 1;
         max_day = DAY_FUNCTIONS.len();
     } else {
-        min_day = args[1].parse::<usize>().expect("Please provide the day number as an integer.");
+        min_day = args[1]
+            .parse::<usize>()
+            .expect("Please provide the day number as an integer.");
         if (min_day < 1) || (min_day > DAY_FUNCTIONS.len()) {
             panic!("Invalid day specified.");
         }
@@ -75,7 +77,7 @@ fn main() {
         println!("Day {}", day);
         let input_lines = utils::load_inputs(day);
         let start_time = std::time::Instant::now();
-        let (part1, part2) = DAY_FUNCTIONS[day - 1](&input_lines);    
+        let (part1, part2) = DAY_FUNCTIONS[day - 1](&input_lines);
         let elapsed = start_time.elapsed().as_micros();
         println!("Part 1: {}\nPart 2: {}", part1, part2);
         println!("{}.{}ms", elapsed / 1000, elapsed % 1000);
