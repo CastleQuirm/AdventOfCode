@@ -1,17 +1,9 @@
-use std::fs;
-
-fn main() {
-    let input: Vec<String> = fs::read_to_string("src/bin/input/input02")
-        .expect("Failed to read file")
-        .lines()
-        .map(std::string::ToString::to_string)
-        .collect();
-    println!("Day 2 Part 1: {}", count_valid_passwords(&input));
-    println!("Day 2 Part 2: {}", count_actual_valid_passwords(&input));
+pub fn day2(input_lines: &[String]) -> (u64, u64) {
+    (count_valid_passwords(&input_lines), count_actual_valid_passwords(&input_lines))
 }
 
-fn count_valid_passwords(input: &[String]) -> usize {
-    input.into_iter().filter(|line| validate_password(line.to_string())).count()
+fn count_valid_passwords(input: &[String]) -> u64 {
+    input.into_iter().filter(|line| validate_password(line.to_string())).count() as u64
 }
 
 fn validate_password(line: String) -> bool {
@@ -31,8 +23,8 @@ fn validate_password(line: String) -> bool {
     letter_count >= lower_bound && letter_count <= upper_bound
 }
 
-fn count_actual_valid_passwords(input: &[String]) -> usize {
-    input.into_iter().filter(|line| validate_real_password(line.to_string())).count()
+fn count_actual_valid_passwords(input: &[String]) -> u64 {
+    input.into_iter().filter(|line| validate_real_password(line.to_string())).count() as u64
 }
 
 fn validate_real_password(line: String) -> bool {

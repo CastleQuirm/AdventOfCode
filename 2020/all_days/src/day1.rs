@@ -1,16 +1,9 @@
-use std::fs;
-
-fn main() {
-    let input = fs::read_to_string("src/bin/input/input01")
-        .expect("Failed to read file")
-        .lines()
-        .map(|line| line.parse().expect("Couldn't parse line"))
-        .collect();
-    println!("Day 1 Part 1: {}", calculate2(&input));
-    println!("Day 1 Part 2: {}", calculate3(&input));
+pub fn day1(input_lines: &[String]) -> (u64, u64) {
+    let input_numbers = input_lines.iter().map(|line| line.parse::<u64>().expect("Line wasn't a number")).collect();
+    (calculate2(&input_numbers), calculate3(&input_numbers))
 }
 
-fn calculate2(input: &Vec<i32>) -> i32 {
+fn calculate2(input: &Vec<u64>) -> u64 {
     for i in 0..input.len() {
         for j in i + 1..input.len() {
             if input[i] + input[j] == 2020 {
@@ -21,7 +14,7 @@ fn calculate2(input: &Vec<i32>) -> i32 {
     0
 }
 
-fn calculate3(input: &Vec<i32>) -> i32 {
+fn calculate3(input: &Vec<u64>) -> u64 {
     for i in 0..input.len() {
         for j in i + 1..input.len() {
             for k in j + 1..input.len() {
