@@ -1,7 +1,7 @@
 pub fn day2(input_lines: &[String]) -> (u64, u64) {
     let split_lines = input_lines
         .iter()
-        .map(parse_rule_and_password)
+        .map(|line| parse_rule_and_password(&line))
         .collect::<Vec<RuleAndPassword>>();
 
     (
@@ -18,7 +18,7 @@ struct RuleAndPassword {
     password: String,
 }
 
-fn parse_rule_and_password(line: &String) -> RuleAndPassword {
+fn parse_rule_and_password(line: &str) -> RuleAndPassword {
     let params = line.split(|c| c == ' ' || c == '-').collect::<Vec<&str>>();
     RuleAndPassword {
         num1: params[0].parse().expect("First value wasn't a number"),
