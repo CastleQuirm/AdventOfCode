@@ -1,3 +1,7 @@
+// Potential improvements:
+// 1. Improve the line parsing.  Investigate nom.
+// 2. Single walk of the split_lines vector after we've created it, to get both results.
+
 pub fn day2(input_lines: &[String]) -> (u64, u64) {
     let split_lines = input_lines
         .iter()

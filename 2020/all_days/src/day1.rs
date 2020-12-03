@@ -1,3 +1,7 @@
+// Potential improvements:
+// 1: Make the format more of a functional programming style
+// 2: Improve on the O(n^2) and O(n^3) behaviours.
+
 pub fn day1(input_lines: &[String]) -> (u64, u64) {
     let input_numbers: Vec<u64> = input_lines
         .iter()
