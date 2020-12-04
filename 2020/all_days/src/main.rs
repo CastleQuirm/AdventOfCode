@@ -56,6 +56,8 @@ static DAY_FUNCTIONS: [DayFunction; 25] = [
     day25::day25,
 ];
 
+static SINGLE_INPUT_DAYS: [usize; 1] = [4];
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let min_day: usize;
@@ -75,7 +77,11 @@ fn main() {
 
     for day in min_day..=max_day {
         println!("Day {}", day);
-        let input_lines = utils::load_inputs(day);
+        let input_lines: Vec<String> = if SINGLE_INPUT_DAYS.contains(&day) {
+            utils::load_inputs_as_one(day)
+        } else {
+            utils::load_inputs_by_line(day)
+        };
         let start_time = std::time::Instant::now();
         let (part1, part2) = DAY_FUNCTIONS[day - 1](&input_lines);
         let elapsed = start_time.elapsed().as_micros();
