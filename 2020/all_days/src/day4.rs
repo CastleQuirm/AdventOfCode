@@ -5,7 +5,6 @@ pub fn day4(input_lines: &[String]) -> (u64, u64) {
         .split("\n\n")
         .map(|passport| make_passport(passport))
         .collect();
-    // Create Passport object that
     (
         passports.iter().filter(|p| present(p)).count() as u64,
         passports.iter().filter(|p| valid(p)).count() as u64,
@@ -70,7 +69,7 @@ fn valid(p: &Passport) -> bool {
     let hcl_valid = if p.hcl.is_some() {
         let hcl = p.hcl.as_ref().expect("");
         hcl.len() == 7
-            && hcl.chars().next() == Some('#')
+            && hcl.starts_with('#')
             && hcl.chars().filter(|&c| is_hex_digit(c)).count() == 6
     } else {
         false
@@ -78,8 +77,7 @@ fn valid(p: &Passport) -> bool {
     let ecl_valid = vec!["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
         .iter()
         .map(|s| s.to_string())
-        .collect::<Vec<String>>()
-        .contains(p.ecl.as_ref().unwrap_or(&"".to_string()));
+        .any(|x| &x == p.ecl.as_ref().unwrap_or(&"".to_string()));
     let pid_valid = if p.pid.is_some() {
         let pid_unwrap: &String = p.pid.as_ref().unwrap();
         pid_unwrap.len() == 9 && pid_unwrap.parse::<i32>().is_ok()
