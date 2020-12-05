@@ -1,3 +1,12 @@
+// Possible improvements
+// 1: Go back to using a the same input as the earlier days (or make those days use the same input as this one!)
+// 2: Make this more robust.  There's a bunch of inputs that would cause this to crash e.g. if any of BYR, IYR or EYR weren't a number.
+// 3: Make more functional, in particular hgt_valid and hcl_valid
+// 4: Maybe make the parameter values better tracked rather than magic values in the middle of the code
+// 5: Break out "valid" to have subfunctions.
+// 6: Neaten up all the String/&str transformations etc
+// 7: Improve string consumption e.g. look into Nom.
+
 use std::collections::HashMap;
 
 pub fn day4(input_lines: &[String]) -> (u64, u64) {
