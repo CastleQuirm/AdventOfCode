@@ -8,3 +8,4 @@ publish = ["metaswitch"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+array_tool = "1.0.3"
