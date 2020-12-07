@@ -1,3 +1,11 @@
+// Possible improvements: so many!
+// 1: Make it more functional (how?) (remove the extensive use of muts, whiles and fors, but...what does the result look like?)
+// 2: Make it faster (current version takes > 1s) (how?)
+// 3: Would approach (b) be nicer?  For either part 1 or 2?
+// 4: Add types for the Hashes, which is more readable, more useful and approaches Clippy better.
+// 5: Rename the multiple similarly named things.
+// 6: Other?
+
 use array_tool::vec::Union;
 use std::collections::HashMap;
 
@@ -31,7 +39,6 @@ pub fn day7(input_lines: &[String]) -> (u64, u64) {
 
     // Bit of a mess here!
     while !contents.is_empty() {
-        println!("{:?}", contents);
         let new_colour = contents
             .keys()
             .next()
@@ -46,7 +53,7 @@ pub fn day7(input_lines: &[String]) -> (u64, u64) {
             .clone(); // Contents of shiny gold
         bag_count += number_of_colour;
         for (amount, inner_bag) in holding_colours {
-            let existing_count = contents.get(&inner_bag).unwrap_or(&0);
+            let existing_count = *contents.get(&inner_bag).unwrap_or(&0);
             contents.insert(inner_bag, amount * number_of_colour + existing_count);
         }
     }
