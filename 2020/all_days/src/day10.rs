@@ -6,33 +6,45 @@
 
 pub fn day10(input_lines: &[String]) -> (u64, u64) {
     // println!("number of lines is {}", input_lines.len());
-    let max_value: usize = input_lines.iter().map(|line| line.parse().expect("Count't parse a line")).max().expect("List was empty?");
+    let max_value: usize = input_lines
+        .iter()
+        .map(|line| line.parse().expect("Count't parse a line"))
+        .max()
+        .expect("List was empty?");
     // println!("Max Value is {}", max_value);
     let count_threes = (max_value - input_lines.len()) / 2;
     let count_ones = input_lines.len() - count_threes;
     // println!("Count of 1s: {}, Count of 3s: {}", count_ones, count_threes + 1);
-    
+
     // Part 2: Count sub-arrays of 1-gaps (can I use split?) and collect these.  Map them to permutations and compute the product.
     // "Map to permutations": mapping of [1,2,3,...] -> [1,1,2,<sum of three previous elements>]
 
-    let mut sorted_array = input_lines.iter().map(|line| line.parse().expect("Count't parse a line")).collect::<Vec<usize>>();
-    sorted_array.sort();
+    let mut sorted_array = input_lines
+        .iter()
+        .map(|line| line.parse().expect("Count't parse a line"))
+        .collect::<Vec<usize>>();
+    sorted_array.sort_unstable();
     let mut blocks_of_ones: Vec<usize> = Vec::new();
     let mut counter = 0;
 
     for i in 0..sorted_array.len() {
         // println!("i: {}, array_num: {}, Current counter: {}", i, sorted_array[i], counter);
         counter += 1;
-        if (i == 0 && sorted_array[0] == 3) || (i != 0 && sorted_array[i] == sorted_array[i-1] + 3) {
+        if (i == 0 && sorted_array[0] == 3)
+            || (i != 0 && sorted_array[i] == sorted_array[i - 1] + 3)
+        {
             blocks_of_ones.push(counter);
             counter = 0;
             // println!("blocks_of_ones: {:?}", blocks_of_ones);
         }
     }
-    blocks_of_ones.push(counter+1);
+    blocks_of_ones.push(counter + 1);
     // println!("{:?}", blocks_of_ones);
 
-    ((count_ones * (count_threes + 1)) as u64, blocks_of_ones.iter().map(|&x| perms_of(x)).product::<u64>())
+    (
+        (count_ones * (count_threes + 1)) as u64,
+        blocks_of_ones.iter().map(|&x| perms_of(x)).product::<u64>(),
+    )
 }
 
 fn perms_of(size: usize) -> u64 {
@@ -45,7 +57,7 @@ fn perms_of(size: usize) -> u64 {
         5 => 7,
         6 => 13,
         7 => 24,
-        _ => 0 
+        _ => 0,
     }
 }
 
@@ -55,8 +67,7 @@ mod tests {
 
     #[test]
     fn simple_test() {
-        let input_lines = 
-"16
+        let input_lines = "16
 10
 15
 5
@@ -67,16 +78,15 @@ mod tests {
 6
 12
 4"
-            .lines()
-            .map(std::string::ToString::to_string)
-            .collect::<Vec<String>>();
+        .lines()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<String>>();
         assert_eq!(day10(&input_lines), (35, 8));
     }
 
     #[test]
     fn complex_test() {
-        let input_lines = 
-"28
+        let input_lines = "28
 33
 18
 42
@@ -107,9 +117,9 @@ mod tests {
 34
 10
 3"
-                    .lines()
-                    .map(std::string::ToString::to_string)
-                    .collect::<Vec<String>>();
-                assert_eq!(day10(&input_lines), (220, 19208));
+        .lines()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<String>>();
+        assert_eq!(day10(&input_lines), (220, 19208));
     }
 }
