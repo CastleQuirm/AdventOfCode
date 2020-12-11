@@ -86,7 +86,7 @@ fn main() {
         let (part1, part2) = DAY_FUNCTIONS[day - 1](&input_lines);
         let elapsed = start_time.elapsed().as_micros();
         println!("Part 1: {}\nPart 2: {}", part1, part2);
-        println!("{}.{}ms", elapsed / 1000, elapsed % 1000);
+        println!("{}.{:03}ms", elapsed / 1000, elapsed % 1000);
         println!("----------");
     }
 }
