@@ -1,11 +1,23 @@
+// Potential improvements:
+// 1: Try and make part2_calc() more readable, somehow.
+// 2: Clean up the assert in bus_to_num_and_wait() so we behave correctly in the off-chance that there is a 0 answer.
+
 pub fn day13(input_lines: &[String]) -> (u64, u64) {
     let arrival_time = input_lines[0]
         .parse::<u64>()
         .expect("Couldn't read first line number");
-    let (chosen_bus, wait) = input_lines[1]
+    let bus_list = input_lines[1]
         .split(',')
-        .filter(|&c| c != "x")
-        .map(|bus| bus_to_num_and_wait(arrival_time, bus))
+        .map(|slot| slot.parse::<u64>())
+        .collect::<Vec<Result<u64, _>>>();
+    (part1_calc(arrival_time, &bus_list), part2_calc(&bus_list))
+}
+
+fn part1_calc(arrival_time: u64, bus_list: &[Result<u64, std::num::ParseIntError>]) -> u64 {
+    let (chosen_bus, wait) = bus_list
+        .iter()
+        .filter(|entry| entry.is_ok())
+        .map(|bus| bus_to_num_and_wait(arrival_time, *bus.as_ref().expect("Filtered out the x's")))
         .fold((0, arrival_time), |previous, new| {
             if new.1 < previous.1 {
                 new
@@ -13,25 +25,18 @@ pub fn day13(input_lines: &[String]) -> (u64, u64) {
                 previous
             }
         });
-
-    let bus_list = input_lines[1]
-        .split(',')
-        .map(|slot| slot.parse::<u64>())
-        .collect::<Vec<Result<u64, _>>>();
-    let part2_answer = part2_calc(bus_list);
-    (chosen_bus * wait, part2_answer)
+    chosen_bus * wait
 }
 
-fn bus_to_num_and_wait(arrival_time: u64, bus: &str) -> (u64, u64) {
-    let bus_number = bus.parse::<u64>().expect("Non-X Bus didn't parse");
-    let wait = bus_number - (arrival_time % bus_number);
+fn bus_to_num_and_wait(arrival_time: u64, bus: u64) -> (u64, u64) {
+    let wait = bus - (arrival_time % bus);
     // The assert's in here because if it fails, we'd need to change the value of wait.
     // Mechanically it could fail, but if it does, the answer (to Part 1) is just 0, which seems unlikely.
-    assert!(wait != bus_number);
-    (bus_number, wait)
+    assert!(wait != bus);
+    (bus, wait)
 }
 
-fn part2_calc(bus_list: Vec<Result<u64, std::num::ParseIntError>>) -> u64 {
+fn part2_calc(bus_list: &[Result<u64, std::num::ParseIntError>]) -> u64 {
     (0..bus_list.len())
         .fold((0, 1 as u64), |(candidate_t, lcm), i| {
             match bus_list[i] {
@@ -98,10 +103,10 @@ mod tests {
             .split(',')
             .map(|slot| slot.parse::<u64>())
             .collect::<Vec<Result<u64, _>>>();
-        assert_eq!(part2_calc(example_1), 3417);
-        assert_eq!(part2_calc(example_2), 754018);
-        assert_eq!(part2_calc(example_3), 779210);
-        assert_eq!(part2_calc(example_4), 1261476);
-        assert_eq!(part2_calc(example_5), 1202161486);
+        assert_eq!(part2_calc(&example_1), 3417);
+        assert_eq!(part2_calc(&example_2), 754018);
+        assert_eq!(part2_calc(&example_3), 779210);
+        assert_eq!(part2_calc(&example_4), 1261476);
+        assert_eq!(part2_calc(&example_5), 1202161486);
     }
 }
