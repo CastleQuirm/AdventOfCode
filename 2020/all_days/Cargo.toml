@@ -9,3 +9,4 @@ publish = ["metaswitch"]
 
 [dependencies]
 array_tool = "1.0.3"
+extended-rational = "1.3.3"
