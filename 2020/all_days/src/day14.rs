@@ -1,10 +1,13 @@
 use std::collections::HashMap;
 
 pub fn day14(input_lines: &[String]) -> (u64, u64) {
-    (part1_calc(input_lines), part2_calc(input_lines))
+    (
+        calc(input_lines, part1_mem_action),
+        calc(input_lines, part2_mem_action),
+    )
 }
 
-fn part1_calc(input_lines: &[String]) -> u64 {
+fn calc(input_lines: &[String], calc_func: fn(&mut HashMap<u64, u64>, &str, &mut Bitmask)) -> u64 {
     let mut mask: Bitmask = Bitmask {
         mask: "".to_string(),
     };
@@ -16,54 +19,43 @@ fn part1_calc(input_lines: &[String]) -> u64 {
             }
         }
         "mem" => {
-            records.insert(
-                get_address_from_line(line),
-                mask.apply_v1_mask(get_saved_val_from_line(line)),
-            );
+            calc_func(&mut records, line, &mut mask);
         }
         _ => unreachable!(),
     });
     records.values().sum()
 }
 
-fn part2_calc(input_lines: &[String]) -> u64 {
-    let mut mask: Bitmask = Bitmask {
-        mask: "".to_string(),
-    };
-    let mut records: HashMap<u64, u64> = HashMap::new();
-    input_lines.iter().for_each(|line| match &line[0..3] {
-        "mas" => {
-            mask = Bitmask {
-                mask: line[7..].to_string(),
-            };
-        }
-        "mem" => {
-            let masked_address = mask.mask_address(get_address_from_line(line)); // String including Xs.
-            let mut defined_vals: Vec<String> = vec![masked_address.clone()];
-            (0..masked_address.len())
-                .filter(|&i| masked_address.chars().nth(i).unwrap() == 'X')
-                .for_each(|i| {
-                    let mut replace_0: Vec<String> = defined_vals
-                        .iter()
-                        .map(|val| replace_x(val, i, '0'))
-                        .collect::<Vec<String>>();
-                    let mut replace_1: Vec<String> = defined_vals
-                        .iter()
-                        .map(|val| replace_x(val, i, '1'))
-                        .collect::<Vec<String>>();
-                    replace_0.append(&mut replace_1);
-                    defined_vals = replace_0;
-                });
-            defined_vals.iter().for_each(|val| {
-                records.insert(
-                    isize::from_str_radix(&val, 2).unwrap() as u64,
-                    get_saved_val_from_line(line),
-                );
-            });
-        }
-        _ => unreachable!(),
+fn part1_mem_action(records: &mut HashMap<u64, u64>, line: &str, mask: &mut Bitmask) {
+    records.insert(
+        get_address_from_line(line),
+        mask.apply_v1_mask(get_saved_val_from_line(line)),
+    );
+}
+
+fn part2_mem_action(records: &mut HashMap<u64, u64>, line: &str, mask: &mut Bitmask) {
+    let masked_address = mask.mask_address(get_address_from_line(line)); // String including Xs.
+    let mut defined_vals: Vec<String> = vec![masked_address.clone()];
+    (0..masked_address.len())
+        .filter(|&i| masked_address.chars().nth(i).unwrap() == 'X')
+        .for_each(|i| {
+            let mut replace_0: Vec<String> = defined_vals
+                .iter()
+                .map(|val| replace_x(val, i, '0'))
+                .collect::<Vec<String>>();
+            let mut replace_1: Vec<String> = defined_vals
+                .iter()
+                .map(|val| replace_x(val, i, '1'))
+                .collect::<Vec<String>>();
+            replace_0.append(&mut replace_1);
+            defined_vals = replace_0;
+        });
+    defined_vals.iter().for_each(|val| {
+        records.insert(
+            isize::from_str_radix(&val, 2).unwrap() as u64,
+            get_saved_val_from_line(line),
+        );
     });
-    records.values().sum()
 }
 
 fn replace_x(val: &str, index: usize, replacement: char) -> String {
@@ -127,7 +119,7 @@ impl Bitmask {
 
 #[cfg(test)]
 mod tests {
-    use super::{part1_calc, part2_calc};
+    use super::{calc, part1_mem_action, part2_mem_action};
 
     #[test]
     fn part1_example() {
@@ -138,7 +130,7 @@ mem[8] = 0"
             .lines()
             .map(std::string::ToString::to_string)
             .collect::<Vec<String>>();
-        assert_eq!(part1_calc(&sample_input), 165);
+        assert_eq!(calc(&sample_input, part1_mem_action), 165);
     }
 
     #[test]
@@ -150,6 +142,6 @@ mem[26] = 1"
             .lines()
             .map(std::string::ToString::to_string)
             .collect::<Vec<String>>();
-        assert_eq!(part2_calc(&sample_input), 208);
+        assert_eq!(calc(&sample_input, part2_mem_action), 208);
     }
 }

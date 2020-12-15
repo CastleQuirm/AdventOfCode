@@ -11,10 +11,7 @@ pub fn day15(input_lines: &[String]) -> (u64, u64) {
         next_entry = take_turn(turn_num, &starting_numbers, &mut last_said, next_entry)
     });
     let part1_answer = next_entry as u64;
-
-    last_said = HashMap::new();
-    next_entry = starting_numbers[0];
-    (0..30000000 - 1).for_each(|turn_num| {
+    (2020 - 1..30000000 - 1).for_each(|turn_num| {
         next_entry = take_turn(turn_num, &starting_numbers, &mut last_said, next_entry)
     });
     let part2_answer = next_entry as u64;
@@ -49,11 +46,11 @@ mod tests {
     use super::day15;
 
     #[test]
-    fn part1_example() {
+    fn day15_example() {
         let example = "0,3,6"
             .lines()
             .map(std::string::ToString::to_string)
             .collect::<Vec<String>>();
-        assert_eq!(day15(&example).0, 436);
+        assert_eq!(day15(&example), (436, 175594));
     }
 }
