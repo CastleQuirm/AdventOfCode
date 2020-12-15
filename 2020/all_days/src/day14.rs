@@ -6,21 +6,19 @@ pub fn day14(input_lines: &[String]) -> (u64, u64) {
 
 fn part1_calc(input_lines: &[String]) -> u64 {
     let mut mask: Bitmask = Bitmask {
-        mask: "".to_string()
+        mask: "".to_string(),
     };
     let mut records: HashMap<u64, u64> = HashMap::new();
     input_lines.iter().for_each(|line| match &line[0..3] {
         "mas" => {
             mask = Bitmask {
-                mask: line[7..].to_string()
+                mask: line[7..].to_string(),
             }
         }
         "mem" => {
             records.insert(
                 get_address_from_line(line),
-                mask.apply_v1_mask(
-                    get_saved_val_from_line(line)
-                ),
+                mask.apply_v1_mask(get_saved_val_from_line(line)),
             );
         }
         _ => unreachable!(),
@@ -30,13 +28,13 @@ fn part1_calc(input_lines: &[String]) -> u64 {
 
 fn part2_calc(input_lines: &[String]) -> u64 {
     let mut mask: Bitmask = Bitmask {
-        mask: "".to_string()
+        mask: "".to_string(),
     };
     let mut records: HashMap<u64, u64> = HashMap::new();
     input_lines.iter().for_each(|line| match &line[0..3] {
         "mas" => {
             mask = Bitmask {
-                mask: line[7..].to_string()
+                mask: line[7..].to_string(),
             };
         }
         "mem" => {
@@ -57,7 +55,10 @@ fn part2_calc(input_lines: &[String]) -> u64 {
                     defined_vals = replace_0;
                 });
             defined_vals.iter().for_each(|val| {
-                records.insert(isize::from_str_radix(&val, 2).unwrap() as u64, get_saved_val_from_line(line));
+                records.insert(
+                    isize::from_str_radix(&val, 2).unwrap() as u64,
+                    get_saved_val_from_line(line),
+                );
             });
         }
         _ => unreachable!(),
@@ -95,7 +96,7 @@ fn get_saved_val_from_line(line: &str) -> u64 {
 }
 
 struct Bitmask {
-    mask: String
+    mask: String,
 }
 impl Bitmask {
     fn apply_v1_mask(&self, store_num: u64) -> u64 {
@@ -108,17 +109,19 @@ impl Bitmask {
         isize::from_str_radix(&self.mask.replace("X", "0"), 2).unwrap() as u64
     }
     fn mask_address(&self, address: u64) -> String {
-        let result = 
-            (0..self.mask.len()).map(|i| if self.mask.chars().nth(i).unwrap() == '0' {
-                if ((address >> (35-i)) % 2) == 1 {
-                    '1'
+        (0..self.mask.len())
+            .map(|i| {
+                if self.mask.chars().nth(i).unwrap() == '0' {
+                    if ((address >> (35 - i)) % 2) == 1 {
+                        '1'
+                    } else {
+                        '0'
+                    }
                 } else {
-                    '0'
+                    self.mask.chars().nth(i).unwrap()
                 }
-            } else {
-                self.mask.chars().nth(i).unwrap()
-            }).collect();
-        result
+            })
+            .collect()
     }
 }
 
