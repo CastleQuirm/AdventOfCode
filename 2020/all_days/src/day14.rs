@@ -6,31 +6,20 @@ pub fn day14(input_lines: &[String]) -> (u64, u64) {
 
 fn part1_calc(input_lines: &[String]) -> u64 {
     let mut mask: Bitmask = Bitmask {
-        mask: "".to_string(),
-        possible_vals: Vec::new(),
+        mask: "".to_string()
     };
     let mut records: HashMap<u64, u64> = HashMap::new();
     input_lines.iter().for_each(|line| match &line[0..3] {
         "mas" => {
             mask = Bitmask {
-                mask: line[7..].to_string(),
-                possible_vals: Vec::new(),
+                mask: line[7..].to_string()
             }
         }
         "mem" => {
             records.insert(
-                line[4..]
-                    .split(']')
-                    .next()
-                    .expect("Didn't recognise the memory location")
-                    .parse::<u64>()
-                    .expect("Couldn't recognise number for location"),
+                get_address_from_line(line),
                 mask.apply_v1_mask(
-                    line.split(' ')
-                        .next_back()
-                        .expect("Didn't find a value to store")
-                        .parse::<u64>()
-                        .expect("Couldn't parse the value to store"),
+                    get_saved_val_from_line(line)
                 ),
             );
         }
@@ -41,30 +30,35 @@ fn part1_calc(input_lines: &[String]) -> u64 {
 
 fn part2_calc(input_lines: &[String]) -> u64 {
     let mut mask: Bitmask = Bitmask {
-        mask: "".to_string(),
-        possible_vals: Vec::new(),
+        mask: "".to_string()
     };
     let mut records: HashMap<u64, u64> = HashMap::new();
     input_lines.iter().for_each(|line| match &line[0..3] {
         "mas" => {
             mask = Bitmask {
-                mask: line[7..].to_string(),
-                possible_vals: Vec::new(),
+                mask: line[7..].to_string()
             };
-            // This doesn't work.  We need to keep in with the X values so that we know the 0s in order to or them, while overwritting the Xs.
-            mask.generate_new_masks();
         }
         "mem" => {
-            let stored_value = line
-                .split(' ')
-                .next_back()
-                .expect("Didn't find a value to store")
-                .parse::<u64>()
-                .expect("Couldn't parse the value to store");
-            // Need to map this in some other way as well?
-            mask.possible_vals.iter().for_each(|&location| {
-                records.insert(location, stored_value);
-            })
+            let masked_address = mask.mask_address(get_address_from_line(line)); // String including Xs.
+            let mut defined_vals: Vec<String> = vec![masked_address.clone()];
+            (0..masked_address.len())
+                .filter(|&i| masked_address.chars().nth(i).unwrap() == 'X')
+                .for_each(|i| {
+                    let mut replace_0: Vec<String> = defined_vals
+                        .iter()
+                        .map(|val| replace_x(val, i, '0'))
+                        .collect::<Vec<String>>();
+                    let mut replace_1: Vec<String> = defined_vals
+                        .iter()
+                        .map(|val| replace_x(val, i, '1'))
+                        .collect::<Vec<String>>();
+                    replace_0.append(&mut replace_1);
+                    defined_vals = replace_0;
+                });
+            defined_vals.iter().for_each(|val| {
+                records.insert(isize::from_str_radix(&val, 2).unwrap() as u64, get_saved_val_from_line(line));
+            });
         }
         _ => unreachable!(),
     });
@@ -83,9 +77,25 @@ fn replace_x(val: &str, index: usize, replacement: char) -> String {
         .collect()
 }
 
+fn get_address_from_line(line: &str) -> u64 {
+    line[4..]
+        .split(']')
+        .next()
+        .expect("Didn't recognise the memory location")
+        .parse::<u64>()
+        .expect("Couldn't parse the address")
+}
+
+fn get_saved_val_from_line(line: &str) -> u64 {
+    line.split(' ')
+        .next_back()
+        .expect("Didn't find a value to store")
+        .parse::<u64>()
+        .expect("Couldn't parse the value to store")
+}
+
 struct Bitmask {
-    mask: String,
-    possible_vals: Vec<u64>,
+    mask: String
 }
 impl Bitmask {
     fn apply_v1_mask(&self, store_num: u64) -> u64 {
@@ -97,37 +107,19 @@ impl Bitmask {
     fn or_mask(&self) -> u64 {
         isize::from_str_radix(&self.mask.replace("X", "0"), 2).unwrap() as u64
     }
-    fn generate_new_masks(&mut self) {
-        self.possible_vals = Vec::new();
-        let mut defined_vals: Vec<String> = vec![self.mask.clone()];
-        (0..self.mask.len())
-            .filter(|&i| self.mask.chars().nth(i).unwrap() == 'X')
-            .for_each(|i| {
-                let mut replace_0: Vec<String> = defined_vals
-                    .iter()
-                    .map(|val| replace_x(val, i, '0'))
-                    .collect::<Vec<String>>();
-                let mut replace_1: Vec<String> = defined_vals
-                    .iter()
-                    .map(|val| replace_x(val, i, '1'))
-                    .collect::<Vec<String>>();
-                replace_0.append(&mut replace_1);
-                defined_vals = replace_0;
-            });
-
-        self.possible_vals = defined_vals
-            .iter()
-            .map(|val| isize::from_str_radix(val, 2).unwrap() as u64)
-            .collect::<Vec<u64>>();
-        self.possible_vals.iter().for_each(|val| {
-            println!("Will write to mem {}", val);
-        });
-        println!("...Based on mask {}", self.mask);
+    fn mask_address(&self, address: u64) -> String {
+        let result = 
+            (0..self.mask.len()).map(|i| if self.mask.chars().nth(i).unwrap() == '0' {
+                if ((address >> (35-i)) % 2) == 1 {
+                    '1'
+                } else {
+                    '0'
+                }
+            } else {
+                self.mask.chars().nth(i).unwrap()
+            }).collect();
+        result
     }
-
-    // fn apply_v2_mask(&self, _mem_num: u64) -> Vec<u64> {
-
-    // }
 }
 
 #[cfg(test)]
