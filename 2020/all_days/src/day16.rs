@@ -4,7 +4,10 @@ pub fn day16(input_lines: &[String]) -> (u64, u64) {
     // Parse input into InfoFields and Tickets
     let (rules, my_ticket, other_tickets) = parse_input(input_lines);
     println!("Initially {} other tickets", other_tickets.len());
-    (day16_part1_calc(&rules, &other_tickets), day16_part2_calc(&rules, &my_ticket, &other_tickets))
+    (
+        day16_part1_calc(&rules, &other_tickets),
+        day16_part2_calc(&rules, &my_ticket, &other_tickets),
+    )
 }
 
 fn day16_part1_calc(rules: &[InfoField], other_tickets: &[Ticket]) -> u64 {
@@ -20,8 +23,11 @@ fn day16_part2_calc(rules: &[InfoField], my_ticket: &Ticket, other_tickets: &[Ti
     // Filter the rules by those that have impossible values
     // (0..20).for_each(): go through each Ticket and get the set of InfoFields that support its [i]th value, then take the intersection across tickets.
     let valid_values = all_valid_values(&rules);
-    let valid_tickets = other_tickets.iter().filter(|ticket| ticket.ticket_valid(&valid_values)).collect::<Vec<&Ticket>>();
-    
+    let _valid_tickets = other_tickets
+        .iter()
+        .filter(|ticket| ticket.ticket_valid(&valid_values))
+        .collect::<Vec<&Ticket>>();
+
     // Commented out because this is REALLY slow.  2 minutes in release build slow.
     // let possible_rules_vec = (0..20).map(|i| {
     //     let nums_at_position = valid_tickets.clone().into_iter().map(|ticket| ticket.field_data[i]).collect::<Vec<usize>>();
@@ -40,7 +46,12 @@ fn day16_part2_calc(rules: &[InfoField], my_ticket: &Ticket, other_tickets: &[Ti
 
     // I hand solved the necessary indices from printing out some of the above results.  Codifying would be...nicer.  To be done another time!
     // Use indices 5, 8, 10, 13, 16 and 18
-    (my_ticket.field_data[5] * my_ticket.field_data[8] * my_ticket.field_data[10] * my_ticket.field_data[13] * my_ticket.field_data[16] * my_ticket.field_data[18]) as u64
+    (my_ticket.field_data[5]
+        * my_ticket.field_data[8]
+        * my_ticket.field_data[10]
+        * my_ticket.field_data[13]
+        * my_ticket.field_data[16]
+        * my_ticket.field_data[18]) as u64
 }
 
 fn parse_input(input_lines: &[String]) -> (Vec<InfoField>, Ticket, Vec<Ticket>) {
