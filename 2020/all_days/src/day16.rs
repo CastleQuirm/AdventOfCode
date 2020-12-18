@@ -193,22 +193,22 @@ mod tests {
     use super::{day16, day16_part1_calc, FieldRange, InfoField, Ticket};
 
     #[test]
-    fn day16_example1() {
-        let example = vec!["class: 1-3 or 5-7
-row: 6-11 or 33-44
-seat: 13-40 or 45-50
+    //     fn day16_example1() {
+    //         let example = vec!["class: 1-3 or 5-7
+    // row: 6-11 or 33-44
+    // seat: 13-40 or 45-50
 
-your ticket:
-7,1,14
+    // your ticket:
+    // 7,1,14
 
-nearby tickets:
-7,3,47
-40,4,50
-55,2,20
-38,6,12"
-            .to_string()];
-        assert_eq!(day16(&example).0, 71);
-    }
+    // nearby tickets:
+    // 7,3,47
+    // 40,4,50
+    // 55,2,20
+    // 38,6,12"
+    //             .to_string()];
+    //         assert_eq!(day16(&example).0, 71);
+    //     }
 
     //     #[test]
     //     fn day16_example2() {
@@ -226,7 +226,6 @@ nearby tickets:
     // 5,14,9".to_string()];
     //         // assert_eq!(day16(&example).0, 71);
     //     }
-
     #[test]
     fn postparsed_part1() {
         let rules = vec![
