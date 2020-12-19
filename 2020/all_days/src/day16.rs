@@ -190,7 +190,7 @@ impl Ticket {
 
 #[cfg(test)]
 mod tests {
-    use super::{day16, day16_part1_calc, FieldRange, InfoField, Ticket};
+    use super::{day16_part1_calc, FieldRange, InfoField, Ticket};
 
     #[test]
     //     fn day16_example1() {
