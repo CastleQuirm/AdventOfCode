@@ -11,7 +11,6 @@ pub fn day20(input_lines: &[String]) -> (u64, u64) {
         .map(|tile| Tile::new(tile))
         .collect::<Vec<Tile>>();
     let mut placed_tiles: Vec<(&Tile, Rotation)> = Vec::new();
-    println!("{} Tiles to place", tileset.len());
 
     if !fill_space(&tileset, &mut placed_tiles) {
         println!("Couldn't find an answer");
@@ -32,13 +31,154 @@ pub fn day20(input_lines: &[String]) -> (u64, u64) {
                 .sum::<u64>()
         })
         .sum::<u64>();
-    println!("Total hashses in map: {}", total_hashes_in_map);
 
-    // TODO
-    let num_seamonsters = 0;
+    let constructed_map: Vec<Vec<char>> = (0..96)
+        .map(|y| {
+            // Create the vec of chars for line y.
+            (0..96)
+                .map(|x| {
+                    // Create the char for spot x,y.
+                    let (tile, rot) = &placed_tiles[12 * (y / 8) + (x / 8)];
+                    let raw_map: &Vec<String> = &tile.main_tile;
+                    let (x_index, y_index) = match rot {
+                        Rotation::Original => (x % 8, y % 8),
+                        Rotation::Original90 => (y % 8, 7 - x % 8),
+                        Rotation::Original180 => (7 - x % 8, 7 - y % 8),
+                        Rotation::Original270 => (7 - y % 8, x % 8),
+                        Rotation::Reflect => (7 - x % 8, y % 8),
+                        Rotation::Reflect90 => (y % 8, x % 8),
+                        Rotation::Reflect180 => (x % 8, 7 - y % 8),
+                        Rotation::Reflect270 => (7 - y % 8, 7 - x % 8),
+                    };
+                    raw_map[y_index].chars().nth(x_index).unwrap()
+                })
+                .collect::<Vec<char>>()
+        })
+        .collect::<Vec<Vec<char>>>();
+
+    let num_seamonsters = Rotation::into_enum_iter()
+        .map(|rot| count_seamonsters(&constructed_map, rot))
+        .sum::<u64>();
+
     let part2_answer = total_hashes_in_map - 15 * num_seamonsters;
 
     (part1_answer, part2_answer)
+}
+
+fn count_seamonsters(full_map: &[Vec<char>], rot: Rotation) -> u64 {
+    let max = full_map.len();
+    match rot {
+        Rotation::Original => (1..max - 1)
+            .map(|y| {
+                (0..max - 19)
+                    .filter(|&x| is_seamonster(full_map, x, y, 1, 1))
+                    .count() as u64
+            })
+            .sum(),
+        Rotation::Reflect => (1..max - 1)
+            .map(|y| {
+                (19..max)
+                    .filter(|&x| is_seamonster(full_map, x, y, -1, 1))
+                    .count() as u64
+            })
+            .sum(),
+        Rotation::Reflect180 => (1..max - 1)
+            .map(|y| {
+                (0..max - 19)
+                    .filter(|&x| is_seamonster(full_map, x, y, 1, -1))
+                    .count() as u64
+            })
+            .sum(),
+        Rotation::Original180 => (1..max - 1)
+            .map(|y| {
+                (19..max)
+                    .filter(|&x| is_seamonster(full_map, x, y, -1, -1))
+                    .count() as u64
+            })
+            .sum(),
+        Rotation::Original90 => (1..max - 1)
+            .map(|y| {
+                (19..max)
+                    .filter(|&x| is_rotated_seamonster(full_map, x, y, -1, 1))
+                    .count() as u64
+            })
+            .sum(),
+        Rotation::Original270 => (1..max - 1)
+            .map(|y| {
+                (0..max - 19)
+                    .filter(|&x| is_rotated_seamonster(full_map, x, y, 1, -1))
+                    .count() as u64
+            })
+            .sum(),
+        Rotation::Reflect90 => (1..max - 1)
+            .map(|y| {
+                (0..max - 19)
+                    .filter(|&x| is_rotated_seamonster(full_map, x, y, 1, 1))
+                    .count() as u64
+            })
+            .sum(),
+        Rotation::Reflect270 => (1..max - 1)
+            .map(|y| {
+                (19..max)
+                    .filter(|&x| is_rotated_seamonster(full_map, x, y, -1, -1))
+                    .count() as u64
+            })
+            .sum(),
+    }
+}
+
+fn is_seamonster(full_map: &[Vec<char>], x: usize, y: usize, x_mult: isize, y_mult: isize) -> bool {
+    let monster_cells: Vec<char> = vec![
+        full_map[y][x],
+        full_map[ind(y, 1, y_mult)][ind(x, 1, x_mult)],
+        full_map[ind(y, 1, y_mult)][ind(x, 4, x_mult)],
+        full_map[y][ind(x, 5, x_mult)],
+        full_map[y][ind(x, 6, x_mult)],
+        full_map[ind(y, 1, y_mult)][ind(x, 7, x_mult)],
+        full_map[ind(y, 1, y_mult)][ind(x, 10, x_mult)],
+        full_map[y][ind(x, 11, x_mult)],
+        full_map[y][ind(x, 12, x_mult)],
+        full_map[ind(y, 1, y_mult)][ind(x, 13, x_mult)],
+        full_map[ind(y, 1, y_mult)][ind(x, 16, x_mult)],
+        full_map[y][ind(x, 17, x_mult)],
+        full_map[y][ind(x, 18, x_mult)],
+        full_map[y][ind(x, 19, x_mult)],
+        full_map[ind(y, 1, -y_mult)][ind(x, 18, x_mult)],
+    ];
+
+    monster_cells.iter().all(|&c| c == '#')
+}
+
+fn is_rotated_seamonster(
+    full_map: &[Vec<char>],
+    x: usize,
+    y: usize,
+    x_mult: isize,
+    y_mult: isize,
+) -> bool {
+    let monster_cells: Vec<char> = vec![
+        full_map[x][y],
+        full_map[ind(x, 1, x_mult)][ind(y, 1, y_mult)],
+        full_map[ind(x, 4, x_mult)][ind(y, 1, y_mult)],
+        full_map[ind(x, 5, x_mult)][y],
+        full_map[ind(x, 6, x_mult)][y],
+        full_map[ind(x, 7, x_mult)][ind(y, 1, y_mult)],
+        full_map[ind(x, 10, x_mult)][ind(y, 1, y_mult)],
+        full_map[ind(x, 11, x_mult)][y],
+        full_map[ind(x, 12, x_mult)][y],
+        full_map[ind(x, 13, x_mult)][ind(y, 1, y_mult)],
+        full_map[ind(x, 16, x_mult)][ind(y, 1, y_mult)],
+        full_map[ind(x, 17, x_mult)][y],
+        full_map[ind(x, 18, x_mult)][y],
+        full_map[ind(x, 19, x_mult)][y],
+        full_map[ind(x, 18, x_mult)][ind(y, 1, -y_mult)],
+    ];
+
+    monster_cells.iter().all(|&c| c == '#')
+}
+
+fn ind(num: usize, modif: usize, mult: isize) -> usize {
+    (num as isize + (modif as isize) * mult) as usize
 }
 
 fn fill_space<'a>(tileset: &'a [Tile], already_placed: &mut Vec<(&'a Tile, Rotation)>) -> bool {
@@ -152,7 +292,7 @@ impl Tile {
         let main_tile = lines
             .lines()
             .map(std::string::ToString::to_string)
-            .collect::<Vec<String>>()[2..9]
+            .collect::<Vec<String>>()[2..10]
             .iter()
             .map(|line| line[1..9].to_string())
             .collect::<Vec<String>>();
@@ -246,6 +386,7 @@ impl Tile {
     }
 }
 
+#[derive(PartialEq)]
 enum Direction {
     North,
     East,
@@ -253,7 +394,7 @@ enum Direction {
     West,
 }
 
-#[derive(IntoEnumIterator)]
+#[derive(IntoEnumIterator, PartialEq, Debug)]
 enum Rotation {
     Original,
     Original90, // Rotate clockwise
@@ -276,7 +417,8 @@ fn dir_and_r_dir_values(dir_string: &str) -> (usize, usize) {
 
 #[cfg(test)]
 mod tests {
-    use super::Tile;
+    use super::{count_seamonsters, Rotation, Tile};
+    use enum_iterator::IntoEnumIterator;
 
     #[test]
     fn parse_tile() {
@@ -301,5 +443,113 @@ mod tests {
         assert_eq!(tile.r_east, 616);
         assert_eq!(tile.r_south, 231);
         assert_eq!(tile.r_west, 498);
+    }
+
+    #[test]
+    fn count_sample_seamonsters() {
+        let input: Vec<Vec<char>> = vec![
+            vec![
+                '.', '#', '.', '#', '.', '.', '#', '.', '#', '#', '.', '.', '.', '#', '.', '#',
+                '#', '.', '.', '#', '#', '#', '#', '#',
+            ],
+            vec![
+                '#', '#', '#', '.', '.', '.', '.', '#', '.', '#', '.', '.', '.', '.', '#', '.',
+                '.', '#', '.', '.', '.', '.', '.', '.',
+            ],
+            vec![
+                '#', '#', '.', '#', '#', '.', '#', '#', '#', '.', '#', '.', '#', '.', '.', '#',
+                '#', '#', '#', '#', '#', '.', '.', '.',
+            ],
+            vec![
+                '#', '#', '#', '.', '#', '#', '#', '#', '#', '.', '.', '.', '#', '.', '#', '#',
+                '#', '#', '#', '.', '#', '.', '.', '#',
+            ],
+            vec![
+                '#', '#', '.', '#', '.', '.', '.', '.', '#', '.', '#', '#', '.', '#', '#', '#',
+                '#', '.', '.', '.', '#', '.', '#', '#',
+            ],
+            vec![
+                '.', '.', '.', '#', '#', '#', '#', '#', '#', '#', '#', '.', '#', '.', '.', '.',
+                '.', '#', '#', '#', '#', '#', '.', '#',
+            ],
+            vec![
+                '.', '.', '.', '.', '#', '.', '.', '#', '.', '.', '.', '#', '#', '.', '.', '#',
+                '.', '#', '.', '#', '#', '#', '.', '.',
+            ],
+            vec![
+                '.', '#', '#', '#', '#', '.', '.', '.', '#', '.', '.', '#', '.', '.', '.', '.',
+                '.', '#', '.', '.', '.', '.', '.', '.',
+            ],
+            vec![
+                '#', '.', '.', '#', '.', '#', '#', '.', '.', '#', '.', '.', '#', '#', '#', '.',
+                '#', '.', '#', '#', '.', '.', '.', '.',
+            ],
+            vec![
+                '#', '.', '#', '#', '#', '#', '.', '.', '#', '.', '#', '#', '#', '#', '.', '#',
+                '.', '#', '.', '#', '#', '#', '.', '.',
+            ],
+            vec![
+                '#', '#', '#', '.', '#', '.', '#', '.', '.', '.', '#', '.', '#', '#', '#', '#',
+                '#', '#', '.', '#', '.', '.', '#', '#',
+            ],
+            vec![
+                '#', '.', '#', '#', '#', '#', '.', '.', '.', '.', '#', '#', '.', '.', '#', '#',
+                '#', '#', '#', '#', '#', '#', '.', '#',
+            ],
+            vec![
+                '#', '#', '.', '.', '#', '#', '.', '#', '.', '.', '.', '#', '.', '.', '.', '#',
+                '.', '#', '.', '#', '.', '#', '.', '.',
+            ],
+            vec![
+                '.', '.', '.', '#', '.', '.', '#', '.', '.', '#', '.', '#', '.', '#', '#', '.',
+                '.', '#', '#', '#', '.', '#', '#', '#',
+            ],
+            vec![
+                '.', '#', '.', '#', '.', '.', '.', '.', '#', '.', '#', '#', '.', '#', '.', '.',
+                '.', '#', '#', '#', '.', '#', '#', '.',
+            ],
+            vec![
+                '#', '#', '#', '.', '#', '.', '.', '.', '#', '.', '.', '#', '.', '#', '#', '.',
+                '#', '#', '#', '#', '#', '#', '.', '.',
+            ],
+            vec![
+                '.', '#', '.', '#', '.', '#', '#', '#', '.', '#', '#', '.', '#', '#', '.', '#',
+                '.', '.', '#', '.', '#', '#', '.', '.',
+            ],
+            vec![
+                '.', '#', '#', '#', '#', '.', '#', '#', '#', '.', '#', '.', '.', '.', '#', '#',
+                '#', '.', '#', '.', '.', '#', '.', '#',
+            ],
+            vec![
+                '.', '.', '#', '.', '#', '.', '.', '#', '.', '.', '#', '.', '#', '.', '#', '.',
+                '#', '#', '#', '#', '.', '#', '#', '#',
+            ],
+            vec![
+                '#', '.', '.', '#', '#', '#', '#', '.', '.', '.', '#', '.', '#', '.', '#', '.',
+                '#', '#', '#', '.', '#', '#', '#', '.',
+            ],
+            vec![
+                '#', '#', '#', '#', '#', '.', '.', '#', '#', '#', '#', '#', '.', '.', '.', '#',
+                '#', '#', '.', '.', '.', '.', '#', '#',
+            ],
+            vec![
+                '#', '.', '#', '#', '.', '.', '#', '.', '.', '#', '.', '.', '.', '#', '.', '.',
+                '#', '#', '#', '#', '.', '.', '.', '#',
+            ],
+            vec![
+                '.', '#', '.', '#', '#', '#', '.', '.', '#', '#', '.', '.', '#', '#', '.', '.',
+                '#', '#', '#', '#', '.', '#', '#', '.',
+            ],
+            vec![
+                '.', '.', '.', '#', '#', '#', '.', '.', '.', '#', '#', '.', '.', '.', '#', '.',
+                '.', '.', '#', '.', '.', '#', '#', '#',
+            ],
+        ];
+        assert_eq!(
+            Rotation::into_enum_iter()
+                .map(|rot| count_seamonsters(&input, rot))
+                .sum::<u64>(),
+            2
+        );
     }
 }
