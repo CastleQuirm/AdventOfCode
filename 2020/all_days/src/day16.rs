@@ -1,3 +1,7 @@
+// Potential improvements
+// 1: Actually solve Part 2!  Note opportunity for commonality between this and Day 21 Part 1.
+// 2: Make more efficient: probably better to have a Rule defined by the four bounds and do number comparisons than have hundreds-large HashSets doing contains checks.
+
 use std::collections::HashSet;
 
 pub fn day16(input_lines: &[String]) -> (u64, u64) {

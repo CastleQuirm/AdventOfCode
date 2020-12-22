@@ -1,6 +1,12 @@
 // Possible Part 1 alternative: create a flat vector of all the side values across each tile, then find the unique elements.
-// Then for each tile, count how many of its '8' sides were in theat unique list, and filter to just those tiles with 4 such elements.
+// Then for each tile, count how many of its '8' sides were in that unique list, and filter to just those tiles with 4 such elements.
 // Hope we have four tiles left, in which case those are the corners!  (Shouldn't be able to have more; might have fewer.)
+// The above idea proves ineffective for Part 2, however, which requires the actual layout of tiles to have been found.
+
+// Potential improvements:
+// 1) Matrix multiplication.  If the map fragments were proper matrices with 1s and 0s in place of '#'s and '.'s, I could use matrix multiplication to clean up all the rotation code.
+// 2) is_seamonster and is_rotated_seamonster should be the same function, but I'm not quite certain how.
+// 3) constructed_map should be calculated in its own function, and should be much cleaner (or at least use a common expression for the (7 - x % 8))
 
 use enum_iterator::IntoEnumIterator;
 
