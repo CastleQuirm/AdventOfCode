@@ -17,9 +17,11 @@ fn direction_and_val(line: &String) -> (&str, u64) {
     (direction, val)
 }
 struct SubmarineState {
-    // Note that p1_depth is the same as p2_aim would be, so we don't need to track that separately.
+    // Horizontal distance travelled. This is the same for both parts.
     dist: u64,
+    // Depth of the submarine in Part 1; this is also the "aim" in Part 2.
     p1_depth: u64,
+    // Depth of the submarine in Part 2.
     p2_depth: u64
 }
 
@@ -40,7 +42,6 @@ impl SubmarineState {
     fn process_instruction(&mut self, instruction: &String) {
         let (direction, val) = direction_and_val(instruction);
         match direction {
-            // Note that p1_depth is the same as p2_aim would be, so we don't need to track that separately.
             "forward" => self.forward(val),
             "up" => self.up(val),
             "down" => self.down(val),
