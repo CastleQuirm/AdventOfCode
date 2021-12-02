@@ -1,4 +1,5 @@
 // Potential improvements:
+// Handle possibility of negative aim (although negative p1_depth would be weird conceptually for Part 1!)
 // Rename SubmarineState fields to be more obvious!
 // Make the direction values an enum?
 // Work out a way to make things less mutable?  e.g. create a new SubmarineState for each line?
