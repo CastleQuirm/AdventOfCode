@@ -10,6 +10,9 @@ pub fn day01(input_lines: &[String]) -> (u64, u64) {
         .map(|line| line.parse::<u64>().expect("Line wasn't a number"))
         .collect();
 
+    // NOTE for part 2, we don't need to track rolling sums: we can just compare to the number three before (as opposed to 1 before)
+    // because checking if a + b + c is greater to or less than b + c + d is the same as checking if a is greater to or less than d.
+
     // Solution v1
     // let mut part1 = 0;
     // let mut part2 = 0;
