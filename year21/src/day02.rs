@@ -6,14 +6,20 @@
 
 pub fn day02(input_lines: &[String]) -> (u64, u64) {
     let mut submarine = SubmarineState::new();
-    input_lines.iter().for_each(|line| { submarine.process_instruction(line) });
+    input_lines
+        .iter()
+        .for_each(|line| submarine.process_instruction(line));
     submarine.solution()
 }
 
-fn direction_and_val(line: &String) -> (&str, u64) {
-    let splitline = line.split(" ").collect::<Vec<&str>>();
+fn direction_and_val(line: &str) -> (&str, u64) {
+    let splitline = line.split(' ').collect::<Vec<&str>>();
     let direction = splitline.first().expect("No first part of splitline");
-    let val = splitline.last().expect("No second part of splitline").to_string().parse::<u64>().expect("Couldn't parse the second part as a u64");
+    let val = splitline
+        .last()
+        .expect("No second part of splitline")
+        .parse::<u64>()
+        .expect("Couldn't parse the second part as a u64");
     (direction, val)
 }
 struct SubmarineState {
@@ -22,12 +28,16 @@ struct SubmarineState {
     // Depth of the submarine in Part 1; this is also the "aim" in Part 2.
     p1_depth: u64,
     // Depth of the submarine in Part 2.
-    p2_depth: u64
+    p2_depth: u64,
 }
 
 impl SubmarineState {
     fn new() -> Self {
-        Self { dist: 0, p1_depth: 0, p2_depth: 0 }
+        Self {
+            dist: 0,
+            p1_depth: 0,
+            p2_depth: 0,
+        }
     }
     fn forward(&mut self, val: u64) {
         self.dist += val;
@@ -39,7 +49,7 @@ impl SubmarineState {
     fn down(&mut self, val: u64) {
         self.p1_depth += val;
     }
-    fn process_instruction(&mut self, instruction: &String) {
+    fn process_instruction(&mut self, instruction: &str) {
         let (direction, val) = direction_and_val(instruction);
         match direction {
             "forward" => self.forward(val),

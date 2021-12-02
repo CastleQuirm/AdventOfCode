@@ -22,8 +22,16 @@ pub fn day01(input_lines: &[String]) -> (u64, u64) {
     // }
 
     // Solution v2
-    let part1 = input_numbers.iter().tuple_windows().filter(|(&a, &b)| a < b).count() as u64;
-    let part2 = input_numbers.iter().tuple_windows::<(_, _, _, _)>().filter(|(&a, _, _, &d)| a < d).count() as u64;
+    let part1 = input_numbers
+        .iter()
+        .tuple_windows()
+        .filter(|(&a, &b)| a < b)
+        .count() as u64;
+    let part2 = input_numbers
+        .iter()
+        .tuple_windows::<(_, _, _, _)>()
+        .filter(|(&a, _, _, &d)| a < d)
+        .count() as u64;
 
     // Solution v3 (not working)
     // let (part1, part2) = input_numbers.iter().fold((0, 0), |counts, i| {
