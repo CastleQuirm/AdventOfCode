@@ -20,7 +20,7 @@ fn run_program(input_lines: &[String], switch: Option<usize>) -> (u64, Vec<usize
     let mut accumulator = 0;
     let mut pointer = 0;
     let mut possible_switches: Vec<usize> = Vec::new();
-    let mut covered_lines = [false; 641]; // hack - I know the input is 641 lines
+    let mut covered_lines = [false; 646]; // hack - I know the input is 646 lines
 
     while (pointer < input_lines.len()) && !covered_lines[pointer] {
         let separated_instruction = input_lines[pointer].split(' ');
