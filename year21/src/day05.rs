@@ -39,7 +39,7 @@ impl Map {
         let direction_x = (end.x as i32 - start.x as i32).signum();
         let direction_y = (end.y as i32 - start.y as i32).signum();
 
-        let mut next_spot = start.clone();
+        let mut next_spot = start;
         while next_spot != end {
             self.mark_spot(&next_spot, diagonal);
             next_spot = Coordinate {
@@ -51,7 +51,7 @@ impl Map {
     }
 
     fn mark_spot(&mut self, spot: &Coordinate, diagonal: bool) {
-        let new_danger = if let Some(known_spot) = self.seabed.get(&spot) {
+        let new_danger = if let Some(known_spot) = self.seabed.get(spot) {
             let new_perpendicular = if diagonal {
                 known_spot.perpendicular
             } else {
@@ -69,7 +69,7 @@ impl Map {
             }
         };
 
-        self.seabed.insert(spot.clone(), new_danger);
+        self.seabed.insert(*spot, new_danger);
     }
 }
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
