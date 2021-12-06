@@ -51,25 +51,14 @@ impl Map {
     }
 
     fn mark_spot(&mut self, spot: &Coordinate, diagonal: bool) {
-        let new_danger = if let Some(known_spot) = self.seabed.get(spot) {
-            let new_perpendicular = if diagonal {
-                known_spot.perpendicular
-            } else {
-                known_spot.perpendicular + 1
-            };
-            DangerCount {
-                perpendicular: new_perpendicular,
-                all: known_spot.all + 1,
-            }
-        } else {
-            let perpendicular = if diagonal { 0 } else { 1 };
-            DangerCount {
-                perpendicular,
-                all: 1,
-            }
-        };
-
-        self.seabed.insert(*spot, new_danger);
+        let current_danger = self.seabed.entry(*spot).or_insert(DangerCount {
+            perpendicular: 0,
+            all: 0,
+        });
+        current_danger.all += 1;
+        if !diagonal {
+            current_danger.perpendicular += 1;
+        }
     }
 }
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
