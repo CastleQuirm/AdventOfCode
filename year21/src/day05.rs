@@ -36,8 +36,8 @@ impl Map {
         let end = Coordinate::new(coords.last().expect("No last coordinate"));
         let diagonal = start.x != end.x && start.y != end.y;
 
-        let direction_x = (end.x as i32 - start.x as i32).signum();
-        let direction_y = (end.y as i32 - start.y as i32).signum();
+        let direction_x = (end.x - start.x).signum();
+        let direction_y = (end.y - start.y).signum();
 
         let mut next_spot = start;
         while next_spot != end {
