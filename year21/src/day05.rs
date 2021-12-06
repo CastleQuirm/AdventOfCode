@@ -96,7 +96,6 @@ struct DangerCount {
     all: u64,
 }
 
-
 // Note: the below was my first (two) attempts at solving the problem, preserved for posterity. As the first point notes: it's VERY slow.
 // It's also bugged: the first attempt worked and solved the puzzle, then I tried to improve it and didn't notice I was getting subtly
 // different answers for Part 2, so there's an issue somewhere in the attempts to be clever.
