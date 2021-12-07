@@ -33,7 +33,9 @@ pub fn day07(input_lines: &[String]) -> (u64, u64) {
 
     // I'm vaguely guessing that the best position for part 2 is the arithmetic mean
     // UPDATE: It turns out it was very close... the arithmetic mean of my data came to 466.591;
-    // the actual optimal position was 466 rather than 467.
+    // the actual optimal position was 466 rather than 467.  Probably the optimal solution is to
+    // calculate this, try rounding in both directions, and pick the better.
+
     // let sum: i32 = start_positions.iter().sum();
     // let len: i32 = start_positions.len() as i32;
     // let mean: i32 =
@@ -52,7 +54,6 @@ pub fn day07(input_lines: &[String]) -> (u64, u64) {
     // (movement_to_median as u64, movement_to_mean as u64)
 
     let mut best_movement = i32::MAX;
-    let mut best_position = i32::MAX;
 
     for test in *start_positions.first().unwrap()..*start_positions.last().unwrap() {
         let movement = start_positions.iter().fold(0, |dist, pos| {
@@ -61,12 +62,10 @@ pub fn day07(input_lines: &[String]) -> (u64, u64) {
         });
         if movement < best_movement {
             best_movement = movement;
-            best_position = test;
         } else {
             break;
         }
     }
-    println!("Best position: {}", best_position);
 
     (movement_to_median as u64, best_movement as u64)
 }
