@@ -69,3 +69,17 @@ pub fn day07(input_lines: &[String]) -> (u64, u64) {
 
     (movement_to_median as u64, best_movement as u64)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::day07;
+
+    #[test]
+    fn check_day07() {
+        let input_lines = "16,1,2,0,4,2,7,1,2,14"
+            .lines()
+            .map(std::string::ToString::to_string)
+            .collect::<Vec<String>>();
+        assert_eq!(day07(&input_lines), (37, 168));
+    }
+}

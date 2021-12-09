@@ -67,3 +67,17 @@ impl School {
             + self.time_8
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::day06;
+
+    #[test]
+    fn check_day06() {
+        let input_lines = "3,4,3,1,2"
+            .lines()
+            .map(std::string::ToString::to_string)
+            .collect::<Vec<String>>();
+        assert_eq!(day06(&input_lines), (5934, 26984457539));
+    }
+}

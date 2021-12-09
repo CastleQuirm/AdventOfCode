@@ -85,6 +85,29 @@ struct DangerCount {
     all: u64,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::day05;
+
+    #[test]
+    fn check_day05() {
+        let input_lines = "0,9 -> 5,9
+8,0 -> 0,8
+9,4 -> 3,4
+2,2 -> 2,1
+7,0 -> 7,4
+6,4 -> 2,0
+0,9 -> 2,9
+3,4 -> 1,4
+0,0 -> 8,8
+5,5 -> 8,2"
+            .lines()
+            .map(std::string::ToString::to_string)
+            .collect::<Vec<String>>();
+        assert_eq!(day05(&input_lines), (5, 12));
+    }
+}
+
 // Note: the below was my first (two) attempts at solving the problem, preserved for posterity. As the first point notes: it's VERY slow.
 // It's also bugged: the first attempt worked and solved the puzzle, then I tried to improve it and didn't notice I was getting subtly
 // different answers for Part 2, so there's an issue somewhere in the attempts to be clever.

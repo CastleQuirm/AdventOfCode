@@ -62,3 +62,22 @@ impl SubmarineState {
         (self.dist * self.p1_depth, self.dist * self.p2_depth)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::day02;
+
+    #[test]
+    fn check_day02() {
+        let input_lines = "forward 5
+down 5
+forward 8
+up 3
+down 8
+forward 2"
+            .lines()
+            .map(std::string::ToString::to_string)
+            .collect::<Vec<String>>();
+        assert_eq!(day02(&input_lines), (150, 900));
+    }
+}

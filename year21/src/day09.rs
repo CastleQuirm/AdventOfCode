@@ -109,3 +109,21 @@ impl LowPoint {
         all_cells.len() as u64
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::day09;
+
+    #[test]
+    fn check_day09() {
+        let input_lines = "2199943210
+3987894921
+9856789892
+8767896789
+9899965678"
+            .lines()
+            .map(std::string::ToString::to_string)
+            .collect::<Vec<String>>();
+        assert_eq!(day09(&input_lines), (15, 1134));
+    }
+}

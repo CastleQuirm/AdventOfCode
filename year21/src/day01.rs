@@ -41,3 +41,26 @@ pub fn day01(input_lines: &[String]) -> (u64, u64) {
 
     (part1, part2)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::day01;
+
+    #[test]
+    fn check_day01() {
+        let input_lines = "199
+200
+208
+210
+200
+207
+240
+269
+260
+263"
+        .lines()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<String>>();
+        assert_eq!(day01(&input_lines), (7, 5));
+    }
+}

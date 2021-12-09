@@ -102,3 +102,28 @@ enum Direction {
     Most,
     Least,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::day03;
+
+    #[test]
+    fn check_day03() {
+        let input_lines = "00100
+11110
+10110
+10111
+10101
+01111
+00111
+11100
+10000
+11001
+00010
+01010"
+            .lines()
+            .map(std::string::ToString::to_string)
+            .collect::<Vec<String>>();
+        assert_eq!(day03(&input_lines), (198, 230));
+    }
+}
