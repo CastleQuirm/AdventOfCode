@@ -24,7 +24,7 @@ pub fn day07(input_lines: &[String]) -> (u64, u64) {
         }
         double_median / 2
     } else {
-        start_positions[(start_positions.len() + 1) / 2]
+        start_positions[(start_positions.len() - 1) / 2]
     };
 
     let movement_to_median = start_positions
