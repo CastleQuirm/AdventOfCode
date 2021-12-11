@@ -4,6 +4,8 @@ Repo for Advent of Code challenges.
 
 I'm primarily doing these for fun and general experience with Rust, with a smattering of learning new stuff on the side.
 
+Testing a commit
+
 ## Contents:
 - 2019
   - Most solutions for 2019, in a fairly scattershot arrangement (most of the puzzles involving the computer are in all all_days, other puzzles are their own cargo crates)
