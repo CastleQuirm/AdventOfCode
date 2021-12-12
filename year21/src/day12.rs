@@ -14,10 +14,7 @@ pub fn day12(input_lines: &[String]) -> (u64, u64) {
         .expect("Couldn't find the start cavern!");
     let mut visited: HashSet<String> = HashSet::new();
     visited.insert("start".to_string());
-    let part1 = count_routes_to_end(&cave_system, start_cavern, &visited, false);
-    let part2 = count_routes_to_end(&cave_system, start_cavern, &visited, true);
-
-    (part1, part2)
+    count_routes_to_end(&cave_system, start_cavern, &visited, true)
 }
 
 // Count the number of possible routes to reach the end from a given cave, based on the small caves we've already
@@ -28,7 +25,7 @@ fn count_routes_to_end(
     from: &Cavern,
     visited_small: &HashSet<String>,
     small_repeat_available: bool,
-) -> u64 {
+) -> (u64, u64) {
     from.connected
         .iter()
         .map(|potential_next| {
@@ -37,13 +34,16 @@ fn count_routes_to_end(
                     .get(potential_next)
                     .expect("Couldn't find cavern");
             match next_cavern.size {
-                // We've got a complete path. Return a 1 so we can add this to our sum as we unwind.
-                CavernSize::End => 1,
+                // We've got a complete path. Return a 1 for part2 so we can add this to our sum as we unwind; whether we
+                // return a 0 or 1 for part 1 depends on whether we've revisited a small cave on this path (which we can
+                // tell by virtue of whether we still would be allowed to visit a small cave).
+                CavernSize::End if small_repeat_available => (1, 1),
+                CavernSize::End if !small_repeat_available => (0, 1),
                 // Paths can't go back through start. Return a 0 to bail on this potential path.
-                CavernSize::Start => 0,
+                CavernSize::Start => (0, 0),
                 // If the next cavern is small, we've already visited it and we can't re-visit a small cavern at this point,
                 // return a 0 to bail on this potential path.
-                CavernSize::Small if !small_repeat_available && visited_small.contains(potential_next) => 0,
+                CavernSize::Small if !small_repeat_available && visited_small.contains(potential_next) => (0, 0),
                 // In other cases, continue exploring with recursion (after producing a new updated visited list and
                 // updating our small_repeat_available status if applicable).
                 _ =>  {
@@ -66,7 +66,7 @@ fn count_routes_to_end(
                 }
             }
         })
-        .sum()
+        .fold((0, 0), |total, acc| (total.0 + acc.0, total.1 + acc.1))
 }
 
 struct CavernSystem {
