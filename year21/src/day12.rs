@@ -4,7 +4,6 @@ use std::collections::{HashMap, HashSet};
 // 1. A bunch of the naming isn't great
 // 2. The CavernSystem struct isn't really necessary - I added it for Part 2 before I realised I couldn't track whether a small repeat was a available globally, then couldn't be bothered to remove it.
 // 3. I suspect there's more string and vec copying around than needed - but not certain of anywhere we could trim it down.
-// 4. count_routes_to_end() should really have some more commenting!
 
 pub fn day12(input_lines: &[String]) -> (u64, u64) {
     let cave_system = CavernSystem::new(input_lines);
@@ -21,6 +20,9 @@ pub fn day12(input_lines: &[String]) -> (u64, u64) {
     (part1, part2)
 }
 
+// Count the number of possible routes to reach the end from a given cave, based on the small caves we've already
+// visited in our path and whether we're still allowed to repeat one of them, by checking every connection out of
+// the current cave with recursive calls to this function and summing the results.
 fn count_routes_to_end(
     cave_system: &CavernSystem,
     from: &Cavern,
@@ -29,32 +31,39 @@ fn count_routes_to_end(
 ) -> u64 {
     from.connected
         .iter()
-        .filter_map(|potential_next| {
-            if potential_next == "end" {
-                Some(1)
-            } else if potential_next == "start" // Need to make sure start is never revisited even if we have a small repeat available
-                || (!small_repeat_available && visited_small.contains(potential_next))
-            {
-                None
-            } else {
-                let next_cavern = cave_system
+        .map(|potential_next| {
+            let next_cavern = cave_system
                     .map
                     .get(potential_next)
                     .expect("Couldn't find cavern");
-                let mut new_visited = visited_small.clone();
-                let mut new_small_repeat_available = small_repeat_available;
-                // Note rely on lazy evaluation here to not insert Large caverns into the visited path
-                if next_cavern.size == CavernSize::Small
-                    && !new_visited.insert(potential_next.to_string())
-                {
-                    new_small_repeat_available = false;
+            match next_cavern.size {
+                // We've got a complete path. Return a 1 so we can add this to our sum as we unwind.
+                CavernSize::End => 1,
+                // Paths can't go back through start. Return a 0 to bail on this potential path.
+                CavernSize::Start => 0,
+                // If the next cavern is small, we've already visited it and we can't re-visit a small cavern at this point,
+                // return a 0 to bail on this potential path.
+                CavernSize::Small if !small_repeat_available && visited_small.contains(potential_next) => 0,
+                // In other cases, continue exploring with recursion (after producing a new updated visited list and
+                // updating our small_repeat_available status if applicable).
+                _ =>  {
+                    let mut new_visited = visited_small.clone();
+                    let mut new_small_repeat_available = small_repeat_available;
+                    // Note lazy evaluation here means only Small caverns will be inserted in the visited path, which
+                    // is a nice optimisation since only those ones need to be there (but also, the code doesn't rely
+                    // on this fact, so it's only an optimisation).
+                    if next_cavern.size == CavernSize::Small
+                        && !new_visited.insert(potential_next.to_string())
+                    {
+                        new_small_repeat_available = false;
+                    }
+                    count_routes_to_end(
+                        cave_system,
+                        next_cavern,
+                        &new_visited,
+                        new_small_repeat_available,
+                    )
                 }
-                Some(count_routes_to_end(
-                    cave_system,
-                    next_cavern,
-                    &new_visited,
-                    new_small_repeat_available,
-                ))
             }
         })
         .sum()
@@ -99,7 +108,11 @@ struct Cavern {
 impl Cavern {
     fn new(name: &str) -> Self {
         let size = if name.to_lowercase() == name {
-            CavernSize::Small
+            match name {
+                "start" => CavernSize::Start,
+                "end" => CavernSize::End,
+                _ => CavernSize::Small
+            }
         } else {
             CavernSize::Large
         };
@@ -115,6 +128,8 @@ impl Cavern {
 enum CavernSize {
     Large,
     Small,
+    Start,
+    End,
 }
 
 #[cfg(test)]
