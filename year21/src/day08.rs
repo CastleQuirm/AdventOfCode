@@ -40,7 +40,7 @@ fn determine_value(line: &str) -> u64 {
         .last()
         .expect("No display val")
         .split(' ')
-        .map(|number| alphabetize_string(number))
+        .map(alphabetize_string)
         .collect::<Vec<_>>();
 
     display_val
