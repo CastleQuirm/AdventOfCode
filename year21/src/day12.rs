@@ -30,9 +30,9 @@ fn count_routes_to_end(
         .iter()
         .map(|potential_next| {
             let next_cavern = cave_system
-                    .map
-                    .get(potential_next)
-                    .expect("Couldn't find cavern");
+                .map
+                .get(potential_next)
+                .expect("Couldn't find cavern");
             match next_cavern.size {
                 // We've got a complete path. Return a 1 for part2 so we can add this to our sum as we unwind; whether we
                 // return a 0 or 1 for part 1 depends on whether we've revisited a small cave on this path (which we can
@@ -43,10 +43,14 @@ fn count_routes_to_end(
                 CavernSize::Start => (0, 0),
                 // If the next cavern is small, we've already visited it and we can't re-visit a small cavern at this point,
                 // return a 0 to bail on this potential path.
-                CavernSize::Small if !small_repeat_available && visited_small.contains(potential_next) => (0, 0),
+                CavernSize::Small
+                    if !small_repeat_available && visited_small.contains(potential_next) =>
+                {
+                    (0, 0)
+                }
                 // In other cases, continue exploring with recursion (after producing a new updated visited list and
                 // updating our small_repeat_available status if applicable).
-                _ =>  {
+                _ => {
                     let mut new_visited = visited_small.clone();
                     let mut new_small_repeat_available = small_repeat_available;
                     // Note lazy evaluation here means only Small caverns will be inserted in the visited path, which
@@ -111,7 +115,7 @@ impl Cavern {
             match name {
                 "start" => CavernSize::Start,
                 "end" => CavernSize::End,
-                _ => CavernSize::Small
+                _ => CavernSize::Small,
             }
         } else {
             CavernSize::Large
