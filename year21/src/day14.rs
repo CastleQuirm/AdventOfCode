@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 // Potential improvements:
-//
+// There's a bunch of messy stuff and I'm sure I can do better than the repeated .get.unwrap_or, then insert (e.g. get_mut?)
+// But it's fast (~1ms) so no major complaints!
 
 pub fn day14(input_lines: &[String]) -> (u64, u64) {
     let mut polymer = Polymer::new(&input_lines[0]);
