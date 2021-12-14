@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 // Potential improvements:
-// There's a bunch of messy stuff and I'm sure I can do better than the repeated .get.unwrap_or, then insert (e.g. get_mut?)
+// There's a bunch of messy stuff that I'm sure I can do better on.
 // But it's fast (~1ms) so no major complaints!
 
 pub fn day14(input_lines: &[String]) -> (u64, u64) {
@@ -27,8 +27,8 @@ impl Polymer {
                 first_char: line.chars().nth(i).expect("No ith character"),
                 second_char: line.chars().nth(i + 1).expect("no i+1th character"),
             };
-            let current_count = *bond_counts.get(&bond).unwrap_or(&0);
-            bond_counts.insert(bond, current_count + 1);
+            let current_count = bond_counts.entry(bond).or_insert(0);
+            *current_count += 1;
         }
 
         let last_char = line.chars().last().expect("no last char");
@@ -42,10 +42,10 @@ impl Polymer {
         let mut new_bond_counts: HashMap<Bond, u64> = HashMap::new();
         for (bond, instances) in &self.bond_counts {
             let (new_bond_1, new_bond_2) = map.map.get(bond).expect("Didn't find a bond mapping");
-            let current_count = *new_bond_counts.get(new_bond_1).unwrap_or(&0);
-            new_bond_counts.insert(*new_bond_1, current_count + instances);
-            let current_count = *new_bond_counts.get(new_bond_2).unwrap_or(&0);
-            new_bond_counts.insert(*new_bond_2, current_count + instances);
+            let current_count = new_bond_counts.entry(*new_bond_1).or_insert(0);
+            *current_count += instances;
+            let current_count = new_bond_counts.entry(*new_bond_2).or_insert(0);
+            *current_count += instances;
         }
 
         Polymer {
@@ -57,12 +57,12 @@ impl Polymer {
     fn result_size(&self) -> u64 {
         let mut element_counts: HashMap<char, u64> = HashMap::new();
         for (bond, number) in &self.bond_counts {
-            let current_count = *element_counts.get(&bond.first_char).unwrap_or(&0);
-            element_counts.insert(bond.first_char, current_count + number);
+            let current_count = element_counts.entry(bond.first_char).or_insert(0);
+            *current_count += number;
         }
 
-        let current_count = *element_counts.get(&self.last_char).unwrap_or(&0);
-        element_counts.insert(self.last_char, current_count + 1);
+        let current_count = element_counts.entry(self.last_char).or_insert(0);
+        *current_count += 1;
 
         let max_element = element_counts.values().max().expect("No max element");
         let min_element = element_counts.values().min().expect("No min element");
