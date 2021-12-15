@@ -45,7 +45,6 @@ fn calculate_answer(risk_map: &[Vec<u64>]) -> u64 {
 
     // Implement Djikstra (maintain list of candidate next nodes consisting of coords and candidae cost, pick lowest cost, make fixed)
     let mut djikstra_map: Vec<Vec<Option<u64>>> = vec![vec![None; square_size]; square_size];
-    // djikstra_map[0][0] = Some(0);
     let mut candidate_hops = CandidateHeap::new();
 
     while djikstra_map[square_size - 1][square_size - 1].is_none() {
@@ -57,43 +56,8 @@ fn calculate_answer(risk_map: &[Vec<u64>]) -> u64 {
         }
         // Fill into the Djikstra map
         djikstra_map[next.i][next.j] = Some(cost);
-        // Determine the costs of anywhere we haven't gone yet
-        if next.i > 0 && djikstra_map[next.i - 1][next.j].is_none() {
-            candidate_hops.add_candidate(
-                Coordinate {
-                    i: next.i - 1,
-                    j: next.j,
-                },
-                cost + risk_map[next.i - 1][next.j],
-            );
-        }
-        if next.i < square_size - 1 && djikstra_map[next.i + 1][next.j].is_none() {
-            candidate_hops.add_candidate(
-                Coordinate {
-                    i: next.i + 1,
-                    j: next.j,
-                },
-                cost + risk_map[next.i + 1][next.j],
-            );
-        }
-        if next.j > 0 && djikstra_map[next.i][next.j - 1].is_none() {
-            candidate_hops.add_candidate(
-                Coordinate {
-                    i: next.i,
-                    j: next.j - 1,
-                },
-                cost + risk_map[next.i][next.j - 1],
-            );
-        }
-        if next.j < square_size - 1 && djikstra_map[next.i][next.j + 1].is_none() {
-            candidate_hops.add_candidate(
-                Coordinate {
-                    i: next.i,
-                    j: next.j + 1,
-                },
-                cost + risk_map[next.i][next.j + 1],
-            );
-        }
+        // Determine the costs of anywhere we haven't gone yet        
+        candidate_hops.add_all_candidates(risk_map, &djikstra_map, &next, cost, square_size);
     }
 
     // Take value of bottom right corner.
@@ -127,6 +91,51 @@ impl CandidateHeap {
         }
 
         (chosen_hop, cheapest_next)
+    }
+    fn add_all_candidates(
+        &mut self,
+        risk_map: &[Vec<u64>],
+        djikstra_map: &[Vec<Option<u64>>],
+        next: &Coordinate,
+        cost: u64,
+        square_size: usize,
+    ) {
+        if next.i > 0 && djikstra_map[next.i - 1][next.j].is_none() {
+            self.add_candidate(
+                Coordinate {
+                    i: next.i - 1,
+                    j: next.j,
+                },
+                cost + risk_map[next.i - 1][next.j],
+            );
+        }
+        if next.i < square_size - 1 && djikstra_map[next.i + 1][next.j].is_none() {
+            self.add_candidate(
+                Coordinate {
+                    i: next.i + 1,
+                    j: next.j,
+                },
+                cost + risk_map[next.i + 1][next.j],
+            );
+        }
+        if next.j > 0 && djikstra_map[next.i][next.j - 1].is_none() {
+            self.add_candidate(
+                Coordinate {
+                    i: next.i,
+                    j: next.j - 1,
+                },
+                cost + risk_map[next.i][next.j - 1],
+            );
+        }
+        if next.j < square_size - 1 && djikstra_map[next.i][next.j + 1].is_none() {
+            self.add_candidate(
+                Coordinate {
+                    i: next.i,
+                    j: next.j + 1,
+                },
+                cost + risk_map[next.i][next.j + 1],
+            );
+        }
     }
     fn add_candidate(&mut self, coord: Coordinate, cost: u64) {
         let list_for_cost = self.by_size.entry(cost).or_insert_with(Vec::new);
