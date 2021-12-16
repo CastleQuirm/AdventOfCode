@@ -5,7 +5,7 @@ pub fn day16(input_lines: &[String]) -> (u64, u64) {
     let parsed_input = Packet::parse(&input_lines[0].chars().flat_map(to_binary).collect::<Vec<u64>>());
     println!("{:?}", parsed_input);
 
-    (0, 0)
+    (parsed_input.0.sum_version_nums(), 0)
 }
 
 fn to_binary(character: char) -> Vec<u64> {
@@ -34,19 +34,19 @@ fn from_binary(binary: &[u64]) -> u64 {
     binary.iter().fold(0, |num, acc| num * 2 + acc)
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct Packet {
     version: u64,
     type_id: u64,
     content: PacketBody
 }
 impl Packet {
-    fn parse(binary_input: &[u64]) -> Self {
+    fn parse(binary_input: &[u64]) -> (Self, usize) {
         let version = from_binary(&binary_input[0..3]);
         let type_id = from_binary(&binary_input[3..6]);
+        let mut index: usize = 6;
 
         let content = if type_id == 4 {
-            let mut index: usize = 6;
             let mut binary_number: Vec<u64> = Vec::new();
             let mut more = true;
             while more {
@@ -54,36 +54,61 @@ impl Packet {
                 (1..5).for_each(|i| binary_number.push(binary_input[index + (i as usize)]));
                 index += 5;
             }
-
+            while index % 4 != 0 {
+                assert_eq!(binary_input[index], 0);
+                index += 1;
+            }
             PacketBody::Literal { value: from_binary(&binary_number) }
         } else {
             let length_type = binary_input[6];
+            let mut packets: Vec<Packet> = Vec::new();
             let length = match length_type {
                 0 => {
                     let length = from_binary(&binary_input[7..22]);
+                    index = 22;
+                    while index < length as usize + 22 {
+                        let (new_packet, moved_bits) = Packet::parse(&binary_input[index..]);
+                        packets.push(new_packet);
+                        index += moved_bits;
+                    }
+
                     OperatorLength::BitCount { length }
                 }
                 1 => {
                     let length = from_binary(&binary_input[7..18]);
+                    index = 18;
+                    while packets.len() < length as usize {
+                        let (new_packet, moved_bits) = Packet::parse(&binary_input[index..]);
+                        packets.push(new_packet);
+                        index += moved_bits;
+                    }
                     OperatorLength::PacketCount { length }
                 }
                 _ => panic!("unrecognised length_type")
             };
 
-            PacketBody::Operator{ length, packets: Vec::new() }
+            PacketBody::Operator{ length, packets }
         };
 
-        Packet { version, type_id, content }
+        (Packet { version, type_id, content }, index)
+    }
+
+    fn sum_version_nums(&self) -> u64 {
+        let contained_packet_sum = match &self.content {
+            PacketBody::Literal { value: _ } => 0,
+            PacketBody::Operator { length: _, packets} => packets.iter().map(|packet| packet.sum_version_nums()).sum(),
+        };
+        self.version + contained_packet_sum
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum PacketBody {
     Literal { value: u64 },
     Operator { length: OperatorLength, packets: Vec<Packet> },
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum OperatorLength {
     BitCount { length: u64 },
     PacketCount { length: u64 }
@@ -92,6 +117,18 @@ enum OperatorLength {
 #[cfg(test)]
 mod tests {
     use super::day16;
+    use super::to_binary;
+    use super::Packet;
+    use super::PacketBody;
+    // use super::OperatorLength;
+
+    #[test]
+    fn check_day16_single_literal() {
+        let hex = "D2FE28".to_string();
+        let result = Packet::parse(&hex.chars().flat_map(to_binary).collect::<Vec<u64>>());
+        assert_eq!(result.0, Packet{ version: 6, type_id: 4, content: PacketBody::Literal {value: 2021}});
+        assert_eq!(result.1, 24);
+    }
 
     #[test]
     fn check_day16_case1() {
