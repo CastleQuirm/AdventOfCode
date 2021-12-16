@@ -56,7 +56,7 @@ fn calculate_answer(risk_map: &[Vec<u64>]) -> u64 {
         }
         // Fill into the Djikstra map
         djikstra_map[next.i][next.j] = Some(cost);
-        // Determine the costs of anywhere we haven't gone yet        
+        // Determine the costs of anywhere we haven't gone yet
         candidate_hops.add_all_candidates(risk_map, &djikstra_map, &next, cost, square_size);
     }
 
