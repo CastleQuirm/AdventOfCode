@@ -1,5 +1,5 @@
 // Potential improvements:
-//
+// The bit parsing at the start feels pretty clunky (especially with the 16-case match statement!) but otherwise pretty happy with the rest...
 
 pub fn day16(input_lines: &[String]) -> (u64, u64) {
     let parsed_input = Packet::parse(
@@ -67,9 +67,8 @@ impl Packet {
                 value: from_binary(&binary_number),
             }
         } else {
-            let length_type = binary_input[6];
             let mut packets: Vec<Packet> = Vec::new();
-            let length = match length_type {
+            match binary_input[6] {
                 0 => {
                     let length = from_binary(&binary_input[7..22]);
                     index = 22;
@@ -78,8 +77,6 @@ impl Packet {
                         packets.push(new_packet);
                         index += moved_bits;
                     }
-
-                    OperatorLength::BitCount { length }
                 }
                 1 => {
                     let length = from_binary(&binary_input[7..18]);
@@ -89,12 +86,11 @@ impl Packet {
                         packets.push(new_packet);
                         index += moved_bits;
                     }
-                    OperatorLength::PacketCount { length }
                 }
                 _ => panic!("unrecognised length_type"),
             };
 
-            PacketBody::Operator { length, packets }
+            PacketBody::Operator { packets }
         };
 
         (
@@ -110,7 +106,7 @@ impl Packet {
     fn sum_version_nums(&self) -> u64 {
         let contained_packet_sum = match &self.content {
             PacketBody::Literal { value: _ } => 0,
-            PacketBody::Operator { length: _, packets } => {
+            PacketBody::Operator { packets } => {
                 packets.iter().map(|packet| packet.sum_version_nums()).sum()
             }
         };
@@ -120,7 +116,7 @@ impl Packet {
     fn packet_value(&self) -> u64 {
         match &self.content {
             PacketBody::Literal { value } => *value,
-            PacketBody::Operator { length: _, packets } => match &self.type_id {
+            PacketBody::Operator { packets } => match &self.type_id {
                 0 => packets.iter().map(|packet| packet.packet_value()).sum(),
                 1 => packets.iter().map(|packet| packet.packet_value()).product(),
                 2 => packets
@@ -169,24 +165,15 @@ enum PacketBody {
         value: u64,
     },
     Operator {
-        length: OperatorLength,
         packets: Vec<Packet>,
     },
 }
 
-#[derive(Debug, PartialEq)]
-enum OperatorLength {
-    BitCount { length: u64 },
-    PacketCount { length: u64 },
-}
-
 #[cfg(test)]
 mod tests {
-    use super::day16;
     use super::to_binary;
     use super::Packet;
     use super::PacketBody;
-    // use super::OperatorLength;
 
     #[test]
     fn check_day16_single_literal() {
@@ -204,38 +191,28 @@ mod tests {
     }
 
     #[test]
-    fn check_day16_case1() {
-        let input_lines = "8A004A801A8002F478"
-            .lines()
-            .map(std::string::ToString::to_string)
-            .collect::<Vec<String>>();
-        assert_eq!(day16(&input_lines), (16, 0));
+    fn check_day16() {
+        part1_test("8A004A801A8002F478", 16);
+        part1_test("620080001611562C8802118E34", 12);
+        part1_test("C0015000016115A2E0802F182340", 23);
+        part1_test("A0016C880162017C3686B18A3D4780", 31);
+        part2_test("C200B40A82", 3);
+        part2_test("04005AC33890", 54);
+        part2_test("880086C3E88112", 7);
+        part2_test("CE00C43D881120", 9);
+        part2_test("D8005AC2A8F0", 1);
+        part2_test("F600BC2D8F", 0);
+        part2_test("9C005AC2F8F0", 0);
+        part2_test("9C0141080250320F1802104A08", 1);
     }
 
-    #[test]
-    fn check_day16_case2() {
-        let input_lines = "620080001611562C8802118E34"
-            .lines()
-            .map(std::string::ToString::to_string)
-            .collect::<Vec<String>>();
-        assert_eq!(day16(&input_lines), (12, 0));
+    fn part1_test(hex: &str, output: u64) {
+        let (packet, _) = Packet::parse(&hex.to_string().chars().flat_map(to_binary).collect::<Vec<u64>>());
+        assert_eq!(packet.sum_version_nums(), output);
     }
 
-    #[test]
-    fn check_day16_case3() {
-        let input_lines = "C0015000016115A2E0802F182340"
-            .lines()
-            .map(std::string::ToString::to_string)
-            .collect::<Vec<String>>();
-        assert_eq!(day16(&input_lines), (23, 0));
-    }
-
-    #[test]
-    fn check_day16_case4() {
-        let input_lines = "A0016C880162017C3686B18A3D4780"
-            .lines()
-            .map(std::string::ToString::to_string)
-            .collect::<Vec<String>>();
-        assert_eq!(day16(&input_lines), (31, 0));
+    fn part2_test(hex: &str, output: u64) {
+        let (packet, _) = Packet::parse(&hex.to_string().chars().flat_map(to_binary).collect::<Vec<u64>>());
+        assert_eq!(packet.packet_value(), output);
     }
 }
