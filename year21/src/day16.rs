@@ -161,12 +161,8 @@ impl Packet {
 
 #[derive(Debug, PartialEq)]
 enum PacketBody {
-    Literal {
-        value: u64,
-    },
-    Operator {
-        packets: Vec<Packet>,
-    },
+    Literal { value: u64 },
+    Operator { packets: Vec<Packet> },
 }
 
 #[cfg(test)]
@@ -207,12 +203,22 @@ mod tests {
     }
 
     fn part1_test(hex: &str, output: u64) {
-        let (packet, _) = Packet::parse(&hex.to_string().chars().flat_map(to_binary).collect::<Vec<u64>>());
+        let (packet, _) = Packet::parse(
+            &hex.to_string()
+                .chars()
+                .flat_map(to_binary)
+                .collect::<Vec<u64>>(),
+        );
         assert_eq!(packet.sum_version_nums(), output);
     }
 
     fn part2_test(hex: &str, output: u64) {
-        let (packet, _) = Packet::parse(&hex.to_string().chars().flat_map(to_binary).collect::<Vec<u64>>());
+        let (packet, _) = Packet::parse(
+            &hex.to_string()
+                .chars()
+                .flat_map(to_binary)
+                .collect::<Vec<u64>>(),
+        );
         assert_eq!(packet.packet_value(), output);
     }
 }
