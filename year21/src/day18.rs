@@ -1,15 +1,26 @@
+use itertools::Itertools;
+
 // Potential improvements:
 // 1. Actually learn lifetimes and pointers!
 
 pub fn day18(input_lines: &[String]) -> (u64, u64) {
-    let part1 = input_lines
+    let snumbers = input_lines
         .iter()
-        .map(|line| Snumber::new(&line.chars().collect::<Vec<char>>()).0)
+        .map(|line| Snumber::new(&line.chars().collect::<Vec<char>>()).0);
+
+    let part1 = snumbers
+        .clone()
         .reduce(|a, b| a.add(&b))
         .expect("No Snumbers?")
         .magnitude();
 
-    (part1, 0)
+    let part2 = snumbers
+        .combinations(2)
+        .map(|pair| pair[0].add(&pair[1]).magnitude())
+        .max()
+        .expect("No max?");
+
+    (part1, part2)
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -78,6 +89,7 @@ impl Snumber {
         // We reach the end of the Snumber: in which case - if candidate.split().is_some(), split that number; else end.
 
         while !direction_vector.is_empty() {
+            // println!("Examine direction: {:?}", direction_vector);
             if direction_vector.len() > 4 {
                 assert_eq!(direction_vector.len(), 5);
                 assert_eq!(direction_vector.pop(), Some(Direction::Left));
@@ -97,6 +109,9 @@ impl Snumber {
                     Content::Snumber { snumber: _ } => panic!(),
                 };
 
+                // println!("Left explode: {}", left_explode);
+                // println!("Right explode: {}", right_explode);
+
                 self.update_content(&direction_vector, Content::Number { value: 0 });
 
                 let mut left_direction = direction_vector.clone();
@@ -108,17 +123,19 @@ impl Snumber {
                         if candidate_split.is_none() && new_value > 9 {
                             candidate_split = Some(left_direction.clone())
                         }
+                        // println!("Set new Number value {} at direction {:?}", new_value, left_direction);
                         self.update_content(&left_direction, Content::Number { value: new_value })
                     }
                     None => (),
                 }
 
-                let right_direction = direction_vector.clone();
-                self.walk_right(&mut right_direction.clone());
+                let mut right_direction = direction_vector.clone();
+                self.walk_right(&mut right_direction);
                 match self.get_content(&right_direction) {
                     Some(Content::Snumber { snumber: _ }) => panic!("walk right got a snumber"),
                     Some(Content::Number { value }) => {
                         let new_value = right_explode + *value;
+                        // println!("Set new Number value {} at direction {:?}", new_value, right_direction);
                         self.update_content(&right_direction, Content::Number { value: new_value })
                     }
                     None => (),
@@ -142,13 +159,15 @@ impl Snumber {
                 .expect("Didn't actually have a split")
             {
                 Content::Snumber { snumber: _ } => panic!("Trying to split a snumber"),
-                Content::Number { value } => *value
+                Content::Number { value } => *value,
             };
             self.update_content(
                 &split_spot,
                 Content::Snumber {
                     snumber: vec![Snumber {
-                        left: Content::Number { value: old_value / 2 },
+                        left: Content::Number {
+                            value: old_value / 2,
+                        },
                         right: Content::Number {
                             value: old_value - (old_value / 2),
                         },
@@ -264,20 +283,37 @@ impl Snumber {
         content
     }
 
-    fn update_content(&mut self, directions: &Vec<Direction>, new_content: Content) {
-        let mut directions = directions.clone();
-        let last_direction = directions.pop().expect("No last direction");
-        let content = self.get_content(&directions);
-        let content_snumber = match content {
-            // TODO!
-            // Some(Content::Snumber { snumber }) => &snumber[0],
-            // Some(Content::Number { value: _ }) => panic!(),
-            None => self,
-            _ => panic!()
-        };
-        match last_direction {
-            Direction::Left => content_snumber.left = new_content.clone(),
-            Direction::Right => content_snumber.right = new_content.clone(),
+    fn update_content(&mut self, directions: &[Direction], new_content: Content) {
+        let directions = directions.clone();
+        assert_ne!(directions.len(), 0);
+        if directions.len() == 1 {
+            match directions[0] {
+                Direction::Left => self.left = new_content.clone(),
+                Direction::Right => self.right = new_content.clone(),
+            }
+        } else {
+            let next_step = match directions[0] {
+                Direction::Left => &self.left,
+                Direction::Right => &self.right,
+            };
+            let next_snumber_list = match next_step {
+                Content::Number { value: _ } => panic!(),
+                Content::Snumber { snumber } => snumber,
+            };
+            let mut replacement_snumber = next_snumber_list[0].clone();
+            replacement_snumber.update_content(&directions[1..], new_content);
+            match directions[0] {
+                Direction::Left => {
+                    self.left = Content::Snumber {
+                        snumber: vec![replacement_snumber],
+                    }
+                }
+                Direction::Right => {
+                    self.right = Content::Snumber {
+                        snumber: vec![replacement_snumber],
+                    }
+                }
+            };
         }
     }
 
@@ -347,19 +383,31 @@ mod tests {
                 input.len()
             )
         );
-        let input = "[[3,9],[1,[3,2]]]".to_string().chars().collect::<Vec<char>>();
+        let input = "[[3,9],[1,[3,2]]]"
+            .to_string()
+            .chars()
+            .collect::<Vec<char>>();
         assert_eq!(
             Snumber::new(&input),
             (
                 Snumber {
-                    left: Content::Snumber { snumber: vec![
-                        Snumber { left: Content::Number { value: 3 }, right: Content::Number { value: 9 }}
-                    ] },
-                    right: Content::Snumber { snumber: vec![
-                        Snumber { left: Content::Number { value: 1 }, right: Content::Snumber { snumber: vec![
-                            Snumber { left: Content::Number { value: 3 }, right: Content::Number { value: 2 }}
-                        ] } }
-                    ] }
+                    left: Content::Snumber {
+                        snumber: vec![Snumber {
+                            left: Content::Number { value: 3 },
+                            right: Content::Number { value: 9 }
+                        }]
+                    },
+                    right: Content::Snumber {
+                        snumber: vec![Snumber {
+                            left: Content::Number { value: 1 },
+                            right: Content::Snumber {
+                                snumber: vec![Snumber {
+                                    left: Content::Number { value: 3 },
+                                    right: Content::Number { value: 2 }
+                                }]
+                            }
+                        }]
+                    }
                 },
                 input.len()
             )
@@ -367,12 +415,43 @@ mod tests {
     }
 
     #[test]
-    fn check_day18_reduce() {
-        let mut unreduced = Snumber { left: Content::Number { value: 11 }, right: Content::Number { value: 4 } };
+    fn check_day18_reduce_split() {
+        let mut unreduced = Snumber {
+            left: Content::Number { value: 11 },
+            right: Content::Number { value: 4 },
+        };
         unreduced.reduce();
         assert_eq!(
             unreduced,
-            Snumber { left: Content::Snumber { snumber: vec![Snumber {left: Content::Number { value: 5 }, right: Content::Number { value: 6 }}] }, right: Content::Number { value: 4 } }
+            Snumber {
+                left: Content::Snumber {
+                    snumber: vec![Snumber {
+                        left: Content::Number { value: 5 },
+                        right: Content::Number { value: 6 }
+                    }]
+                },
+                right: Content::Number { value: 4 }
+            }
         );
+    }
+
+    #[test]
+    fn check_day18_reduce_explode() {
+        let mut unreduced = Snumber::new(
+            &"[[[[[9,8],1],2],3],4]"
+                .to_string()
+                .chars()
+                .collect::<Vec<char>>(),
+        )
+        .0;
+        unreduced.reduce();
+        let reduced = Snumber::new(
+            &"[[[[0,9],2],3],4]"
+                .to_string()
+                .chars()
+                .collect::<Vec<char>>(),
+        )
+        .0;
+        assert_eq!(unreduced, reduced);
     }
 }
