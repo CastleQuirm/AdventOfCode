@@ -27,11 +27,18 @@ impl Snumber {
             '[' => {
                 let (sub_snumber, index_moved) = Snumber::new(&line[index..]);
                 index += index_moved;
-                Content::Snumber { snumber: vec![sub_snumber]}
+                Content::Snumber {
+                    snumber: vec![sub_snumber],
+                }
             }
             c => {
                 index += 1;
-                Content::Number { value: c.to_string().parse::<u64>().expect("Didn't parse what should be a digit")}
+                Content::Number {
+                    value: c
+                        .to_string()
+                        .parse::<u64>()
+                        .expect("Didn't parse what should be a digit"),
+                }
             }
         };
         assert_eq!(line[index], ',');
@@ -40,24 +47,28 @@ impl Snumber {
             '[' => {
                 let (sub_snumber, index_moved) = Snumber::new(&line[index..]);
                 index += index_moved;
-                Content::Snumber { snumber: vec![sub_snumber]}
+                Content::Snumber {
+                    snumber: vec![sub_snumber],
+                }
             }
             c => {
                 index += 1;
-                Content::Number { value: c.to_string().parse::<u64>().expect("Didn't parse what should be a digit")}
+                Content::Number {
+                    value: c
+                        .to_string()
+                        .parse::<u64>()
+                        .expect("Didn't parse what should be a digit"),
+                }
             }
         };
         assert_eq!(line[index], ']');
+        index += 1;
 
-        (Self {
-            left: Content::Number { value: 0 },
-            right: Content::Number { value: 0 },
-        },
-        index)
+        let result_snumber = Self { left, right };
+        (result_snumber, index)
     }
 
     fn reduce(&mut self) {
-        // TODO
         let mut candidate_split: Option<Vec<Direction>> = None;
         let mut direction_vector: Vec<Direction> = self.find_leftmost_direction();
 
@@ -126,24 +137,25 @@ impl Snumber {
         }
 
         if let Some(split_spot) = candidate_split {
-            match self
+            let old_value = match self
                 .get_content(&split_spot)
                 .expect("Didn't actually have a split")
             {
-                Content::Snumber { snumber } => panic!("Trying to split a snumber"),
-                Content::Number { value } => self.update_content(
-                    &split_spot,
-                    Content::Snumber {
-                        snumber: vec![Snumber {
-                            left: Content::Number { value: *value / 2 },
-                            right: Content::Number {
-                                value: *value - (*value / 2),
-                            },
-                        }],
-                    },
-                ),
-            }
-            // TODO GO BACK TO THE START
+                Content::Snumber { snumber: _ } => panic!("Trying to split a snumber"),
+                Content::Number { value } => *value
+            };
+            self.update_content(
+                &split_spot,
+                Content::Snumber {
+                    snumber: vec![Snumber {
+                        left: Content::Number { value: old_value / 2 },
+                        right: Content::Number {
+                            value: old_value - (old_value / 2),
+                        },
+                    }],
+                },
+            );
+            self.reduce();
         }
     }
 
@@ -233,20 +245,20 @@ impl Snumber {
         }
     }
 
-    fn get_content(&mut self, directions: &Vec<Direction>) -> Option<&mut Content> {
-        let mut content: Option<&mut Content> = None;
+    fn get_content(&self, directions: &Vec<Direction>) -> Option<&Content> {
+        let mut content: Option<&Content> = None;
         let mut current_snumber = self;
         directions.iter().for_each(|path| {
             match content {
                 Some(Content::Snumber {
                     snumber: next_snumber,
-                }) => current_snumber = &mut next_snumber[0],
+                }) => current_snumber = &next_snumber[0],
                 Some(_) => panic!(),
                 None => (),
             }
             match path {
-                Direction::Left => content = Some(&mut current_snumber.left),
-                Direction::Right => content = Some(&mut current_snumber.right),
+                Direction::Left => content = Some(&current_snumber.left),
+                Direction::Right => content = Some(&current_snumber.right),
             }
         });
         content
@@ -257,9 +269,11 @@ impl Snumber {
         let last_direction = directions.pop().expect("No last direction");
         let content = self.get_content(&directions);
         let content_snumber = match content {
-            Some(Content::Snumber { snumber }) => &snumber[0],
-            Some(Content::Number { value: _ }) => panic!(),
+            // TODO!
+            // Some(Content::Snumber { snumber }) => &snumber[0],
+            // Some(Content::Number { value: _ }) => panic!(),
             None => self,
+            _ => panic!()
         };
         match last_direction {
             Direction::Left => content_snumber.left = new_content.clone(),
@@ -268,7 +282,7 @@ impl Snumber {
     }
 
     fn add(&self, other: &Snumber) -> Self {
-        let result = Self {
+        let mut result = Self {
             left: Content::Snumber {
                 snumber: vec![self.clone()],
             },
@@ -308,8 +322,8 @@ enum Direction {
 #[cfg(test)]
 mod tests {
     use super::day18;
-    use super::Snumber;
     use super::Content;
+    use super::Snumber;
 
     #[test]
     fn check_day18() {
@@ -323,6 +337,42 @@ mod tests {
     #[test]
     fn check_day18_new_snumbers() {
         let input = "[1,2]".to_string().chars().collect::<Vec<char>>();
-        assert_eq!(Snumber::new(&input), (Snumber { left: Content::Number { value: 1} , right: Content::Number { value: 2 } }, 5));
+        assert_eq!(
+            Snumber::new(&input),
+            (
+                Snumber {
+                    left: Content::Number { value: 1 },
+                    right: Content::Number { value: 2 }
+                },
+                input.len()
+            )
+        );
+        let input = "[[3,9],[1,[3,2]]]".to_string().chars().collect::<Vec<char>>();
+        assert_eq!(
+            Snumber::new(&input),
+            (
+                Snumber {
+                    left: Content::Snumber { snumber: vec![
+                        Snumber { left: Content::Number { value: 3 }, right: Content::Number { value: 9 }}
+                    ] },
+                    right: Content::Snumber { snumber: vec![
+                        Snumber { left: Content::Number { value: 1 }, right: Content::Snumber { snumber: vec![
+                            Snumber { left: Content::Number { value: 3 }, right: Content::Number { value: 2 }}
+                        ] } }
+                    ] }
+                },
+                input.len()
+            )
+        );
+    }
+
+    #[test]
+    fn check_day18_reduce() {
+        let mut unreduced = Snumber { left: Content::Number { value: 11 }, right: Content::Number { value: 4 } };
+        unreduced.reduce();
+        assert_eq!(
+            unreduced,
+            Snumber { left: Content::Snumber { snumber: vec![Snumber {left: Content::Number { value: 5 }, right: Content::Number { value: 6 }}] }, right: Content::Number { value: 4 } }
+        );
     }
 }
