@@ -1,7 +1,16 @@
 use itertools::Itertools;
 
 // Potential improvements:
+// ... Hooo boy this is horrific. Long, repetitive, full of hacks and workarounds...but it works!  Reliably, afaik!
 // 1. Actually learn lifetimes and pointers!
+// 2. Probably requiring the above: Don't have the vec of child snumbers, which is a hack to avoid Rust complaining about
+//    having a Snumber contain a Contents which might contain a Snumber.
+// 3. Simplify the Enums, and/or find a better way to handle if statements about them.  So many matches with all but one
+//    case leading to a panic.
+// 4. Must be a better way (i.e. commonising) to handle some of the very-similar code e.g. walk_left and walk_right.
+// 5. Don't call them Numbers and Snumbers.  It was a cute idea which makes it far too annoying to write and read.
+// 6. Could we rewrite the whole thing to be much more efficient via hash-maps of directions -> value?  Addition becomes
+//    a bit awkward (re-create the whole map with an extra direction on top) but reduction probably becomes a lot easier.
 
 pub fn day18(input_lines: &[String]) -> (u64, u64) {
     let snumbers = input_lines
@@ -264,7 +273,7 @@ impl Snumber {
         }
     }
 
-    fn get_content(&self, directions: &Vec<Direction>) -> Option<&Content> {
+    fn get_content(&self, directions: &[Direction]) -> Option<&Content> {
         let mut content: Option<&Content> = None;
         let mut current_snumber = self;
         directions.iter().for_each(|path| {
@@ -284,12 +293,11 @@ impl Snumber {
     }
 
     fn update_content(&mut self, directions: &[Direction], new_content: Content) {
-        let directions = directions.clone();
         assert_ne!(directions.len(), 0);
         if directions.len() == 1 {
             match directions[0] {
-                Direction::Left => self.left = new_content.clone(),
-                Direction::Right => self.right = new_content.clone(),
+                Direction::Left => self.left = new_content,
+                Direction::Right => self.right = new_content,
             }
         } else {
             let next_step = match directions[0] {
