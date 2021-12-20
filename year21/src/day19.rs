@@ -6,11 +6,13 @@ use std::{
 use itertools::Itertools;
 
 // Potential improvements:
-// Well, it's very slow (nearly 8 seconds). There might be some improvements in memory management but mostly I feel it's the
-// iterative searching that needs improvement.
-// During development, I wondered about having a set of manhattan distances between the probes per node and looking for overlaps,
-// but need to be careful about duplicate such distances, distances between pairs that aren't both in each patch, and other issues.
-// ALSO wow that rotation set. Surely there must be something nicer.
+// 1. Well, it's very slow (nearly 8 seconds). There might be some improvements in memory management but mostly I feel it's the
+//    iterative searching that needs improvement.
+// 2. During development, I wondered about having a set of manhattan distances between the probes per node and looking for overlaps,
+//    but need to be careful about duplicate such distances, distances between pairs that aren't both in each patch, and other issues.
+// 3. ALSO wow that rotation set. Surely there must be something nicer.
+// 4. Also can we stop our searches in stitch_if_poss - if we've already checked all but 11 of the probes in the first scanner's area,
+//    we can bail out.
 
 pub fn day19(input_lines: &[String]) -> (u64, u64) {
     // Parse the input
