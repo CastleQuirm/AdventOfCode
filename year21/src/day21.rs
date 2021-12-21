@@ -1,9 +1,26 @@
 use std::collections::HashMap;
 
 // Potential improvements:
-//
+// 1. There could be a bit more overlap between parts 1 and 2 in terms of structs, even though the actual work is quite different.
+// 2. Part 1 play_round() could do something a little neater but it's so simple I'm not sure it's worth it.
 
 pub fn day21(input_lines: &[String]) -> (u64, u64) {
+    if cfg!(debug_assertions) {
+        println!("P1 | P2 | Player 1 Win Percentage:");
+        println!("----------------------------------");
+        (1..11).for_each(|i| (1..11).for_each(|j| {
+            let mut universe_count = HashMap::new();
+            universe_count.insert(GameState { players: [Player { space: i, score: 0 }, Player { space: j, score: 0 }]}, 1);
+            let mut quantum_game = QuantumGame { universe_count, in_progress_universes: 1, player_wins: [0, 0], weighted_wins: [0_f64, 0_f64] };
+            quantum_game.play_to_completion();
+            println!("{:02} | {:02} | {}", i, j, quantum_game.weighted_wins[0]);
+        }) );
+    }
+
+    aoc_answers(input_lines)
+}
+
+fn aoc_answers(input_lines: &[String]) -> (u64, u64) {
     let mut game = Game::new(input_lines);
     let mut part1 = None;
     while part1.is_none() {
@@ -15,7 +32,6 @@ pub fn day21(input_lines: &[String]) -> (u64, u64) {
 
     (part1.unwrap(), quantum_game.max_winning_universes())
 }
-
 struct Game {
     players: Vec<Player>,
     number_of_rolls: u64,
@@ -78,7 +94,9 @@ impl Player {
 
 struct QuantumGame {
     universe_count: HashMap<GameState, u64>,
+    in_progress_universes: u64,
     player_wins: [u64; 2],
+    weighted_wins: [f64; 2],
 }
 
 impl QuantumGame {
@@ -92,28 +110,29 @@ impl QuantumGame {
         );
         Self {
             universe_count,
+            in_progress_universes: 1,
             player_wins: [0, 0],
+            weighted_wins: [0_f64, 0_f64]
         }
     }
 
     fn play_to_completion(&mut self) {
-        while self.universe_count.values().sum::<u64>() > 0 {
+        while self.in_progress_universes > 0 {
             self.play_turn(0);
             self.play_turn(1);
-            // Player 1 takes a turn
-            // For each entry in self.universe_count: map the game state to the seven possible new keys
-            // For any where the player score is >= 21, add 1/3/6/7/6/3/1 * old_count to self.player1_wins
-            // For all others, entry(new_game_state).or_insert(0) += 1/3/6/7/6/3/1 * old_count
-
-            // Player 2 takes a turn
         }
     }
 
     fn play_turn(&mut self, player: usize) {
         let mut new_universes: HashMap<GameState, u64> = HashMap::new();
+
         self.universe_count
             .iter()
             .for_each(|(old_state, old_universe_count)| {
+                let universe_probability = if cfg!(debug_assertions) {
+                    *old_universe_count as f64 / self.in_progress_universes as f64 
+                } else { 0 as f64 };
+                self.in_progress_universes -= old_universe_count;
                 [(3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1)]
                     .iter()
                     .for_each(|(roll, cases)| {
@@ -123,9 +142,13 @@ impl QuantumGame {
 
                         if new_state.players[player].score >= 21 {
                             self.player_wins[player] += new_universe_count;
+                            if cfg!(debug_assertions) {
+                                self.weighted_wins[player] += (*cases as f64) * (1_f64 - self.weighted_wins.iter().sum::<f64>()) * universe_probability / 27_f64;
+                            }
                         } else {
                             let other_count = new_universes.entry(new_state).or_insert(0);
                             *other_count += new_universe_count;
+                            self.in_progress_universes += new_universe_count;
                         }
                     })
             });
@@ -144,7 +167,7 @@ struct GameState {
 
 #[cfg(test)]
 mod tests {
-    use super::day21;
+    use super::aoc_answers;
 
     #[test]
     fn check_day21() {
@@ -153,6 +176,6 @@ Player 2 starting position: 8"
             .lines()
             .map(std::string::ToString::to_string)
             .collect::<Vec<String>>();
-        assert_eq!(day21(&input_lines), (739785, 444356092776315));
+        assert_eq!(aoc_answers(&input_lines), (739785, 444356092776315));
     }
 }
