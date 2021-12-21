@@ -8,13 +8,25 @@ pub fn day21(input_lines: &[String]) -> (u64, u64) {
     if cfg!(debug_assertions) {
         println!("P1 | P2 | Player 1 Win Percentage:");
         println!("----------------------------------");
-        (1..11).for_each(|i| (1..11).for_each(|j| {
-            let mut universe_count = HashMap::new();
-            universe_count.insert(GameState { players: [Player { space: i, score: 0 }, Player { space: j, score: 0 }]}, 1);
-            let mut quantum_game = QuantumGame { universe_count, in_progress_universes: 1, player_wins: [0, 0], weighted_wins: [0_f64, 0_f64] };
-            quantum_game.play_to_completion();
-            println!("{:02} | {:02} | {}", i, j, quantum_game.weighted_wins[0]);
-        }) );
+        (1..11).for_each(|i| {
+            (1..11).for_each(|j| {
+                let mut universe_count = HashMap::new();
+                universe_count.insert(
+                    GameState {
+                        players: [Player { space: i, score: 0 }, Player { space: j, score: 0 }],
+                    },
+                    1,
+                );
+                let mut quantum_game = QuantumGame {
+                    universe_count,
+                    in_progress_universes: 1,
+                    player_wins: [0, 0],
+                    weighted_wins: [0_f64, 0_f64],
+                };
+                quantum_game.play_to_completion();
+                println!("{:02} | {:02} | {}", i, j, quantum_game.weighted_wins[0]);
+            })
+        });
     }
 
     aoc_answers(input_lines)
@@ -112,7 +124,7 @@ impl QuantumGame {
             universe_count,
             in_progress_universes: 1,
             player_wins: [0, 0],
-            weighted_wins: [0_f64, 0_f64]
+            weighted_wins: [0_f64, 0_f64],
         }
     }
 
@@ -130,8 +142,10 @@ impl QuantumGame {
             .iter()
             .for_each(|(old_state, old_universe_count)| {
                 let universe_probability = if cfg!(debug_assertions) {
-                    *old_universe_count as f64 / self.in_progress_universes as f64 
-                } else { 0 as f64 };
+                    *old_universe_count as f64 / self.in_progress_universes as f64
+                } else {
+                    0 as f64
+                };
                 self.in_progress_universes -= old_universe_count;
                 [(3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1)]
                     .iter()
@@ -143,7 +157,10 @@ impl QuantumGame {
                         if new_state.players[player].score >= 21 {
                             self.player_wins[player] += new_universe_count;
                             if cfg!(debug_assertions) {
-                                self.weighted_wins[player] += (*cases as f64) * (1_f64 - self.weighted_wins.iter().sum::<f64>()) * universe_probability / 27_f64;
+                                self.weighted_wins[player] += (*cases as f64)
+                                    * (1_f64 - self.weighted_wins.iter().sum::<f64>())
+                                    * universe_probability
+                                    / 27_f64;
                             }
                         } else {
                             let other_count = new_universes.entry(new_state).or_insert(0);
