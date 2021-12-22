@@ -6,8 +6,8 @@ use std::collections::HashMap;
 
 pub fn day21(input_lines: &[String]) -> (u64, u64) {
     if cfg!(debug_assertions) {
-        println!("P1 | P2 | Player 1 Win Percentage:");
-        println!("----------------------------------");
+        println!("P1 | P2 | Player 1 Win prob | Total calculated win prob");
+        println!("-------------------------------------------------------");
         (1..11).for_each(|i| {
             (1..11).for_each(|j| {
                 let mut universe_count = HashMap::new();
@@ -24,7 +24,7 @@ pub fn day21(input_lines: &[String]) -> (u64, u64) {
                     weighted_wins: [0_f64, 0_f64],
                 };
                 quantum_game.play_to_completion();
-                println!("{:02} | {:02} | {}", i, j, quantum_game.weighted_wins[0]);
+                println!("{:02} | {:02} | {} | {}", i, j, quantum_game.weighted_wins[0], quantum_game.weighted_wins.iter().sum::<f64>());
             })
         });
     }
