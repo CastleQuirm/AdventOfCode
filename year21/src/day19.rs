@@ -6,13 +6,11 @@ use std::{
 use itertools::Itertools;
 
 // Potential improvements:
-// 1. Well, it's very slow (nearly 8 seconds). There might be some improvements in memory management but mostly I feel it's the
+// 1. Well, it's very slow (over 4 seconds). There might be some improvements in memory management but mostly I feel it's the
 //    iterative searching that needs improvement.
 // 2. During development, I wondered about having a set of manhattan distances between the probes per node and looking for overlaps,
 //    but need to be careful about duplicate such distances, distances between pairs that aren't both in each patch, and other issues.
 // 3. ALSO wow that rotation set. Surely there must be something nicer.
-// 4. Also can we stop our searches in stitch_if_poss - if we've already checked all but 11 of the probes in the first scanner's area,
-//    we can bail out.
 
 pub fn day19(input_lines: &[String]) -> (u64, u64) {
     // Parse the input
@@ -116,7 +114,8 @@ impl Scanner {
 
     fn stitch_if_poss(&self, other: &mut Self) -> bool {
         // Pick a probe on one scanner -> pick a probe on the second scanner -> pick one of the twenty-four orientations for the second scanner -> derive second scanner's relative location
-        for self_probe in &self.absolute_probes {
+        for (index, self_probe) in self.absolute_probes.iter().enumerate() {
+            if index + 12 > self.absolute_probes.len() { return false; }
             for other_probe in &other.relative_probes {
                 // Work out where the other scanner could be (up to 24 options!) if self is at 0,0,0 and self_probe '=' other_probe.
                 let candidate_other_scanner_locs = other_probe
