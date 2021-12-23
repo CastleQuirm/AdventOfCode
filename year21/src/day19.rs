@@ -115,7 +115,9 @@ impl Scanner {
     fn stitch_if_poss(&self, other: &mut Self) -> bool {
         // Pick a probe on one scanner -> pick a probe on the second scanner -> pick one of the twenty-four orientations for the second scanner -> derive second scanner's relative location
         for (index, self_probe) in self.absolute_probes.iter().enumerate() {
-            if index + 12 > self.absolute_probes.len() { return false; }
+            if index + 12 > self.absolute_probes.len() {
+                return false;
+            }
             for other_probe in &other.relative_probes {
                 // Work out where the other scanner could be (up to 24 options!) if self is at 0,0,0 and self_probe '=' other_probe.
                 let candidate_other_scanner_locs = other_probe

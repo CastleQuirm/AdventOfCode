@@ -24,7 +24,13 @@ pub fn day21(input_lines: &[String]) -> (u64, u64) {
                     weighted_wins: [0_f64, 0_f64],
                 };
                 quantum_game.play_to_completion();
-                println!("{:02} | {:02} | {} | {}", i, j, quantum_game.weighted_wins[0], quantum_game.weighted_wins.iter().sum::<f64>());
+                println!(
+                    "{:02} | {:02} | {} | {}",
+                    i,
+                    j,
+                    quantum_game.weighted_wins[0],
+                    quantum_game.weighted_wins.iter().sum::<f64>()
+                );
             })
         });
     }
