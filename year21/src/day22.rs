@@ -4,7 +4,7 @@ use std::collections::HashMap;
 // This could do with a fair bit of cleanup, not least consolodating part 2 into part 1 (which would...probably be faster?)
 // At the least, there's definitely repeated code between the two parts even if we can't cheaply pull the first result out of the second answer.
 // There's also a lot of "do the following for each of x,y,z" which isn't looped because of wanting multiple variable names,
-// but should definitely reuse code through a subfunction or something. 
+// but should definitely reuse code through a subfunction or something.
 // And it's slow: even with the compressed grid making part 2 solvable, it takes ~13.5 seconds to run.
 
 pub fn day22(input_lines: &[String]) -> (u64, u64) {
