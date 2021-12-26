@@ -8,33 +8,36 @@ pub fn day23(input_lines: &[String]) -> (u64, u64) {
     (part1, 0)
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct OverallState {
-    a_tunnel: [Option<char>; 2],
-    b_tunnel: [Option<char>; 2],
-    c_tunnel: [Option<char>; 2],
-    d_tunnel: [Option<char>; 2],
-    left_tunnel: [Option<char>; 2],
-    right_tunnel: [Option<char>; 2],
-    ab_gap: Option<char>,
-    bc_gap: Option<char>,
-    cd_gap: Option<char>,
-    // arthopod_locs: [usize; 8],
-    // TODO probably add lookup state for the Arthopods themselves
+    // The rooms are a vec that we push to and pop from - i.e. the last in the vec is the closest to the corridor.
+    // We don't care about details of how many things are in each (it's fully deducible).
+    rooms: [Vec<char>; 4],
+    corridor: [Option<char>; 7],
     energy_spent: u64,
 }
 impl OverallState {
     fn new(input_lines: &[String]) -> Self {
         Self {
-            a_tunnel: [input_lines[2].chars().nth(3), input_lines[3].chars().nth(3)],
-            b_tunnel: [input_lines[2].chars().nth(5), input_lines[3].chars().nth(5)],
-            c_tunnel: [input_lines[2].chars().nth(7), input_lines[3].chars().nth(7)],
-            d_tunnel: [input_lines[2].chars().nth(9), input_lines[3].chars().nth(9)],
-            left_tunnel: [None; 2],
-            right_tunnel: [None; 2],
-            ab_gap: None,
-            bc_gap: None,
-            cd_gap: None,
+            rooms: [
+                vec![
+                    input_lines[3].chars().nth(3).expect("No char?"),
+                    input_lines[2].chars().nth(3).expect("No char?"),
+                ],
+                vec![
+                    input_lines[3].chars().nth(5).expect("No char?"),
+                    input_lines[2].chars().nth(5).expect("No char?"),
+                ],
+                vec![
+                    input_lines[3].chars().nth(7).expect("No char?"),
+                    input_lines[2].chars().nth(7).expect("No char?"),
+                ],
+                vec![
+                    input_lines[3].chars().nth(9).expect("No char?"),
+                    input_lines[2].chars().nth(9).expect("No char?"),
+                ],
+            ],
+            corridor: [None; 7],
             energy_spent: 0,
         }
     }
@@ -72,182 +75,116 @@ impl OverallState {
 
         let mut possible_states: Vec<Self> = Vec::new();
 
-        // Add cases for each of the possible moves from the corridors.
-        self.try_move_from_left(&mut possible_states, 1);
-        self.try_move_from_left(&mut possible_states, 0);
-        self.try_move_from_right(&mut possible_states, 1);
-        self.try_move_from_right(&mut possible_states, 0);
-        self.try_move_from_gap(&mut possible_states, 1);
-        self.try_move_from_gap(&mut possible_states, 2);
-        self.try_move_from_gap(&mut possible_states, 3);
-        
-        // Add cases for each of the possible moves from the tunnels to the end points.
-        
+        // Add cases for each of the possible moves from the corridors to rooms.
+        // For each filled space in the corridor:
+        //   - Is the room in a good state?
+        //   - Is the room reachable?
+        //   - If both are yes: what's the cost?
+        self.corridor
+            .iter()
+            .enumerate()
+            .filter(|(corridor_index, corridor_space)| {
+                corridor_space.is_some()
+                    && self.can_enter_own_room(corridor_space.unwrap())
+                    && self.can_reach_own_room(*corridor_index)
+            })
+            .for_each(|(corridor_index, arthopod)| {
+                let arthopod = arthopod.unwrap();
+                let mut new_state = self.clone();
+                new_state.corridor[corridor_index] = None;
+                new_state.add_arthopod_to_own_room(arthopod);
+                new_state.energy_spent += self.cost_from_corridor_to_room(corridor_index);
+                possible_states.push(new_state);
+            });
+
+        // Add cases for each of the possible moves from the rooms to corridors.
+        //   - Is any arthopod in it not home?
+        //   - What are the set of corridor spaces it can reach?
+        (0..4)
+            .filter(|&room_index| {
+                self.rooms[room_index]
+                    .iter()
+                    .any(|&arthopod| matching_room(arthopod) != room_index)
+            })
+            .for_each(|room_index| {
+                (0_usize..7)
+                    .filter(|&corridor_index| {
+                        self.room_can_reach_corrior(room_index, corridor_index)
+                    })
+                    .for_each(|corridor_index| {
+                        let mut new_state = self.clone();
+                        let arthopod = new_state.rooms[room_index].pop().unwrap();
+                        new_state.corridor[corridor_index] = Some(arthopod);
+                        new_state.energy_spent +=
+                            self.cost_from_room_to_corridor(room_index, corridor_index);
+                        possible_states.push(new_state)
+                    })
+            });
 
         possible_states
     }
 
-    fn try_move_from_left(&self, possible_states: &mut Vec<Self>, pos: usize) {
-        if let Some(mover) = self.left_tunnel[pos] {
-            let (col_ix, target) = self.matching_tunnel(mover);
-            if (pos == 0 || self.left_tunnel[0].is_none())
-                && target[0].is_none() || target[0] == Some(mover)
-            {
-                let mut new_state = self.clone();
-                new_state.left_tunnel[pos] = None;
-                let pos = pos as u64;
-                let cost_per_move = cost_per_move(mover);
-                // If we just cost all the moves to the first entry point, we can then just add 1111 at the very end.
-                new_state.energy_spent += cost_per_move * (2 + pos + col_ix * 2);
-
-                // As long as the junctions are clear, we're good.
-                // We'll just stick the value on the outside cell, and rely on the hallway being empty to judge if it's done.
-                match mover {
-                    'A' => new_state.a_tunnel[0] = Some('A'),
-                    'B' if self.ab_gap.is_none() => new_state.b_tunnel[0] = Some('B'),
-                    'C' if self.ab_gap.is_none() && self.bc_gap.is_none() => {
-                        new_state.c_tunnel[0] = Some('C')
-                    }
-                    'D' if self.ab_gap.is_none()
-                        && self.bc_gap.is_none()
-                        && self.cd_gap.is_none() =>
-                    {
-                        new_state.d_tunnel[0] = Some('D')
-                    }
-                    _ => return,
-                }
-                possible_states.push(new_state);
-            }
-        }
-    }
-
-    fn try_move_from_right(&self, possible_states: &mut Vec<Self>, pos: usize) {
-        if let Some(mover) = self.right_tunnel[pos] {
-            let (col_ix, target) = self.matching_tunnel(mover);
-            if (pos == 0 || self.right_tunnel[0].is_none())
-                && target[0].is_none() || target[0] == Some(mover)
-            {
-                let mut new_state = self.clone();
-                new_state.right_tunnel[pos] = None;
-                let pos = pos as u64;
-                let cost_per_move = cost_per_move(mover);
-                // If we just cost all the moves to the first entry point, we can then just add 1111 at the very end.
-                new_state.energy_spent += cost_per_move * (2 + pos + (3 - col_ix) * 2);
-
-                // As long as the junctions are clear, we're good.
-                // We'll just stick the value on the outside cell, and rely on the hallway being empty to judge if it's done.
-                match mover {
-                    'A' if self.ab_gap.is_none()
-                        && self.bc_gap.is_none()
-                        && self.cd_gap.is_none() =>
-                    {
-                        new_state.a_tunnel[0] = Some('A')
-                    }
-                    'B' if self.bc_gap.is_none() && self.cd_gap.is_none() => {
-                        new_state.b_tunnel[0] = Some('B')
-                    }
-                    'C' if self.cd_gap.is_none() => new_state.c_tunnel[0] = Some('C'),
-                    'D' => new_state.d_tunnel[0] = Some('D'),
-                    _ => return,
-                }
-                possible_states.push(new_state);
-            }
-        }
-    }
-
-    fn try_move_from_gap(&self, possible_states: &mut Vec<Self>, pos: usize) {
-        let mut new_state = self.clone();
-        let mover = match pos {
-            1 => {
-                new_state.ab_gap = None;
-                self.ab_gap
-            }
-            2 => {
-                new_state.bc_gap = None;
-                self.bc_gap
-            }
-            3 => {
-                new_state.cd_gap = None;
-                self.cd_gap
-            }
-            _ => panic!("unknown gap"),
-        };
-        let mover = if mover.is_some() { mover.unwrap() } else { return; };
-        let (_, target) = self.matching_tunnel(mover);
-        let cost_per_move = cost_per_move(mover);
-        if target[0].is_none() || target[0] == Some(mover) {
-            match (mover, pos) {
-                ('A', 1) => {
-                    new_state.a_tunnel[0] = Some('A');
-                    new_state.energy_spent += cost_per_move * 2;
-                }
-                ('B', 1) => {
-                    new_state.b_tunnel[0] = Some('B');
-                    new_state.energy_spent += cost_per_move * 2;
-                }
-                ('C', 1) if self.bc_gap.is_none() => {
-                    new_state.c_tunnel[0] = Some('C');
-                    new_state.energy_spent += cost_per_move * 4;
-                }
-                ('D', 1) if self.bc_gap.is_none() && self.cd_gap.is_none() => {
-                    new_state.d_tunnel[0] = Some('D');
-                    new_state.energy_spent += cost_per_move * 6;
-                }
-                ('A', 2) if self.ab_gap.is_none() => {
-                    new_state.a_tunnel[0] = Some('A');
-                    new_state.energy_spent += cost_per_move * 4;
-                }
-                ('B', 2) => {
-                    new_state.b_tunnel[0] = Some('B');
-                    new_state.energy_spent += cost_per_move * 2;
-                }
-                ('C', 2) => {
-                    new_state.c_tunnel[0] = Some('C');
-                    new_state.energy_spent += cost_per_move * 2;
-                }
-                ('D', 2) if self.cd_gap.is_none() => {
-                    new_state.d_tunnel[0] = Some('D');
-                    new_state.energy_spent += cost_per_move * 4;
-                }
-                ('A', 3) if self.ab_gap.is_none() && self.bc_gap.is_none() => {
-                    new_state.a_tunnel[0] = Some('A');
-                    new_state.energy_spent += cost_per_move * 6;
-                }
-                ('B', 3) if self.bc_gap.is_none() => {
-                    new_state.b_tunnel[0] = Some('B');
-                    new_state.energy_spent += cost_per_move * 4;
-                }
-                ('C', 3) => {
-                    new_state.c_tunnel[0] = Some('C');
-                    new_state.energy_spent += cost_per_move * 2;
-                }
-                ('D', 3) => {
-                    new_state.d_tunnel[0] = Some('D');
-                    new_state.energy_spent += cost_per_move * 2;
-                }
-                _ => { return; }
-            }
-            possible_states.push(new_state);
-        }
-    }
-
     fn is_finished(&self) -> bool {
-        // Assert on the corridor being empty - this is true at the very start, but then not again until it ends.
-        self.left_tunnel == [None, None]
-            && self.right_tunnel == [None, None]
-            && self.ab_gap.is_none()
-            && self.bc_gap.is_none()
-            && self.cd_gap.is_none()
+        // Assert on the rooms being full and correct.
+        self.rooms
+            == [
+                vec!['A', 'A'],
+                vec!['B', 'B'],
+                vec!['C', 'C'],
+                vec!['D', 'D'],
+            ]
     }
 
-    fn matching_tunnel(&self, char: char) -> (u64, &[Option<char>; 2]) {
-        match char {
-            'A' => (0, &self.a_tunnel),
-            'B' => (1, &self.b_tunnel),
-            'C' => (2, &self.c_tunnel),
-            'D' => (3, &self.d_tunnel),
-            _ => panic!("Unrecognised for matching tunnel"),
-        }
+    fn can_enter_own_room(&self, arthopod: char) -> bool {
+        let room = &self.rooms[matching_room(arthopod)];
+        room.iter().all(|&inhabitant| inhabitant == arthopod)
+    }
+
+    fn can_reach_own_room(&self, corridor_index: usize) -> bool {
+        let arthopod = self.corridor[corridor_index].unwrap();
+        corridor_indices_between_corridor_and_room(corridor_index, matching_room(arthopod))
+            .iter()
+            .all(|&index| self.corridor[index].is_none())
+    }
+
+    fn room_can_reach_corrior(&self, room_index: usize, corridor_index: usize) -> bool {
+        corridor_indices_between_corridor_and_room(corridor_index, room_index)
+            .iter()
+            .all(|&corridor_space| self.corridor[corridor_space].is_none())
+    }
+
+    fn add_arthopod_to_own_room(&mut self, arthopod: char) {
+        self.rooms[matching_room(arthopod)].push(arthopod);
+    }
+
+    fn cost_from_corridor_to_room(&self, corridor_index: usize) -> u64 {
+        let arthopod = self.corridor[corridor_index].unwrap();
+        let move_count_to_room =
+            moves_corridor_to_room_entrance(corridor_index, matching_room(arthopod));
+        assert!(self.rooms[matching_room(arthopod)].len() < 2);
+        let move_count_in_room = (1 - self.rooms[matching_room(arthopod)].len()) as u64;
+
+        cost_per_move(arthopod) * (move_count_in_room + move_count_to_room)
+    }
+
+    fn cost_from_room_to_corridor(&self, room_index: usize, corridor_index: usize) -> u64 {
+        let arthopod = self.rooms[room_index].last().unwrap();
+        let move_count_from_room = moves_corridor_to_room_entrance(corridor_index, room_index);
+        assert!(self.rooms[room_index].len() > 0);
+        assert!(self.rooms[room_index].len() < 3);
+        let move_count_in_room = (2 - self.rooms[room_index].len()) as u64;
+
+        cost_per_move(*arthopod) * (move_count_in_room + move_count_from_room)
+    }
+}
+
+fn matching_room(char: char) -> usize {
+    match char {
+        'A' => 0,
+        'B' => 1,
+        'C' => 2,
+        'D' => 3,
+        _ => panic!("Unrecognised for matching tunnel"),
     }
 }
 
@@ -258,6 +195,77 @@ fn cost_per_move(mover: char) -> u64 {
         'C' => 100,
         'D' => 1000,
         _ => panic!("Unrecognised mover"),
+    }
+}
+
+fn moves_corridor_to_room_entrance(corridor_index: usize, room_index: usize) -> u64 {
+    match (corridor_index, room_index) {
+        (0, 0) => 3,
+        (1, 0) => 2,
+        (2, 0) => 2,
+        (3, 0) => 4,
+        (4, 0) => 6,
+        (5, 0) => 8,
+        (6, 0) => 9,
+        (0, 1) => 5,
+        (1, 1) => 4,
+        (2, 1) => 2,
+        (3, 1) => 2,
+        (4, 1) => 4,
+        (5, 1) => 6,
+        (6, 1) => 7,
+        (0, 2) => 7,
+        (1, 2) => 6,
+        (2, 2) => 4,
+        (3, 2) => 2,
+        (4, 2) => 2,
+        (5, 2) => 4,
+        (6, 2) => 5,
+        (0, 3) => 9,
+        (1, 3) => 8,
+        (2, 3) => 6,
+        (3, 3) => 4,
+        (4, 3) => 2,
+        (5, 3) => 2,
+        (6, 3) => 3,
+        _ => panic!(),
+    }
+}
+
+fn corridor_indices_between_corridor_and_room(
+    corridor_index: usize,
+    room_index: usize,
+) -> Vec<usize> {
+    match (corridor_index, room_index) {
+        (0, 0) => vec![1],
+        (1, 0) => vec![],
+        (2, 0) => vec![],
+        (3, 0) => vec![2],
+        (4, 0) => vec![2, 3],
+        (5, 0) => vec![2, 3, 4],
+        (6, 0) => vec![2, 3, 4, 5],
+        (0, 1) => vec![1, 2],
+        (1, 1) => vec![2],
+        (2, 1) => vec![],
+        (3, 1) => vec![],
+        (4, 1) => vec![3],
+        (5, 1) => vec![3, 4],
+        (6, 1) => vec![3, 4, 5],
+        (0, 2) => vec![1, 2, 3],
+        (1, 2) => vec![2, 3],
+        (2, 2) => vec![3],
+        (3, 2) => vec![],
+        (4, 2) => vec![],
+        (5, 2) => vec![4],
+        (6, 2) => vec![4, 5],
+        (0, 3) => vec![1, 2, 3, 4],
+        (1, 3) => vec![2, 3, 4],
+        (2, 3) => vec![3, 4],
+        (3, 3) => vec![4],
+        (4, 3) => vec![],
+        (5, 3) => vec![],
+        (6, 3) => vec![5],
+        _ => panic!(),
     }
 }
 
@@ -292,15 +300,13 @@ mod tests {
         assert_eq!(
             OverallState::new(&input_lines),
             OverallState {
-                a_tunnel: [Some('B'), Some('A')],
-                b_tunnel: [Some('C'), Some('D')],
-                c_tunnel: [Some('B'), Some('C')],
-                d_tunnel: [Some('D'), Some('A')],
-                left_tunnel: [None; 2],
-                right_tunnel: [None; 2],
-                ab_gap: None,
-                bc_gap: None,
-                cd_gap: None,
+                rooms: [
+                    vec!['A', 'B'],
+                    vec!['D', 'C'],
+                    vec!['C', 'B'],
+                    vec!['A', 'D']
+                ],
+                corridor: [None; 7],
                 energy_spent: 0
             }
         )
