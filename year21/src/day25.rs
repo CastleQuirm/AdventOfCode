@@ -30,16 +30,18 @@ impl CucumberState {
     fn new(input_lines: &[String]) -> Self {
         let mut east_cucumbers = HashSet::new();
         let mut south_cucumbers = HashSet::new();
-        let map_y_size=  input_lines.len();
+        let map_y_size = input_lines.len();
         let map_x_size = input_lines[0].len();
         input_lines.iter().enumerate().for_each(|(y, line)| {
             assert_eq!(map_x_size, line.len());
-            line.chars().enumerate().for_each(|(x, space)| {
-                match space {
-                    '>' => {east_cucumbers.insert(Coord { x, y });},
-                    'v' => {south_cucumbers.insert(Coord { x, y });},
-                    _ => assert_eq!(space, '.'),
+            line.chars().enumerate().for_each(|(x, space)| match space {
+                '>' => {
+                    east_cucumbers.insert(Coord { x, y });
                 }
+                'v' => {
+                    south_cucumbers.insert(Coord { x, y });
+                }
+                _ => assert_eq!(space, '.'),
             });
         });
 
@@ -53,34 +55,60 @@ impl CucumberState {
 
     fn cucumber_move(&self) -> Self {
         // move east
-        let east_cucumbers = self.east_cucumbers.iter().map(|cucumber| {
-            // Where would this cucumber want to move to?
-            let target_x = if cucumber.x + 1 < self.map_x_size { cucumber.x + 1 } else { 0 };
-            let target_loc = Coord{ x: target_x, y: cucumber.y };
-            if !self.east_cucumbers.contains(&target_loc) && !self.south_cucumbers.contains(&target_loc) {
-                target_loc
-            } else {
-                cucumber.clone()
-            }
-        }).collect::<HashSet<Coord>>();
+        let east_cucumbers = self
+            .east_cucumbers
+            .iter()
+            .map(|cucumber| {
+                // Where would this cucumber want to move to?
+                let target_x = if cucumber.x + 1 < self.map_x_size {
+                    cucumber.x + 1
+                } else {
+                    0
+                };
+                let target_loc = Coord {
+                    x: target_x,
+                    y: cucumber.y,
+                };
+                if !self.east_cucumbers.contains(&target_loc)
+                    && !self.south_cucumbers.contains(&target_loc)
+                {
+                    target_loc
+                } else {
+                    cucumber.clone()
+                }
+            })
+            .collect::<HashSet<Coord>>();
 
         // move south
-        let south_cucumbers = self.south_cucumbers.iter().map(|cucumber| {
-            // Where would this cucumber want to move to?
-            let target_y = if cucumber.y + 1 < self.map_y_size { cucumber.y + 1 } else { 0 };
-            let target_loc = Coord{ x: cucumber.x, y: target_y };
-            if !east_cucumbers.contains(&target_loc) && !self.south_cucumbers.contains(&target_loc) {
-                target_loc
-            } else {
-                cucumber.clone()
-            }
-        }).collect::<HashSet<Coord>>();
+        let south_cucumbers = self
+            .south_cucumbers
+            .iter()
+            .map(|cucumber| {
+                // Where would this cucumber want to move to?
+                let target_y = if cucumber.y + 1 < self.map_y_size {
+                    cucumber.y + 1
+                } else {
+                    0
+                };
+                let target_loc = Coord {
+                    x: cucumber.x,
+                    y: target_y,
+                };
+                if !east_cucumbers.contains(&target_loc)
+                    && !self.south_cucumbers.contains(&target_loc)
+                {
+                    target_loc
+                } else {
+                    cucumber.clone()
+                }
+            })
+            .collect::<HashSet<Coord>>();
 
         Self {
             east_cucumbers,
             south_cucumbers,
             map_x_size: self.map_x_size,
-            map_y_size: self.map_y_size
+            map_y_size: self.map_y_size,
         }
     }
 
