@@ -77,6 +77,12 @@ impl OverallState {
         self.try_move_from_left(&mut possible_states, 0);
         self.try_move_from_right(&mut possible_states, 1);
         self.try_move_from_right(&mut possible_states, 0);
+        self.try_move_from_gap(&mut possible_states, 1);
+        self.try_move_from_gap(&mut possible_states, 2);
+        self.try_move_from_gap(&mut possible_states, 3);
+        
+        // Add cases for each of the possible moves from the tunnels to the end points.
+        
 
         possible_states
     }
@@ -85,8 +91,7 @@ impl OverallState {
         if let Some(mover) = self.left_tunnel[pos] {
             let (col_ix, target) = self.matching_tunnel(mover);
             if (pos == 0 || self.left_tunnel[0].is_none())
-                && target[0].is_none()
-                && (target[1].is_none() || target[1] == Some(mover))
+                && target[0].is_none() || target[0] == Some(mover)
             {
                 let mut new_state = self.clone();
                 new_state.left_tunnel[pos] = None;
@@ -120,8 +125,7 @@ impl OverallState {
         if let Some(mover) = self.right_tunnel[pos] {
             let (col_ix, target) = self.matching_tunnel(mover);
             if (pos == 0 || self.right_tunnel[0].is_none())
-                && target[0].is_none()
-                && (target[1].is_none() || target[1] == Some(mover))
+                && target[0].is_none() || target[0] == Some(mover)
             {
                 let mut new_state = self.clone();
                 new_state.right_tunnel[pos] = None;
@@ -148,6 +152,82 @@ impl OverallState {
                 }
                 possible_states.push(new_state);
             }
+        }
+    }
+
+    fn try_move_from_gap(&self, possible_states: &mut Vec<Self>, pos: usize) {
+        let mut new_state = self.clone();
+        let mover = match pos {
+            1 => {
+                new_state.ab_gap = None;
+                self.ab_gap
+            }
+            2 => {
+                new_state.bc_gap = None;
+                self.bc_gap
+            }
+            3 => {
+                new_state.cd_gap = None;
+                self.cd_gap
+            }
+            _ => panic!("unknown gap"),
+        };
+        let mover = if mover.is_some() { mover.unwrap() } else { return; };
+        let (_, target) = self.matching_tunnel(mover);
+        let cost_per_move = cost_per_move(mover);
+        if target[0].is_none() || target[0] == Some(mover) {
+            match (mover, pos) {
+                ('A', 1) => {
+                    new_state.a_tunnel[0] = Some('A');
+                    new_state.energy_spent += cost_per_move * 2;
+                }
+                ('B', 1) => {
+                    new_state.b_tunnel[0] = Some('B');
+                    new_state.energy_spent += cost_per_move * 2;
+                }
+                ('C', 1) if self.bc_gap.is_none() => {
+                    new_state.c_tunnel[0] = Some('C');
+                    new_state.energy_spent += cost_per_move * 4;
+                }
+                ('D', 1) if self.bc_gap.is_none() && self.cd_gap.is_none() => {
+                    new_state.d_tunnel[0] = Some('D');
+                    new_state.energy_spent += cost_per_move * 6;
+                }
+                ('A', 2) if self.ab_gap.is_none() => {
+                    new_state.a_tunnel[0] = Some('A');
+                    new_state.energy_spent += cost_per_move * 4;
+                }
+                ('B', 2) => {
+                    new_state.b_tunnel[0] = Some('B');
+                    new_state.energy_spent += cost_per_move * 2;
+                }
+                ('C', 2) => {
+                    new_state.c_tunnel[0] = Some('C');
+                    new_state.energy_spent += cost_per_move * 2;
+                }
+                ('D', 2) if self.cd_gap.is_none() => {
+                    new_state.d_tunnel[0] = Some('D');
+                    new_state.energy_spent += cost_per_move * 4;
+                }
+                ('A', 3) if self.ab_gap.is_none() && self.bc_gap.is_none() => {
+                    new_state.a_tunnel[0] = Some('A');
+                    new_state.energy_spent += cost_per_move * 6;
+                }
+                ('B', 3) if self.bc_gap.is_none() => {
+                    new_state.b_tunnel[0] = Some('B');
+                    new_state.energy_spent += cost_per_move * 4;
+                }
+                ('C', 3) => {
+                    new_state.c_tunnel[0] = Some('C');
+                    new_state.energy_spent += cost_per_move * 2;
+                }
+                ('D', 3) => {
+                    new_state.d_tunnel[0] = Some('D');
+                    new_state.energy_spent += cost_per_move * 2;
+                }
+                _ => { return; }
+            }
+            possible_states.push(new_state);
         }
     }
 
