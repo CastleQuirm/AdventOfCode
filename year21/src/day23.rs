@@ -170,7 +170,7 @@ impl OverallState {
     fn cost_from_room_to_corridor(&self, room_index: usize, corridor_index: usize) -> u64 {
         let arthopod = self.rooms[room_index].last().unwrap();
         let move_count_from_room = moves_corridor_to_room_entrance(corridor_index, room_index);
-        assert!(self.rooms[room_index].len() > 0);
+        assert!(!self.rooms[room_index].is_empty());
         assert!(self.rooms[room_index].len() < 3);
         let move_count_in_room = (2 - self.rooms[room_index].len()) as u64;
 

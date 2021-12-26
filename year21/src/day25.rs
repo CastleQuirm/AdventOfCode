@@ -74,7 +74,7 @@ impl CucumberState {
                 {
                     target_loc
                 } else {
-                    cucumber.clone()
+                    *cucumber
                 }
             })
             .collect::<HashSet<Coord>>();
@@ -99,7 +99,7 @@ impl CucumberState {
                 {
                     target_loc
                 } else {
-                    cucumber.clone()
+                    *cucumber
                 }
             })
             .collect::<HashSet<Coord>>();

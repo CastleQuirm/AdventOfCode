@@ -66,11 +66,10 @@ impl Program {
             let commands = instruction.split(' ').collect::<Vec<&str>>();
             let first_memory_index = self.get_memory_index(
                 *commands
-                    .iter()
-                    .nth(1)
+                    .get(1)
                     .expect("There should always be a variable name here"),
             );
-            let second_memory_value = commands.iter().nth(2).map(|&parameter| {
+            let second_memory_value = commands.get(2).map(|&parameter| {
                 let parse_result = parameter.parse::<i32>();
                 if parse_result.is_ok() {
                     parse_result.unwrap()
