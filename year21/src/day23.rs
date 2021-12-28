@@ -1,14 +1,82 @@
+use std::collections::{HashMap, HashSet};
+
 // Potential improvements:
 //
 
 pub fn day23(input_lines: &[String]) -> (u64, u64) {
-    let part1 = OverallState::new(input_lines)
-        .experiment()
-        .expect("No end result");
+    // let first_state = OverallState::new(input_lines);
+    // let possible_states = first_state.next_turns();
+
+
+    let part1 = calculate_answer(input_lines);
+
+
+    // let part1 = OverallState::new(input_lines)
+    //     .experiment()
+    //     .expect("No end result");
+
+
+
     (part1, 0)
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+fn calculate_answer(input_lines: &[String]) -> u64 {
+    let mut candidate_heap = AllStates::new(input_lines);
+    loop {
+        // Pull a cheapest hop
+        let (next, cost) = candidate_heap.take_next();
+        
+        if !candidate_heap.fully_added.insert(next.clone()) {
+            continue;
+        };
+        println!("Considering option of cost {}", cost);
+
+        // If we're done, this is the cheapest route, return it.
+        if next.is_finished() { return cost; }
+
+        // Generate the possible next states
+        let possible_states = next.next_turns();
+
+        // Fill each of these into the candidate heaps.
+        candidate_heap.add_candidates(possible_states);
+    }
+}
+
+struct AllStates {
+    candidates_by_cost: HashMap<u64, Vec<OverallState>>,
+    fully_added: HashSet<OverallState>,
+}
+impl AllStates {
+    fn new(input_lines: &[String]) -> Self {
+        let mut candidates_by_cost = HashMap::new();
+        candidates_by_cost.insert(0, vec![OverallState::new(input_lines)]);
+        Self {
+            candidates_by_cost,
+            fully_added: HashSet::new()
+        }
+    }
+    fn take_next(&mut self) -> (OverallState, u64) {
+        let cheapest_next = *self.candidates_by_cost.keys().min().expect("no cheapest next hop"); // Don't call this on an empty list!
+        let possible_states = self
+            .candidates_by_cost
+            .get_mut(&cheapest_next)
+            .expect("We just had this key");
+        let chosen_state = possible_states.pop().expect("Wasn't a state for this");
+        if possible_states.is_empty() {
+            self.candidates_by_cost.remove(&cheapest_next);
+        }
+
+        (chosen_state, cheapest_next)
+    }
+    fn add_candidates(&mut self, possible_states: Vec<OverallState>) {
+        possible_states.into_iter().for_each(|state| {
+            let list_for_cost = self.candidates_by_cost.entry(state.energy_spent).or_insert_with(Vec::new);
+            list_for_cost.push(state)
+        })
+    }
+}
+
+#[derive(Clone, Debug, Hash)]
 struct OverallState {
     // The rooms are a vec that we push to and pop from - i.e. the last in the vec is the closest to the corridor.
     // We don't care about details of how many things are in each (it's fully deducible).
@@ -42,21 +110,23 @@ impl OverallState {
         }
     }
 
-    fn experiment(&self) -> Option<u64> {
-        // try every possible move
-        //   for each: if it reaches a finished state, provide the energy spent; else recursive call
-        // return the min (noting it'll be "None" if there were no possible moves).
-        self.next_turns()
-            .iter()
-            .flat_map(|possible_states| {
-                if possible_states.is_finished() {
-                    Some(possible_states.energy_spent)
-                } else {
-                    possible_states.experiment()
-                }
-            })
-            .min()
-    }
+    // fn experiment(&self) -> Option<u64> {
+    //     // try every possible move
+    //     //   for each: if it reaches a finished state, provide the energy spent; else recursive call
+    //     // return the min (noting it'll be "None" if there were no possible moves).
+    //     self.next_turns()
+    //         .iter()
+    //         .flat_map(|possible_states| {
+    //             if possible_states.is_finished() {
+    //                 Some(possible_states.energy_spent)
+    //             } else {
+    //                 println!("Just once");
+    //                 panic!();
+    //                 possible_states.experiment()
+    //             }
+    //         })
+    //         .min()
+    // }
 
     fn next_turns(&self) -> Vec<Self> {
         // For each possible arthopod that could move
@@ -95,37 +165,42 @@ impl OverallState {
                 new_state.add_arthopod_to_own_room(arthopod);
                 new_state.energy_spent += self.cost_from_corridor_to_room(corridor_index);
                 possible_states.push(new_state);
+                // println!("Consider moving arthopod {} from corridor {}", arthopod, corridor_index);
             });
 
         // Add cases for each of the possible moves from the rooms to corridors.
+        //   - ONLY IF WE HAVEN'T GOT ANY WAY OF GETTING AN ARTHOPOD HOME
         //   - Is any arthopod in it not home?
         //   - What are the set of corridor spaces it can reach?
-        (0..4)
-            .filter(|&room_index| {
-                self.rooms[room_index]
-                    .iter()
-                    .any(|&arthopod| matching_room(arthopod) != room_index)
-            })
-            .for_each(|room_index| {
-                (0_usize..7)
-                    .filter(|&corridor_index| {
-                        self.room_can_reach_corrior(room_index, corridor_index)
-                    })
-                    .for_each(|corridor_index| {
-                        let mut new_state = self.clone();
-                        let arthopod = new_state.rooms[room_index].pop().unwrap();
-                        new_state.corridor[corridor_index] = Some(arthopod);
-                        new_state.energy_spent +=
-                            self.cost_from_room_to_corridor(room_index, corridor_index);
-                        possible_states.push(new_state)
-                    })
-            });
+        if possible_states.is_empty() {
+            (0..4)
+                .filter(|&room_index| {
+                    self.rooms[room_index]
+                        .iter()
+                        .any(|&arthopod| matching_room(arthopod) != room_index)
+                })
+                .for_each(|room_index| {
+                    (0_usize..7)
+                        .filter(|&corridor_index| {
+                            self.room_can_reach_corrior(room_index, corridor_index)
+                        })
+                        .for_each(|corridor_index| {
+                            let mut new_state = self.clone();
+                            let arthopod = new_state.rooms[room_index].pop().unwrap();
+                            new_state.corridor[corridor_index] = Some(arthopod);
+                            new_state.energy_spent +=
+                                self.cost_from_room_to_corridor(room_index, corridor_index);
+                            possible_states.push(new_state);
+                            // println!("Consider moving arthopod {} from room {} to corridor {}", arthopod, room_index, corridor_index);
+                        })
+                });
+            }
 
         possible_states
     }
 
     fn is_finished(&self) -> bool {
-        // Assert on the rooms being full and correct.
+        // Check if the rooms are full and correct.
         self.rooms
             == [
                 vec!['A', 'A'],
@@ -176,7 +251,28 @@ impl OverallState {
 
         cost_per_move(*arthopod) * (move_count_in_room + move_count_from_room)
     }
+
+    fn cost_from_room_to_room(&self, start_room_index: usize, arthopod: char) -> u64 {
+        cost_per_move(arthopod) * moves_room_entrance_to_room_entrance(start_room_index, matching_room(arthopod))
+    }
+
+    fn remaining_distance_heuristic(&self) -> u64 {
+        self.corridor.iter().enumerate().map(|(corridor_space, entry)| {
+            if entry.is_some() {
+                self.cost_from_corridor_to_room(corridor_space)
+            } else { 0 }
+        }).sum::<u64>() +
+        self.rooms.iter().enumerate().map(|(room_index, room)| {
+            room.iter().map(|&arthopod| self.cost_from_room_to_room(room_index, arthopod)).sum::<u64>()
+        }).sum::<u64>()
+    }
 }
+impl PartialEq for OverallState {
+    fn eq(&self, other: &OverallState) -> bool {
+        self.rooms == other.rooms && self.corridor == other.corridor
+    }
+}
+impl Eq for OverallState {}
 
 fn matching_room(char: char) -> usize {
     match char {
@@ -266,6 +362,28 @@ fn corridor_indices_between_corridor_and_room(
         (5, 3) => vec![],
         (6, 3) => vec![5],
         _ => panic!(),
+    }
+}
+
+fn moves_room_entrance_to_room_entrance(start_room: usize, end_room: usize) -> u64 {
+    match (start_room, end_room) {
+        (0, 0) => 0,
+        (0, 1) => 4,
+        (0, 2) => 6,
+        (0, 3) => 8,
+        (1, 0) => 4,
+        (1, 1) => 0,
+        (1, 2) => 4,
+        (1, 3) => 6,
+        (2, 0) => 6,
+        (2, 1) => 4,
+        (2, 2) => 0,
+        (2, 3) => 4,
+        (3, 0) => 8,
+        (3, 1) => 6,
+        (3, 2) => 4,
+        (3, 3) => 0,
+        _ => panic!("Unrecognised room in or out"),
     }
 }
 
