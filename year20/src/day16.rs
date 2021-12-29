@@ -108,7 +108,7 @@ fn all_valid_values(rules: &[InfoField]) -> HashSet<usize> {
 
 #[derive(Clone)]
 struct InfoField {
-    field_name: String,
+    // field_name: String,
     low_range: FieldRange,
     high_range: FieldRange,
 }
@@ -122,18 +122,18 @@ impl InfoField {
     }
 
     fn new(rule_text: &str) -> InfoField {
-        let field_name = rule_text
-            .split(": ")
-            .next()
-            .expect("Didn't find : in rule")
-            .to_string();
+        // let field_name = rule_text
+        //     .split(": ")
+        //     .next()
+        //     .expect("Didn't find : in rule")
+        //     .to_string();
         let ranges = rule_text.split(": ").nth(1).unwrap();
         let low_range =
             FieldRange::new(ranges.split(" or ").next().expect("Didn't find or in rule"));
         let high_range =
             FieldRange::new(ranges.split(" or ").nth(1).expect("Didn't find or in rule"));
         InfoField {
-            field_name,
+            // field_name,
             low_range,
             high_range,
         }
@@ -234,12 +234,12 @@ mod tests {
     fn postparsed_part1() {
         let rules = vec![
             InfoField {
-                field_name: "class".to_string(),
+                // field_name: "class".to_string(),
                 low_range: FieldRange { lower: 1, upper: 3 },
                 high_range: FieldRange { lower: 5, upper: 7 },
             },
             InfoField {
-                field_name: "row".to_string(),
+                // field_name: "row".to_string(),
                 low_range: FieldRange {
                     lower: 6,
                     upper: 11,
@@ -250,7 +250,7 @@ mod tests {
                 },
             },
             InfoField {
-                field_name: "seat".to_string(),
+                // field_name: "seat".to_string(),
                 low_range: FieldRange {
                     lower: 13,
                     upper: 40,
