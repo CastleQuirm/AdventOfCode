@@ -20,5 +20,14 @@ I'm primarily doing these for fun and general experience with Rust, with a smatt
     - Add some particularly common utilities and structs e.g. Coords, various initial parsings of input_lines.
     - Change default variable type for output of functions to i32.  I'm not sure I've ever seen a negative answer, but generally handling i32s is better (they allow subtraction!) through the code.  Or maybe to a string, so we can handle the odd occasion where a string is needed!
 - year21
-  - Complete without caveats at point of writing (11th December 2021). Should correctly answer for any given input!
+  - Complete with the following caveats:
+    - Day 13 has a visual text output which needs human parsing. I'm vaguly considering implementing something to read this.
+    - Day 24 was a special day where the best way of solving it was very much through human reading and parsing of the input. The implemented code gets the correct answer for my input, but only in a reasonable time because I've set the starting point of the search bounds suitably close. With enlarged bounds it should get the correct answers for any input, but would take an *extremely* long time (potentially decades).
+      - There's a couple of ways of implementing something smarter that I've seen mentioned online: from using knowledge of the structure of the provided code (base 26 stuff) to look for the relevant variables and calculate, to implementing a full on mathematical logic parser which can identify the constraints from entirely arbitrary code.  I'm not planning on doing any of these.
+  - The following days take longer than 1s, which would be nice to improve on:
+    - Day 18 (~ 1.2s)
+    - Day 19 (~ 5.7s)
+    - Day 22 (~17.4s)
+    - Day 24 (~ 2.8s)
+      - Although note this time is dependent on how I've set the limits; with the approach taken I could equally well cut it down to microseconds, and with a complete solution it'd take decades.
   - All the template thoughts for improvement apply to this codebase (apart from adding top level tests, which I've done on a day-by-day basis).
