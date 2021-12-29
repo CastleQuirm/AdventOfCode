@@ -13,17 +13,28 @@ pub fn day6(input_lines: &[String]) -> (u64, u64) {
     )
 }
 
-fn answer_with_func(input_lines: &[String], function: fn(&str) -> u64) -> u64 {
-    input_lines[0]
-        .split("\n\n")
+fn answer_with_func(input_lines: &[String], function: fn(&[String]) -> u64) -> u64 {
+    let mut group_answers: Vec<Vec<String>> = Vec::new();
+    let mut responses_in_group: Vec<String> = Vec::new();
+    for line in input_lines {
+        if line.is_empty() {
+            group_answers.push(responses_in_group.clone());
+            responses_in_group = Vec::new();
+        } else {
+            responses_in_group.push(line.clone());
+        }
+    }
+    group_answers.push(responses_in_group);
+
+    group_answers.iter()
         .map(|group| function(group))
         .sum()
 }
 
-fn count_characters_with_or(group: &str) -> u64 {
+fn count_characters_with_or(group: &[String]) -> u64 {
     lowercase_alphabet()
         .iter()
-        .filter(|&&letter| group.to_string().contains(letter))
+        .filter(|&&letter| group.iter().any(|respondant| respondant.contains(letter)))
         .count() as u64
 }
 
@@ -38,10 +49,8 @@ fn count_characters_with_or(group: &str) -> u64 {
 //         .len() as u64
 // }
 
-fn count_characters_with_and(group: &str) -> u64 {
-    group
-        .to_string()
-        .lines()
+fn count_characters_with_and(group: &[String]) -> u64 {
+    group.iter()
         .fold(lowercase_alphabet(), |intersection, line| {
             intersection.intersect(line.chars().collect::<Vec<char>>())
         })
