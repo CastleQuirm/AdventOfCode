@@ -71,8 +71,8 @@ impl Program {
             );
             let second_memory_value = commands.get(2).map(|&parameter| {
                 let parse_result = parameter.parse::<i32>();
-                if parse_result.is_ok() {
-                    parse_result.unwrap()
+                if let Ok(unwrapped_result) = parse_result {
+                    unwrapped_result
                 } else {
                     self.get_memory(parameter)
                 }
