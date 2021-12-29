@@ -1,49 +1,30 @@
 // Possible improvements
-// 1: Go back to using a the same input as the earlier days (or make those days use the same input as this one!)
-// 2: Make this more robust.  There's a bunch of inputs that would cause this to crash e.g. if any of BYR, IYR or EYR weren't a number.
-// 3: Make more functional, in particular hgt_valid and hcl_valid
-// 4: Maybe make the parameter values better tracked rather than magic values in the middle of the code
-// 5: Break out "valid" to have subfunctions.
-// 6: Neaten up all the String/&str transformations etc
-// 7: Improve string consumption e.g. look into Nom.
+// 1: Make this more robust.  There's a bunch of inputs that would cause this to crash e.g. if any of BYR, IYR or EYR weren't a number.
+// 2: Make more functional, in particular hgt_valid and hcl_valid
+// 3: Maybe make the parameter values better tracked rather than magic values in the middle of the code
+// 4: Break out "valid" to have subfunctions.
+// 5: Neaten up all the String/&str transformations etc
+// 6: Improve string consumption e.g. look into Nom.
 
 use std::collections::HashMap;
 
 pub fn day4(input_lines: &[String]) -> (u64, u64) {
-    let passports: Vec<Passport> = input_lines[0]
-        .split("\n\n")
-        .map(|passport| make_passport(passport))
-        .collect();
+    let mut passports: Vec<Passport> = Vec::new();
+    let mut passport_lines: Vec<String> = Vec::new();
+    for line in input_lines {
+        if line.is_empty() {
+            passports.push(Passport::new(&passport_lines));
+            passport_lines = Vec::new();
+        } else {
+            passport_lines.push(line.clone());
+        }
+    }
+    passports.push(Passport::new(&passport_lines));
+
     (
         passports.iter().filter(|p| present(p)).count() as u64,
         passports.iter().filter(|p| valid(p)).count() as u64,
     )
-}
-
-fn make_passport(input: &str) -> Passport {
-    let mut hash: HashMap<&str, &str> = HashMap::new();
-    let broken_string = input.split(|c| c == ' ' || c == '\n');
-
-    for element in broken_string {
-        let separated: Vec<&str> = element.split(':').collect();
-        hash.insert(separated[0], separated[1]);
-    }
-
-    Passport {
-        byr: hash
-            .get("byr")
-            .map(|s| s.to_string().parse().expect("BYR Not a number")),
-        iyr: hash
-            .get("iyr")
-            .map(|s| s.to_string().parse().expect("IYR Not a number")),
-        eyr: hash
-            .get("eyr")
-            .map(|s| s.to_string().parse().expect("EYR Not a number")),
-        hgt: hash.get("hgt").map(|s| s.to_string()),
-        hcl: hash.get("hcl").map(|s| s.to_string()),
-        ecl: hash.get("ecl").map(|s| s.to_string()),
-        pid: hash.get("pid").map(|s| s.to_string()),
-    }
 }
 
 fn present(p: &Passport) -> bool {
@@ -104,6 +85,7 @@ fn is_hex_digit(c: char) -> bool {
     }
 }
 
+#[derive(Debug)]
 struct Passport {
     byr: Option<usize>,  // (Birth year)
     iyr: Option<usize>,  // (Issue year)
@@ -112,4 +94,32 @@ struct Passport {
     hcl: Option<String>, // (Hair Color)
     ecl: Option<String>, // (Eye Color)
     pid: Option<String>, // (Passport ID)
+}
+impl Passport {
+    fn new(input_lines: &[String]) -> Self {
+        let mut hash: HashMap<&str, &str> = HashMap::new();
+    
+        let broken_string = input_lines.iter().flat_map(|line| line.split(|c| c == ' ')).collect::<Vec<&str>>();
+
+        for element in broken_string {
+            let separated: Vec<&str> = element.split(':').collect();
+            hash.insert(separated[0], separated[1]);
+        }
+    
+        Self {
+            byr: hash
+                .get("byr")
+                .map(|s| s.to_string().parse().expect("BYR Not a number")),
+            iyr: hash
+                .get("iyr")
+                .map(|s| s.to_string().parse().expect("IYR Not a number")),
+            eyr: hash
+                .get("eyr")
+                .map(|s| s.to_string().parse().expect("EYR Not a number")),
+            hgt: hash.get("hgt").map(|s| s.to_string()),
+            hcl: hash.get("hcl").map(|s| s.to_string()),
+            ecl: hash.get("ecl").map(|s| s.to_string()),
+            pid: hash.get("pid").map(|s| s.to_string()),
+        }
+    }
 }
