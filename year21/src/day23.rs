@@ -1,148 +1,81 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    cmp::{Ordering, Reverse},
+    collections::{BinaryHeap, HashSet},
+};
 
 // Potential improvements:
-//
+// ...there's probably some (function names, comments, neater checks, would be nice to track and print out info about the best solution)
+// but it's taken a long time to solve this well and it now runs both parts in under 100ms so...pretty happy with it as it stands now!
 
 pub fn day23(input_lines: &[String]) -> (u64, u64) {
-    // let first_state = OverallState::new(input_lines);
-    // let possible_states = first_state.next_turns();
+    let part1 = calculate_astar_search_answer(input_lines);
 
+    let mut extended_map = input_lines
+        .iter()
+        .take(3)
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<String>>();
+    extended_map.push("  #D#C#B#A#".to_string());
+    extended_map.push("  #D#B#A#C#".to_string());
+    let mut remaining_map = input_lines
+        .iter()
+        .skip(3)
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<String>>();
+    extended_map.append(&mut remaining_map);
+    let part2 = calculate_astar_search_answer(&extended_map);
 
-    let part1 = calculate_answer(input_lines);
-
-
-    // let part1 = OverallState::new(input_lines)
-    //     .experiment()
-    //     .expect("No end result");
-
-
-
-    (part1, 0)
+    (
+        part1.expect("Couldn't find a route"),
+        part2.expect("Couldn't find a route in the extended map"),
+    )
 }
 
-fn calculate_answer(input_lines: &[String]) -> u64 {
-    let mut candidate_heap = AllStates::new(input_lines);
-    loop {
-        // Pull a cheapest hop
-        let (next, cost) = candidate_heap.take_next();
-        
-        if !candidate_heap.fully_added.insert(next.clone()) {
+fn calculate_astar_search_answer(input_lines: &[String]) -> Option<u64> {
+    // Open Set is the f-score heap - implement manually via a map of Fscores to the set of states
+    let mut open_set: BinaryHeap<Reverse<OverallState>> = BinaryHeap::new();
+    open_set.push(Reverse(OverallState::new_from_input(input_lines)));
+    let mut closed_set: HashSet<LocationState> = HashSet::new();
+
+    while !open_set.is_empty() {
+        let next_state = open_set.pop().unwrap().0;
+
+        if closed_set.contains(&next_state.layout) {
             continue;
-        };
-        println!("Considering option of cost {}", cost);
-
-        // If we're done, this is the cheapest route, return it.
-        if next.is_finished() { return cost; }
-
-        // Generate the possible next states
-        let possible_states = next.next_turns();
-
-        // Fill each of these into the candidate heaps.
-        candidate_heap.add_candidates(possible_states);
-    }
-}
-
-struct AllStates {
-    candidates_by_cost: HashMap<u64, Vec<OverallState>>,
-    fully_added: HashSet<OverallState>,
-}
-impl AllStates {
-    fn new(input_lines: &[String]) -> Self {
-        let mut candidates_by_cost = HashMap::new();
-        candidates_by_cost.insert(0, vec![OverallState::new(input_lines)]);
-        Self {
-            candidates_by_cost,
-            fully_added: HashSet::new()
-        }
-    }
-    fn take_next(&mut self) -> (OverallState, u64) {
-        let cheapest_next = *self.candidates_by_cost.keys().min().expect("no cheapest next hop"); // Don't call this on an empty list!
-        let possible_states = self
-            .candidates_by_cost
-            .get_mut(&cheapest_next)
-            .expect("We just had this key");
-        let chosen_state = possible_states.pop().expect("Wasn't a state for this");
-        if possible_states.is_empty() {
-            self.candidates_by_cost.remove(&cheapest_next);
+        } else if next_state.h_cost == 0 {
+            assert!(next_state.layout.is_finished());
+            return Some(next_state.g_cost);
         }
 
-        (chosen_state, cheapest_next)
+        let new_candidates = next_state.next_states();
+        new_candidates
+            .iter()
+            .for_each(|candidate| open_set.push(Reverse(candidate.clone())));
+        closed_set.insert(next_state.layout);
     }
-    fn add_candidates(&mut self, possible_states: Vec<OverallState>) {
-        possible_states.into_iter().for_each(|state| {
-            let list_for_cost = self.candidates_by_cost.entry(state.energy_spent).or_insert_with(Vec::new);
-            list_for_cost.push(state)
-        })
-    }
+
+    // Couldn't find a path
+    None
 }
 
-#[derive(Clone, Debug, Hash)]
+#[derive(Clone, Debug)]
 struct OverallState {
-    // The rooms are a vec that we push to and pop from - i.e. the last in the vec is the closest to the corridor.
-    // We don't care about details of how many things are in each (it's fully deducible).
-    rooms: [Vec<char>; 4],
-    corridor: [Option<char>; 7],
-    energy_spent: u64,
+    layout: LocationState,
+    g_cost: u64,
+    h_cost: u64,
 }
 impl OverallState {
-    fn new(input_lines: &[String]) -> Self {
+    fn new_from_input(input_lines: &[String]) -> Self {
+        let layout = LocationState::new(input_lines);
+        let h_cost = layout.remaining_distance_heuristic();
         Self {
-            rooms: [
-                vec![
-                    input_lines[3].chars().nth(3).expect("No char?"),
-                    input_lines[2].chars().nth(3).expect("No char?"),
-                ],
-                vec![
-                    input_lines[3].chars().nth(5).expect("No char?"),
-                    input_lines[2].chars().nth(5).expect("No char?"),
-                ],
-                vec![
-                    input_lines[3].chars().nth(7).expect("No char?"),
-                    input_lines[2].chars().nth(7).expect("No char?"),
-                ],
-                vec![
-                    input_lines[3].chars().nth(9).expect("No char?"),
-                    input_lines[2].chars().nth(9).expect("No char?"),
-                ],
-            ],
-            corridor: [None; 7],
-            energy_spent: 0,
+            layout,
+            g_cost: 0,
+            h_cost,
         }
     }
 
-    // fn experiment(&self) -> Option<u64> {
-    //     // try every possible move
-    //     //   for each: if it reaches a finished state, provide the energy spent; else recursive call
-    //     // return the min (noting it'll be "None" if there were no possible moves).
-    //     self.next_turns()
-    //         .iter()
-    //         .flat_map(|possible_states| {
-    //             if possible_states.is_finished() {
-    //                 Some(possible_states.energy_spent)
-    //             } else {
-    //                 println!("Just once");
-    //                 panic!();
-    //                 possible_states.experiment()
-    //             }
-    //         })
-    //         .min()
-    // }
-
-    fn next_turns(&self) -> Vec<Self> {
-        // For each possible arthopod that could move
-        //   For each possible place it could move to
-        //     Create a new OverallState with that change and the appropriate energy spent
-
-        // An arthopod in a letter column that matches its letter cannot move
-        // An arthopod in a gap or a left/right column can only move to its letter column, and can only do so if
-        //   - it can reach it
-        //   - the first space in the column is None
-        //   - the second space in the column is either None or Some('matching letter')
-        // An arthopod in a letter column that doesn't match can move:
-        //   - only if it is in the first space of the column OR the first space of the column is empty
-        //   - could move to its letter column if points for second option apply (it can reach it, column is either [None, None] or [None, Some('match')])
-        //   - could move to a space in the side-columns or one of the mid-column gaps if it can reach it and they're empty.
-
+    fn next_states(&self) -> Vec<OverallState> {
         let mut possible_states: Vec<Self> = Vec::new();
 
         // Add cases for each of the possible moves from the corridors to rooms.
@@ -150,64 +83,124 @@ impl OverallState {
         //   - Is the room in a good state?
         //   - Is the room reachable?
         //   - If both are yes: what's the cost?
-        self.corridor
+        self.layout
+            .corridor
             .iter()
             .enumerate()
             .filter(|(corridor_index, corridor_space)| {
                 corridor_space.is_some()
-                    && self.can_enter_own_room(corridor_space.unwrap())
-                    && self.can_reach_own_room(*corridor_index)
+                    && self.layout.can_enter_own_room(corridor_space.unwrap())
+                    && self.layout.can_reach_own_room(*corridor_index)
             })
             .for_each(|(corridor_index, arthopod)| {
                 let arthopod = arthopod.unwrap();
                 let mut new_state = self.clone();
-                new_state.corridor[corridor_index] = None;
-                new_state.add_arthopod_to_own_room(arthopod);
-                new_state.energy_spent += self.cost_from_corridor_to_room(corridor_index);
+                new_state.layout.corridor[corridor_index] = None;
+                new_state.layout.add_arthopod_to_own_room(arthopod);
+                new_state.g_cost += self.layout.cost_from_corridor_to_room(corridor_index);
+                new_state.h_cost = new_state.layout.remaining_distance_heuristic();
                 possible_states.push(new_state);
-                // println!("Consider moving arthopod {} from corridor {}", arthopod, corridor_index);
             });
 
         // Add cases for each of the possible moves from the rooms to corridors.
         //   - ONLY IF WE HAVEN'T GOT ANY WAY OF GETTING AN ARTHOPOD HOME
         //   - Is any arthopod in it not home?
-        //   - What are the set of corridor spaces it can reach?
+        //   - What are the set of corridor spaces it can reach AND ARE CURRENTLY EMPTY?
         if possible_states.is_empty() {
             (0..4)
                 .filter(|&room_index| {
-                    self.rooms[room_index]
+                    self.layout.rooms[room_index]
                         .iter()
                         .any(|&arthopod| matching_room(arthopod) != room_index)
                 })
                 .for_each(|room_index| {
                     (0_usize..7)
                         .filter(|&corridor_index| {
-                            self.room_can_reach_corrior(room_index, corridor_index)
+                            self.layout
+                                .room_can_reach_corrior(room_index, corridor_index)
+                                && self.layout.corridor[corridor_index].is_none()
                         })
                         .for_each(|corridor_index| {
                             let mut new_state = self.clone();
-                            let arthopod = new_state.rooms[room_index].pop().unwrap();
-                            new_state.corridor[corridor_index] = Some(arthopod);
-                            new_state.energy_spent +=
-                                self.cost_from_room_to_corridor(room_index, corridor_index);
+                            let arthopod = new_state.layout.rooms[room_index].pop().unwrap();
+                            new_state.layout.corridor[corridor_index] = Some(arthopod);
+                            new_state.g_cost += self
+                                .layout
+                                .cost_from_room_to_corridor(room_index, corridor_index);
+                            new_state.h_cost = new_state.layout.remaining_distance_heuristic();
                             possible_states.push(new_state);
-                            // println!("Consider moving arthopod {} from room {} to corridor {}", arthopod, room_index, corridor_index);
                         })
                 });
-            }
+        }
 
         possible_states
     }
 
+    fn f_cost(&self) -> u64 {
+        self.g_cost + self.h_cost
+    }
+}
+
+impl PartialEq for OverallState {
+    fn eq(&self, other: &OverallState) -> bool {
+        self.f_cost() == other.f_cost()
+    }
+}
+impl Eq for OverallState {}
+impl PartialOrd for OverallState {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for OverallState {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.f_cost().cmp(&other.f_cost())
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+struct LocationState {
+    // The rooms are a vec that we push to and pop from - i.e. the last in the vec is the closest to the corridor.
+    // We don't care about details of how many things are in each (it's fully deducible).
+    rooms: [Vec<char>; 4],
+    corridor: [Option<char>; 7],
+    filled_room_size: usize,
+}
+impl LocationState {
+    fn new(input_lines: &[String]) -> Self {
+        Self {
+            rooms: [
+                (2..input_lines.len() - 1)
+                    .rev()
+                    .map(|row| input_lines[row].chars().nth(3).expect("No char?"))
+                    .collect::<Vec<char>>(),
+                (2..input_lines.len() - 1)
+                    .rev()
+                    .map(|row| input_lines[row].chars().nth(5).expect("No char?"))
+                    .collect::<Vec<char>>(),
+                (2..input_lines.len() - 1)
+                    .rev()
+                    .map(|row| input_lines[row].chars().nth(7).expect("No char?"))
+                    .collect::<Vec<char>>(),
+                (2..input_lines.len() - 1)
+                    .rev()
+                    .map(|row| input_lines[row].chars().nth(9).expect("No char?"))
+                    .collect::<Vec<char>>(),
+            ],
+            corridor: [None; 7],
+            filled_room_size: input_lines.len() - 3,
+        }
+    }
+
     fn is_finished(&self) -> bool {
         // Check if the rooms are full and correct.
-        self.rooms
-            == [
-                vec!['A', 'A'],
-                vec!['B', 'B'],
-                vec!['C', 'C'],
-                vec!['D', 'D'],
-            ]
+        ['A', 'B', 'C', 'D'].iter().all(|&arthopod| {
+            let room_index = matching_room(arthopod);
+            self.rooms[room_index].len() == self.filled_room_size
+                && self.rooms[room_index]
+                    .iter()
+                    .all(|&in_room| in_room == arthopod)
+        })
     }
 
     fn can_enter_own_room(&self, arthopod: char) -> bool {
@@ -236,8 +229,9 @@ impl OverallState {
         let arthopod = self.corridor[corridor_index].unwrap();
         let move_count_to_room =
             moves_corridor_to_room_entrance(corridor_index, matching_room(arthopod));
-        assert!(self.rooms[matching_room(arthopod)].len() < 2);
-        let move_count_in_room = (1 - self.rooms[matching_room(arthopod)].len()) as u64;
+        assert!(self.rooms[matching_room(arthopod)].len() < self.filled_room_size);
+        let move_count_in_room =
+            (self.filled_room_size - 1 - self.rooms[matching_room(arthopod)].len()) as u64;
 
         cost_per_move(arthopod) * (move_count_in_room + move_count_to_room)
     }
@@ -246,33 +240,67 @@ impl OverallState {
         let arthopod = self.rooms[room_index].last().unwrap();
         let move_count_from_room = moves_corridor_to_room_entrance(corridor_index, room_index);
         assert!(!self.rooms[room_index].is_empty());
-        assert!(self.rooms[room_index].len() < 3);
-        let move_count_in_room = (2 - self.rooms[room_index].len()) as u64;
+        assert!(self.rooms[room_index].len() <= self.filled_room_size);
+        let move_count_in_room = (self.filled_room_size - self.rooms[room_index].len()) as u64;
 
         cost_per_move(*arthopod) * (move_count_in_room + move_count_from_room)
     }
 
     fn cost_from_room_to_room(&self, start_room_index: usize, arthopod: char) -> u64 {
-        cost_per_move(arthopod) * moves_room_entrance_to_room_entrance(start_room_index, matching_room(arthopod))
+        cost_per_move(arthopod)
+            * moves_room_entrance_to_room_entrance(start_room_index, matching_room(arthopod))
     }
 
     fn remaining_distance_heuristic(&self) -> u64 {
         self.corridor.iter().enumerate().map(|(corridor_space, entry)| {
-            if entry.is_some() {
-                self.cost_from_corridor_to_room(corridor_space)
+            if let Some(arthopod) = entry {
+                moves_corridor_to_room_entrance(corridor_space, matching_room(*arthopod)) * cost_per_move(*arthopod)
             } else { 0 }
         }).sum::<u64>() +
         self.rooms.iter().enumerate().map(|(room_index, room)| {
-            room.iter().map(|&arthopod| self.cost_from_room_to_room(room_index, arthopod)).sum::<u64>()
+            // cost of getting everything into the right room (entrance to entrance)
+            room.iter().map(|&arthopod| self.cost_from_room_to_room(room_index, arthopod)).sum::<u64>() +
+            // cost of getting everything in the room to the entrance and/or spread out from the entrance
+            self.cost_remaining_in_room(room_index)
         }).sum::<u64>()
     }
-}
-impl PartialEq for OverallState {
-    fn eq(&self, other: &OverallState) -> bool {
-        self.rooms == other.rooms && self.corridor == other.corridor
+
+    fn cost_remaining_in_room(&self, room_index: usize) -> u64 {
+        let arthopod_for_room = matching_arthopod(room_index);
+        if self.rooms[room_index]
+            .iter()
+            .all(|&inhabitant| inhabitant == arthopod_for_room)
+        {
+            // The room is empty or already only contains the correct arthopods.
+            assert!(self.rooms[room_index].len() <= self.filled_room_size);
+            let spaces_to_fill = (self.filled_room_size - self.rooms[room_index].len()) as u64;
+            // Avoid underflow on calculating triangle numbers...
+            if spaces_to_fill > 0 {
+                cost_per_move(arthopod_for_room) * spaces_to_fill * (spaces_to_fill - 1) / 2
+            } else {
+                0
+            }
+        } else {
+            // Cost of moving everything in the room to the entrance
+            let empty_room = self.rooms[room_index]
+                .iter()
+                .enumerate()
+                .map(|(depth, arthopod)| {
+                    (self.filled_room_size - 1 - depth) as u64 * cost_per_move(*arthopod)
+                })
+                .sum::<u64>();
+
+            // Cost of just filling this room correctly
+            let spaces_to_fill = self.filled_room_size as u64;
+            assert!(spaces_to_fill > 0);
+            let end_fill =
+                cost_per_move(arthopod_for_room) * spaces_to_fill * (spaces_to_fill - 1) / 2;
+
+            // Sum the two
+            empty_room + end_fill
+        }
     }
 }
-impl Eq for OverallState {}
 
 fn matching_room(char: char) -> usize {
     match char {
@@ -280,7 +308,17 @@ fn matching_room(char: char) -> usize {
         'B' => 1,
         'C' => 2,
         'D' => 3,
-        _ => panic!("Unrecognised for matching tunnel"),
+        _ => panic!("Unrecognised for matching room"),
+    }
+}
+
+fn matching_arthopod(room: usize) -> char {
+    match room {
+        0 => 'A',
+        1 => 'B',
+        2 => 'C',
+        3 => 'D',
+        _ => panic!("Unrecognised for matching arthopod"),
     }
 }
 
@@ -390,7 +428,7 @@ fn moves_room_entrance_to_room_entrance(start_room: usize, end_room: usize) -> u
 #[cfg(test)]
 mod tests {
     use super::day23;
-    use super::OverallState;
+    use super::LocationState;
 
     #[test]
     fn check_day23() {
@@ -402,11 +440,11 @@ mod tests {
             .lines()
             .map(std::string::ToString::to_string)
             .collect::<Vec<String>>();
-        assert_eq!(day23(&input_lines), (12521, 0));
+        assert_eq!(day23(&input_lines), (12521, 44169));
     }
 
     #[test]
-    fn check_day23_initial_state() {
+    fn check_day23_input() {
         let input_lines = "#############
 #...........#
 ###B#C#B#D###
@@ -416,8 +454,8 @@ mod tests {
             .map(std::string::ToString::to_string)
             .collect::<Vec<String>>();
         assert_eq!(
-            OverallState::new(&input_lines),
-            OverallState {
+            LocationState::new(&input_lines),
+            LocationState {
                 rooms: [
                     vec!['A', 'B'],
                     vec!['D', 'C'],
@@ -425,7 +463,7 @@ mod tests {
                     vec!['A', 'D']
                 ],
                 corridor: [None; 7],
-                energy_spent: 0
+                filled_room_size: 2
             }
         )
     }
