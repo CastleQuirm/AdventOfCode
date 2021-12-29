@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 // Possible improvements:
 // 1: Some smart way of searching backwards for a solution i.e. find all lines that themselves or swapped will take you to line 642, then all lines that would take you to them, etc.
 // 2: Remove the While loop to be replaced by something functional.
@@ -20,9 +22,10 @@ fn run_program(input_lines: &[String], switch: Option<usize>) -> (u64, Vec<usize
     let mut accumulator = 0;
     let mut pointer = 0;
     let mut possible_switches: Vec<usize> = Vec::new();
-    let mut covered_lines = [false; 646]; // hack - I know the input is 646 lines
+    let mut covered_lines: HashSet<usize> = HashSet::new();
+    // let mut covered_lines = [false; 646]; // hack - I know the input is 646 lines
 
-    while (pointer < input_lines.len()) && !covered_lines[pointer] {
+    while (pointer < input_lines.len()) && !covered_lines.contains(&pointer) {
         let separated_instruction = input_lines[pointer].split(' ');
         let instruction = separated_instruction
             .clone()
@@ -34,7 +37,7 @@ fn run_program(input_lines: &[String], switch: Option<usize>) -> (u64, Vec<usize
             .expect("No counter?")
             .parse::<i32>()
             .expect("Couldn't parse counter");
-        covered_lines[pointer] = true;
+        covered_lines.insert(pointer);
 
         match instruction {
             "acc" => {

@@ -18,7 +18,6 @@ I'm primarily doing these for fun and general experience with Rust, with a smatt
 - year20
   - Almost all solutions for 2020, in a more organised format.
   - ~6 of the 49 puzzles do not directly output a solution, at least based on rerunning the code on a new account's input and finding ones which returned 0 or gave the wrong answer.
-  - Additionally, Day 8 requires hard-coding of the number of lines in the input file, which is inelegant.
 - year21
   - Complete with the following caveats:
     - Day 13 has a visual text output which needs human parsing. I'm vaguly considering implementing something to read this.
