@@ -1,7 +1,6 @@
 // Potential improvements:
 // 1: Implement count_characters_with_and() without using the Intersect crate?  (first check suggested Union was slower than my own method; may be same for Intersect?)
-// 2: Improve the name of "function"
-// 3: As with Day 4, make all days use the same input.
+// 2: Improve the name of "function".
 
 extern crate array_tool;
 use array_tool::vec::Intersect;
