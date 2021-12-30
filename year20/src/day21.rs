@@ -14,7 +14,7 @@ pub fn day21(input_lines: &[String]) -> (u64, u64) {
         .map(|line| Food::new(line))
         .collect::<Vec<Food>>();
     let mut undiscovered_allergens = all_allergens(&all_foods);
-    let mut fixed_ingredients: HashSet<String> = HashSet::new();
+    let mut fixed_ingredients: HashMap<String, String> = HashMap::new();
     while !(&undiscovered_allergens.is_empty()) {
         let causing_foods =
             determine_causes(&undiscovered_allergens, &all_foods, &fixed_ingredients);
@@ -30,15 +30,43 @@ pub fn day21(input_lines: &[String]) -> (u64, u64) {
             .next()
             .unwrap();
         undiscovered_allergens.remove(&discovered_allergen);
-        fixed_ingredients.insert(discovered_food.clone());
-        println!("{} contains {}", discovered_food, discovered_allergen);
+        fixed_ingredients.insert(discovered_allergen.clone(), discovered_food.clone());
+        // println!("{} contains {}", discovered_food, discovered_allergen);
     }
 
     // We now have a list of all ingredients that have an allergen.
+    let all_allergenic_ingredients = fixed_ingredients
+        .values()
+        .map(std::string::ToString::to_string)
+        .collect::<HashSet<String>>();
     let part1_answer = all_foods
         .iter()
-        .map(|food| food.ingredients.difference(&fixed_ingredients).count() as u64)
+        .map(|food| {
+            food.ingredients
+                .difference(&all_allergenic_ingredients)
+                .count() as u64
+        })
         .sum::<u64>();
+
+    let mut dangerous_allergens = fixed_ingredients
+        .keys()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<String>>();
+    dangerous_allergens.sort_unstable();
+    let dangerous_ingredients = dangerous_allergens.iter().map(|allergen| {
+        fixed_ingredients
+            .get(allergen)
+            .expect("didn't recognise allergen")
+            .to_string()
+    });
+    let part2_answer = dangerous_ingredients
+        .reduce(|mut list, ingredient| {
+            list.push_str(",");
+            list.push_str(&ingredient);
+            list
+        })
+        .expect("No dangerous ingredients?");
+    println!("Part 2 answer: {}", part2_answer);
 
     // For each allergen A, find the set of possible ingredients {i} that could be the source by finding every Food {f} that contains A and taking the intersection of all f.ingredients
     // Then find such an allergen A that contains only one element I outside of ingredients_with_allergens
@@ -59,7 +87,7 @@ fn all_allergens(all_foods: &[Food]) -> HashSet<String> {
 fn determine_causes(
     undiscovered_allergens: &HashSet<String>,
     all_foods: &[Food],
-    fixed_ingredients: &HashSet<String>,
+    fixed_ingredients: &HashMap<String, String>,
 ) -> HashMap<String, HashSet<String>> {
     undiscovered_allergens
         .iter()
@@ -83,15 +111,19 @@ fn determine_causes(
 fn find_possible_ingredient(
     allergen: &str,
     all_foods: &[Food],
-    fixed_ingredients: &HashSet<String>,
+    fixed_ingredients: &HashMap<String, String>,
 ) -> HashSet<String> {
+    let all_allergenic_ingredients = fixed_ingredients
+        .values()
+        .map(std::string::ToString::to_string)
+        .collect::<HashSet<String>>();
     shared_ingredient(
         &all_foods
             .iter()
             .filter(|food| food.allergens.contains(allergen))
             .map(|food| {
                 food.ingredients
-                    .difference(fixed_ingredients)
+                    .difference(&all_allergenic_ingredients)
                     .clone()
                     .map(std::string::ToString::to_string)
                     .collect::<HashSet<String>>()
