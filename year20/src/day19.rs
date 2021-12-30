@@ -1,9 +1,8 @@
 // Potential improvements:
-// 1: Use the actual input!  I've cheated and avoided questions over escaping inverted commas by deleting them manually in the input file
-// 2: Use an actual language parser, see https://en.wikipedia.org/wiki/CYK_algorithm
-// 3: Make the permute_elements into a trait-generic function and available in a library; it'd be useful in other puzzles.  However, need to (a) remove the string concatanation element (and supply that elsewhere) and work around another problem I hit
-// 4: Tidy up the check_language function to be a bit less if/if else/elsey.
-// 5: Maybe do something cleverer with the check_language in general (although, really, just do point 2 instead).
+// 1: Use an actual language parser, see https://en.wikipedia.org/wiki/CYK_algorithm
+// 2: Make the permute_elements into a trait-generic function and available in a library; it'd be useful in other puzzles.  However, need to (a) remove the string concatanation element (and supply that elsewhere) and work around another problem I hit
+// 3: Tidy up the check_language function to be a bit less if/if else/elsey.
+// 4: Maybe do something cleverer with the check_language in general (although, really, just do point 2 instead).
 
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
@@ -157,10 +156,7 @@ fn parse_input(input_lines: &[String]) -> (HashMap<usize, Rule>, Vec<String>) {
             .iter()
             .filter(|line| line.contains(':'))
             .map(|line| Rule::new(line))
-            .fold(HashMap::new(), |mut map, rule| {
-                map.insert(rule.index, rule);
-                map
-            }),
+            .collect::<HashMap<usize, Rule>>(),
         input_lines
             .iter()
             .filter(|line| !line.contains(':') && !line.is_empty())
@@ -171,11 +167,11 @@ fn parse_input(input_lines: &[String]) -> (HashMap<usize, Rule>, Vec<String>) {
 
 #[derive(Clone)]
 struct Rule {
-    index: usize,
+    // index: usize,
     constructs: Vec<String>,
 }
 impl Rule {
-    fn new(line: &str) -> Rule {
+    fn new(line: &str) -> (usize, Self) {
         let index = line
             .split(": ")
             .next()
@@ -187,9 +183,9 @@ impl Rule {
             .nth(1)
             .expect("Couldn't find anything after the rule")
             .split(" | ")
-            .map(std::string::ToString::to_string)
+            .map(|str| str.replace('"', ""))
             .collect::<Vec<String>>();
-        Rule { index, constructs }
+        (index, Rule { constructs })
     }
 }
 
