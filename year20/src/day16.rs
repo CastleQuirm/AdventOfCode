@@ -1,97 +1,151 @@
 // Potential improvements
-// 1: Actually solve Part 2!  Note opportunity for commonality between this and Day 21 Part 1.
-// 2: Make more efficient: probably better to have a Rule defined by the four bounds and do number comparisons than have hundreds-large HashSets doing contains checks.
+// 1: Look to see if we can commonalise Part 2 in this and Day 21 Part 1.
+// 2: Make more efficient:
+//   a. Might be better to use the is_valid_value() checks rather than 40 HashSet unions of how-large number sets
+//   b. See TODOs below: we re-scan the invalid tickets to determine their invalidity score, which is clunky, and
+//      we clone tickets we almost certianly don't need to.
+// 3: The process of deduction is dependent on there always being at least one fully identifiable rule after each
+//    preivous rule elimination, which doesn't feel like it's guaranteed (but probably is for the puzzle). Full
+//    sudoku solver would be ideal...
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 pub fn day16(input_lines: &[String]) -> (u64, u64) {
     // Parse input into InfoFields and Tickets
     let (rules, my_ticket, other_tickets) = parse_input(input_lines);
-    println!("Initially {} other tickets", other_tickets.len());
+    let (valid_tickets, scanning_error_rate) = invalid_ticket_scan(&rules, &other_tickets);
     (
-        day16_part1_calc(&rules, &other_tickets),
-        day16_part2_calc(&rules, &my_ticket, &other_tickets),
+        scanning_error_rate,
+        day16_part2_calc(&rules, &my_ticket, &valid_tickets),
     )
 }
 
-fn day16_part1_calc(rules: &[InfoField], other_tickets: &[Ticket]) -> u64 {
+fn invalid_ticket_scan(rules: &[InfoField], other_tickets: &[Ticket]) -> (Vec<Ticket>, u64) {
     // Create HashSet of all valid values across all InfoFields
     let valid_values = all_valid_values(&rules);
-    other_tickets
+    let (valid_tickets, invalid_tickets): (Vec<&Ticket>, Vec<&Ticket>) = other_tickets
         .iter()
-        .map(|ticket| ticket.scanning_error(&valid_values))
-        .sum()
+        .partition(|ticket| ticket.ticket_valid(&valid_values));
+
+    // TODO this is still inefficient: we're scanning every ticket to determine if it's valid
+    // then re-scanning the invalid ones for a score on how invalid.  Would be nice to have the
+    // scan return an Either of the Ticket or the score, then react appropriately.
+    // TODO would also be nice not to have to clone all the tickets in the partition process; would
+    // rather just filter them in situ.
+    (
+        valid_tickets
+            .iter()
+            .map(|&ticket| ticket.clone())
+            .collect::<Vec<Ticket>>(),
+        invalid_tickets
+            .iter()
+            .map(|ticket| ticket.scanning_error(&valid_values))
+            .sum(),
+    )
 }
 
-fn day16_part2_calc(rules: &[InfoField], my_ticket: &Ticket, other_tickets: &[Ticket]) -> u64 {
-    // Filter the rules by those that have impossible values
-    // (0..20).for_each(): go through each Ticket and get the set of InfoFields that support its [i]th value, then take the intersection across tickets.
-    let valid_values = all_valid_values(&rules);
-    let _valid_tickets = other_tickets
+fn day16_part2_calc(rules: &[InfoField], my_ticket: &Ticket, valid_tickets: &[Ticket]) -> u64 {
+    // Create the starting point of all the possible rules for each position.
+    let mut ticket_index_to_rules_map: HashMap<usize, HashSet<&InfoField>> = HashMap::new();
+    (0..rules.len()).for_each(|pos| {
+        let candidate_fields = rules
+            .iter()
+            .filter(|rule| {
+                valid_tickets
+                    .iter()
+                    .all(|ticket| rule.is_valid_value(ticket.field_data[pos]))
+            })
+            .collect::<HashSet<&InfoField>>();
+
+        ticket_index_to_rules_map.insert(pos, candidate_fields);
+    });
+
+    let mut unprocessed_unique_positions = ticket_index_to_rules_map.iter().filter_map(|(index, candidate_rules)| {
+        if candidate_rules.len() == 1 {
+            Some(*index)
+        } else {
+            None
+        }
+    }).collect::<Vec<usize>>();
+
+    while !unprocessed_unique_positions.is_empty() {
+        let new_unique = unprocessed_unique_positions.pop().unwrap();
+        let identified_rule_set = ticket_index_to_rules_map.get(&new_unique).expect("How isn't this rule set known?").clone();
+        assert_eq!(identified_rule_set.len(), 1);
+        let identified_rule = identified_rule_set.iter().nth(0).expect("How isn't this rule known?");
+        (0..rules.len()).for_each(|index| {
+            let candidate_rules = ticket_index_to_rules_map.get_mut(&index).expect("Must have been a ruleset");
+            if candidate_rules.contains(identified_rule) {
+                if candidate_rules.len() == 1 { 
+                    assert_eq!(new_unique, index);
+                } else {
+                    candidate_rules.remove(identified_rule);
+                    if candidate_rules.len() == 1 {
+                        unprocessed_unique_positions.push(index);
+                    }
+                }
+            } else {
+                assert_ne!(new_unique, index);
+            }
+        });
+    }
+
+    ticket_index_to_rules_map
         .iter()
-        .filter(|ticket| ticket.ticket_valid(&valid_values))
-        .collect::<Vec<&Ticket>>();
-
-    // Commented out because this is REALLY slow.  2 minutes in release build slow.
-    // let possible_rules_vec = (0..20).map(|i| {
-    //     let nums_at_position = valid_tickets.clone().into_iter().map(|ticket| ticket.field_data[i]).collect::<Vec<usize>>();
-    //     rules.into_iter().filter(|field| nums_at_position.iter().all(|x| field.valid_values().contains(x))).collect::<Vec<&InfoField>>()
-    // }).collect::<Vec<Vec<&InfoField>>>();
-
-    // Commented out because this is a hypothetical start which I don't know how to progress
-    // We have a vec for each of the field positions, inside each space of which is a Vec of the InfoFields it could be.
-    // We'll assume that we hav a single success somewhere (we do)
-    // let single_index = (0..20).find(|&spot_ix| possible_rules_vec[spot_ix].len() == 1).expect("More complex input - no element with just one possibility!");
-    // let found_rule = &possible_rules_vec[single_index][0].field_name;
-
-    // Alternative approaches to the above: just start trying permutations of the InfoFileds until they fit the rules vector?
-
-    //....
-
-    // I hand solved the necessary indices from printing out some of the above results.  Codifying would be...nicer.  To be done another time!
-    // Use indices 5, 8, 10, 13, 16 and 18
-    (my_ticket.field_data[5]
-        * my_ticket.field_data[8]
-        * my_ticket.field_data[10]
-        * my_ticket.field_data[13]
-        * my_ticket.field_data[16]
-        * my_ticket.field_data[18]) as u64
+        .filter_map(|(index, candidate_rules)| {
+            assert_eq!(candidate_rules.len(), 1);
+            if candidate_rules
+                .iter()
+                .nth(0)
+                .expect("Should have had an element to take")
+                .field_name
+                .contains("departure")
+            {
+                Some(my_ticket.field_data[*index] as u64)
+            } else {
+                None
+            }
+        })
+        .product()
 }
 
 fn parse_input(input_lines: &[String]) -> (Vec<InfoField>, Ticket, Vec<Ticket>) {
-    let split_input = input_lines[0].split("\n\n").collect::<Vec<&str>>();
-    assert_eq!(split_input.len(), 3);
+    let mut state_types: Vec<Vec<String>> = Vec::new();
+    let mut lines_in_state: Vec<String> = Vec::new();
+    for line in input_lines {
+        if line.is_empty() {
+            state_types.push(lines_in_state.clone());
+            lines_in_state = Vec::new();
+        } else {
+            lines_in_state.push(line.clone());
+        }
+    }
+    state_types.push(lines_in_state);
+
+    assert_eq!(state_types.len(), 3);
     (
-        parse_rules(split_input[0]),
-        parse_my_ticket(split_input[1]),
-        parse_other_tickets(split_input[2]),
+        parse_rules(&state_types[0]),
+        parse_my_ticket(&state_types[1]),
+        parse_other_tickets(&state_types[2]),
     )
 }
 
-fn parse_rules(rules_input: &str) -> Vec<InfoField> {
+fn parse_rules(rules_input: &[String]) -> Vec<InfoField> {
     rules_input
-        .lines()
+        .iter()
         .map(|rule| InfoField::new(rule))
         .collect::<Vec<InfoField>>()
 }
 
-fn parse_my_ticket(my_ticket_input: &str) -> Ticket {
-    let lines = my_ticket_input
-        .lines()
-        .map(std::string::ToString::to_string)
-        .collect::<Vec<String>>();
-    assert_eq!(lines.len(), 2);
-    assert_eq!(lines[0], "your ticket:".to_string());
-    Ticket::new(&lines[1])
+fn parse_my_ticket(my_ticket_input: &[String]) -> Ticket {
+    assert_eq!(my_ticket_input.len(), 2);
+    assert_eq!(my_ticket_input[0], "your ticket:".to_string());
+    Ticket::new(&my_ticket_input[1])
 }
 
-fn parse_other_tickets(other_tickets_input: &str) -> Vec<Ticket> {
-    let lines = other_tickets_input
-        .lines()
-        .map(std::string::ToString::to_string)
-        .collect::<Vec<String>>();
-    assert_eq!(lines[0], "nearby tickets:".to_string());
-    lines[1..]
+fn parse_other_tickets(other_tickets_input: &[String]) -> Vec<Ticket> {
+    assert_eq!(other_tickets_input[0], "nearby tickets:".to_string());
+    other_tickets_input[1..]
         .iter()
         .map(|ticket_info| Ticket::new(ticket_info))
         .collect::<Vec<Ticket>>()
@@ -106,9 +160,9 @@ fn all_valid_values(rules: &[InfoField]) -> HashSet<usize> {
     })
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 struct InfoField {
-    // field_name: String,
+    field_name: String,
     low_range: FieldRange,
     high_range: FieldRange,
 }
@@ -121,26 +175,30 @@ impl InfoField {
             .collect::<HashSet<usize>>()
     }
 
+    fn is_valid_value(&self, test_value: usize) -> bool {
+        self.low_range.is_in_range(test_value) || self.high_range.is_in_range(test_value)
+    }
+
     fn new(rule_text: &str) -> InfoField {
-        // let field_name = rule_text
-        //     .split(": ")
-        //     .next()
-        //     .expect("Didn't find : in rule")
-        //     .to_string();
+        let field_name = rule_text
+            .split(": ")
+            .next()
+            .expect("Didn't find : in rule")
+            .to_string();
         let ranges = rule_text.split(": ").nth(1).unwrap();
         let low_range =
             FieldRange::new(ranges.split(" or ").next().expect("Didn't find or in rule"));
         let high_range =
             FieldRange::new(ranges.split(" or ").nth(1).expect("Didn't find or in rule"));
         InfoField {
-            // field_name,
+            field_name,
             low_range,
             high_range,
         }
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 struct FieldRange {
     lower: usize,
     upper: usize,
@@ -148,6 +206,10 @@ struct FieldRange {
 impl FieldRange {
     fn valid_values(&self) -> HashSet<usize> {
         (self.lower..self.upper + 1).collect::<HashSet<usize>>()
+    }
+
+    fn is_in_range(&self, test_value: usize) -> bool {
+        test_value >= self.lower && test_value <= self.upper
     }
 
     fn new(range: &str) -> FieldRange {
@@ -167,6 +229,7 @@ impl FieldRange {
     }
 }
 
+#[derive(Clone)]
 struct Ticket {
     field_data: Vec<usize>,
 }
@@ -194,7 +257,7 @@ impl Ticket {
 
 #[cfg(test)]
 mod tests {
-    use super::{day16_part1_calc, FieldRange, InfoField, Ticket};
+    use super::{invalid_ticket_scan, FieldRange, InfoField, Ticket};
 
     #[test]
     //     fn day16_example1() {
@@ -234,12 +297,12 @@ mod tests {
     fn postparsed_part1() {
         let rules = vec![
             InfoField {
-                // field_name: "class".to_string(),
+                field_name: "class".to_string(),
                 low_range: FieldRange { lower: 1, upper: 3 },
                 high_range: FieldRange { lower: 5, upper: 7 },
             },
             InfoField {
-                // field_name: "row".to_string(),
+                field_name: "row".to_string(),
                 low_range: FieldRange {
                     lower: 6,
                     upper: 11,
@@ -250,7 +313,7 @@ mod tests {
                 },
             },
             InfoField {
-                // field_name: "seat".to_string(),
+                field_name: "seat".to_string(),
                 low_range: FieldRange {
                     lower: 13,
                     upper: 40,
@@ -276,7 +339,7 @@ mod tests {
             },
         ];
 
-        assert_eq!(day16_part1_calc(&rules, &other_tickets), 71);
+        assert_eq!(invalid_ticket_scan(&rules, &other_tickets).1, 71);
     }
 }
 
