@@ -72,28 +72,22 @@ fn recursive_combat(p1: &mut Vec<usize>, p2: &mut Vec<usize>) -> (bool, u64) {
 }
 
 fn read_input(input_lines: &[String]) -> (Vec<usize>, Vec<usize>) {
-    let decks = input_lines[0].split("\n\n").collect::<Vec<&str>>();
+    let mut decks: Vec<Vec<usize>> = Vec::new();
+    let mut lines_in_deck: Vec<usize> = Vec::new();
+    for line in input_lines {
+        if line.is_empty() {
+            decks.push(lines_in_deck);
+            lines_in_deck = Vec::new();
+        } else if !line.contains("Player") {
+            lines_in_deck.push(line.parse::<usize>().expect("Couldn't parse card value"));
+        }
+    }
+    decks.push(lines_in_deck);
     assert_eq!(decks.len(), 2);
-    let mut p1 = decks[0].lines().collect::<Vec<&str>>();
-    let mut p2 = decks[1].lines().collect::<Vec<&str>>();
-    let player1_str = p1.remove(0);
-    let player2_str = p2.remove(0);
-    assert_eq!(player1_str, "Player 1:");
-    assert_eq!(player2_str, "Player 2:");
-
+    let mut decks_iter = decks.into_iter();
     (
-        p1.iter()
-            .map(|line| {
-                line.parse::<usize>()
-                    .expect("Couldn't parse line as number")
-            })
-            .collect::<Vec<usize>>(),
-        p2.iter()
-            .map(|line| {
-                line.parse::<usize>()
-                    .expect("Couldn't parse line as number")
-            })
-            .collect::<Vec<usize>>(),
+        decks_iter.next().expect("No first deck"),
+        decks_iter.next().expect("No second deck"),
     )
 }
 
