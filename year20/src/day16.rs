@@ -60,23 +60,34 @@ fn day16_part2_calc(rules: &[InfoField], my_ticket: &Ticket, valid_tickets: &[Ti
         ticket_index_to_rules_map.insert(pos, candidate_fields);
     });
 
-    let mut unprocessed_unique_positions = ticket_index_to_rules_map.iter().filter_map(|(index, candidate_rules)| {
-        if candidate_rules.len() == 1 {
-            Some(*index)
-        } else {
-            None
-        }
-    }).collect::<Vec<usize>>();
+    let mut unprocessed_unique_positions = ticket_index_to_rules_map
+        .iter()
+        .filter_map(|(index, candidate_rules)| {
+            if candidate_rules.len() == 1 {
+                Some(*index)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<usize>>();
 
     while !unprocessed_unique_positions.is_empty() {
         let new_unique = unprocessed_unique_positions.pop().unwrap();
-        let identified_rule_set = ticket_index_to_rules_map.get(&new_unique).expect("How isn't this rule set known?").clone();
+        let identified_rule_set = ticket_index_to_rules_map
+            .get(&new_unique)
+            .expect("How isn't this rule set known?")
+            .clone();
         assert_eq!(identified_rule_set.len(), 1);
-        let identified_rule = identified_rule_set.iter().nth(0).expect("How isn't this rule known?");
+        let identified_rule = identified_rule_set
+            .iter()
+            .nth(0)
+            .expect("How isn't this rule known?");
         (0..rules.len()).for_each(|index| {
-            let candidate_rules = ticket_index_to_rules_map.get_mut(&index).expect("Must have been a ruleset");
+            let candidate_rules = ticket_index_to_rules_map
+                .get_mut(&index)
+                .expect("Must have been a ruleset");
             if candidate_rules.contains(identified_rule) {
-                if candidate_rules.len() == 1 { 
+                if candidate_rules.len() == 1 {
                     assert_eq!(new_unique, index);
                 } else {
                     candidate_rules.remove(identified_rule);
