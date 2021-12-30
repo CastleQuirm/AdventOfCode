@@ -25,9 +25,7 @@ fn answer_with_func(input_lines: &[String], function: fn(&[String]) -> u64) -> u
     }
     group_answers.push(responses_in_group);
 
-    group_answers.iter()
-        .map(|group| function(group))
-        .sum()
+    group_answers.iter().map(|group| function(group)).sum()
 }
 
 fn count_characters_with_or(group: &[String]) -> u64 {
@@ -49,7 +47,8 @@ fn count_characters_with_or(group: &[String]) -> u64 {
 // }
 
 fn count_characters_with_and(group: &[String]) -> u64 {
-    group.iter()
+    group
+        .iter()
         .fold(lowercase_alphabet(), |intersection, line| {
             intersection.intersect(line.chars().collect::<Vec<char>>())
         })

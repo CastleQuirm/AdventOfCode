@@ -98,14 +98,17 @@ struct Passport {
 impl Passport {
     fn new(input_lines: &[String]) -> Self {
         let mut hash: HashMap<&str, &str> = HashMap::new();
-    
-        let broken_string = input_lines.iter().flat_map(|line| line.split(|c| c == ' ')).collect::<Vec<&str>>();
+
+        let broken_string = input_lines
+            .iter()
+            .flat_map(|line| line.split(|c| c == ' '))
+            .collect::<Vec<&str>>();
 
         for element in broken_string {
             let separated: Vec<&str> = element.split(':').collect();
             hash.insert(separated[0], separated[1]);
         }
-    
+
         Self {
             byr: hash
                 .get("byr")
