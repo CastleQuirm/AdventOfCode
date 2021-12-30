@@ -56,7 +56,7 @@ static DAY_FUNCTIONS: [DayFunction; 25] = [
     day25::day25,
 ];
 
-static SINGLE_INPUT_DAYS: [usize; 2] = [20, 22];
+static SINGLE_INPUT_DAYS: [usize; 1] = [22];
 
 fn main() {
     let args: Vec<String> = env::args().collect();

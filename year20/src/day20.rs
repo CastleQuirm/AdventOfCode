@@ -12,10 +12,18 @@ use enum_iterator::IntoEnumIterator;
 
 pub fn day20(input_lines: &[String]) -> (u64, u64) {
     // Read the input into a set of Tiles
-    let tileset: Vec<Tile> = input_lines[0]
-        .split("\n\n")
-        .map(|tile| Tile::new(tile))
-        .collect::<Vec<Tile>>();
+    let mut tileset: Vec<Tile> = Vec::new();
+    let mut lines_in_tile: Vec<String> = Vec::new();
+    for line in input_lines {
+        if line.is_empty() {
+            tileset.push(Tile::new(&lines_in_tile));
+            lines_in_tile = Vec::new();
+        } else {
+            lines_in_tile.push(line.clone());
+        }
+    }
+    tileset.push(Tile::new(&lines_in_tile));
+
     let mut placed_tiles: Vec<(&Tile, Rotation)> = Vec::new();
 
     if !fill_space(&tileset, &mut placed_tiles) {
@@ -265,9 +273,9 @@ struct Tile {
     main_tile: Vec<String>,
 }
 impl Tile {
-    fn new(lines: &str) -> Tile {
+    fn new(lines: &[String]) -> Tile {
         let first_line_split = lines
-            .lines()
+            .iter()
             .next()
             .expect("No title line")
             .split(|c| c == ' ' || c == ':')
@@ -277,15 +285,15 @@ impl Tile {
             .expect("No number after Tile ")
             .parse::<usize>()
             .expect("Couldn't unwrap tile index");
-        let north_string = &lines.lines().nth(1).expect("No first line");
-        let south_string = &lines.lines().nth(10).expect("No tenth line");
+        let north_string = lines.iter().nth(1).expect("No first line");
+        let south_string = lines.iter().nth(10).expect("No tenth line");
         let east_string = &lines
-            .lines()
+            .iter()
             .filter(|line| !line.contains("Tile"))
             .map(|line| line.chars().nth(9).expect("No last character on line?"))
             .collect::<String>();
         let west_string = &lines
-            .lines()
+            .iter()
             .filter(|line| !line.contains("Tile"))
             .map(|line| line.chars().next().expect("No last character on line?"))
             .collect::<String>();
@@ -296,7 +304,7 @@ impl Tile {
         let (r_west, west) = dir_and_r_dir_values(west_string); // Note west side going clockwise is opposite to the east side
 
         let main_tile = lines
-            .lines()
+            .iter()
             .map(std::string::ToString::to_string)
             .collect::<Vec<String>>()[2..10]
             .iter()
@@ -438,8 +446,11 @@ mod tests {
 .#.#.#..##
 ..#....#..
 ###...#.#.
-..###..###";
-        let tile = Tile::new(input);
+..###..###"
+            .lines()
+            .map(std::string::ToString::to_string)
+            .collect::<Vec<String>>();
+        let tile = Tile::new(&input);
         assert_eq!(tile.index, 2311);
         assert_eq!(tile.north, 210);
         assert_eq!(tile.east, 89);
