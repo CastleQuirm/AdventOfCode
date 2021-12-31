@@ -14,6 +14,7 @@ I'm primarily doing these for fun and general experience with Rust, with a smatt
     - Add test framework for the template
     - Add bit to script to get the inputs automatically each day/when first run after the given day
     - Add some particularly common utilities and structs e.g. Coords, various initial parsings of input_lines.
+      - In particular, might change the standard input to be a &[Vec<String>] where the outer vec is split on double-line breaks, and the inner vec is split on single line breaks. This is a common format in AOC inputs, used to separate parts of the input.
     - Change default variable type for output of functions to i32.  I'm not sure I've ever seen a negative answer, but generally handling i32s is better (they allow subtraction!) through the code.  Or maybe to a string, so we can handle the odd occasion where a string is needed!
 - year20
   - Almost all solutions for 2020, in a more organised format.
