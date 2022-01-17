@@ -72,82 +72,82 @@ fn part1(input_lines: &[String]) -> u64 {
 }
 
 fn part2(input_lines: &[String]) -> u64 {
-    // let mut circle: [usize; 1_000_000] = [0; 1_000_000];
-    // (0..1_000_000).for_each(|i| {
-    //     let current_num = if i < 9 {
-    //         input_lines[0]
-    //             .chars()
-    //             .nth(i)
-    //             .unwrap()
-    //             .to_string()
-    //             .parse::<usize>()
-    //             .unwrap()
-    //             - 1
-    //     } else {
-    //         i
-    //     };
-    //     let next_num = if i < 8 {
-    //         input_lines[0]
-    //             .chars()
-    //             .nth(i + 1)
-    //             .unwrap()
-    //             .to_string()
-    //             .parse::<usize>()
-    //             .unwrap()
-    //     } else if i == 999_999 {
-    //         input_lines[0]
-    //             .chars()
-    //             .next()
-    //             .unwrap()
-    //             .to_string()
-    //             .parse::<usize>()
-    //             .unwrap()
-    //     } else {
-    //         i + 2
-    //     };
-    //     circle[current_num] = next_num;
-    // });
-    // let mut current_cup = input_lines[0]
-    //     .chars()
-    //     .next()
-    //     .unwrap()
-    //     .to_string()
-    //     .parse::<usize>()
-    //     .unwrap();
+    let mut circle: [usize; 1_000_000] = [0; 1_000_000];
+    (0..1_000_000).for_each(|i| {
+        let current_num = if i < 9 {
+            input_lines[0]
+                .chars()
+                .nth(i)
+                .unwrap()
+                .to_string()
+                .parse::<usize>()
+                .unwrap()
+                - 1
+        } else {
+            i
+        };
+        let next_num = if i < 8 {
+            input_lines[0]
+                .chars()
+                .nth(i + 1)
+                .unwrap()
+                .to_string()
+                .parse::<usize>()
+                .unwrap()
+        } else if i == 999_999 {
+            input_lines[0]
+                .chars()
+                .next()
+                .unwrap()
+                .to_string()
+                .parse::<usize>()
+                .unwrap()
+        } else {
+            i + 2
+        };
+        circle[current_num] = next_num;
+    });
+    let mut current_cup = input_lines[0]
+        .chars()
+        .next()
+        .unwrap()
+        .to_string()
+        .parse::<usize>()
+        .unwrap();
 
     // (0..1).for_each(|_| {
-    // (0..10_000_000).for_each(|_| {
-    //     // we update: current_cup, and three values in the array.
-    //     let first_value = circle[current_cup - 1];
-    //     println!("First value {}", first_value);
-    //     let second_value = circle[first_value - 1];
-    //     let third_value = circle[second_value - 1];
-    //     let extracted_values: [usize; 3] = [
-    //         first_value,
-    //         second_value,
-    //         third_value,
-    //     ]; // [8, 9, 1]
-    //     let next_cup = circle[extracted_values[2] - 1];
+    (0..10_000_000).for_each(|_| {
+        // we update: current_cup, and three values in the array.
+        let first_value = circle[current_cup - 1];
+        // println!("First value {}", first_value);
+        let second_value = circle[first_value - 1];
+        let third_value = circle[second_value - 1];
+        let extracted_values: [usize; 3] = [
+            first_value,
+            second_value,
+            third_value,
+        ]; // [8, 9, 1]
+        let next_cup = circle[extracted_values[2] - 1];
 
-    //     let dest_cup = (1..5)
-    //         .map(|i| {
-    //             if i >= current_cup {
-    //                 circle.len() + current_cup - i
-    //             } else {
-    //                 current_cup - i
-    //             }
-    //         })
-    //         .find(|i| !extracted_values.contains(i))
-    //         .expect(""); // 2
+        let dest_cup = (1..5)
+            .map(|i| {
+                if i >= current_cup {
+                    circle.len() + current_cup - i
+                } else {
+                    current_cup - i
+                }
+            })
+            .find(|i| !extracted_values.contains(i))
+            .expect(""); // 2
 
-    //     circle[extracted_values[2] - 1] = circle[dest_cup - 1];
-    //     circle[dest_cup - 1] = extracted_values[0];
-    //     circle[current_cup - 1] = next_cup;
-    //     current_cup = next_cup;
-    // });
-    // let first_index = circle[0];
-    // first_index as u64 * circle[first_index - 1] as u64
-    0
+        circle[extracted_values[2] - 1] = circle[dest_cup - 1];
+        circle[dest_cup - 1] = extracted_values[0];
+        circle[current_cup - 1] = next_cup;
+        current_cup = next_cup;
+    });
+    let first_index = circle[0];
+    first_index as u64 * circle[first_index - 1] as u64
+    // 0
 }
 
 // Commented out because the test apparently overflows its stack (presumably the 1M element array
