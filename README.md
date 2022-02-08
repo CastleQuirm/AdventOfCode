@@ -9,13 +9,10 @@ I'm primarily doing these for fun and general experience with Rust, with a smatt
   - Most solutions for 2019, in a fairly scattershot arrangement (most of the puzzles involving the computer are in all all_days, other puzzles are their own cargo crates)
   - Would like, at some point, to go back and (a) clean this up and (b) complete the missing puzzles!
 - template
-  - Framework files for a new year.  Feel free to clone!
+  - Framework files for a new year.  Feel free to clone!  Details below in the "How to Use".
   - Thoughts for improvement:
-    - Add test framework for the template
     - Add bit to script to get the inputs automatically each day/when first run after the given day
-    - Add some particularly common utilities and structs e.g. Coords, various initial parsings of input_lines.
-      - In particular, might change the standard input to be a &[Vec<String>] where the outer vec is split on double-line breaks, and the inner vec is split on single line breaks. This is a common format in AOC inputs, used to separate parts of the input.
-    - Change default variable type for output of functions to i32.  I'm not sure I've ever seen a negative answer, but generally handling i32s is better (they allow subtraction!) through the code.  Or maybe to a string, so we can handle the odd occasion where a string is needed!
+    - Add some particularly common utilities and structs e.g. Coords.
 - year20
   - All solutions for 2020, in a more organised format.
   - Day 21 outputs in a weird way, due to having a string result for Part 2 (it prints the Part 2 string result, then the Part 1 answer, then a 'numerical' answer for Part 2 of 0).
@@ -31,4 +28,18 @@ I'm primarily doing these for fun and general experience with Rust, with a smatt
     - Day 22 (~17.4s)
     - Day 24 (~ 2.8s)
       - Although note this time is dependent on how I've set the limits; with the approach taken I could equally well cut it down to microseconds, and with a complete solution it'd take decades.
-  - All the template thoughts for improvement apply to this codebase (apart from adding top level tests, which I've done on a day-by-day basis).
+  - This was done prior to my more recent Template updates, so uses a few different approaches/function signatures.
+
+## How To Use The Template
+Begin by copy-pasting the template directory into a new name (it should start with a letter).  You may want to delete the existing year directory with my answers and use those names!
+
+Add your personal input (the contents of https://adventofcode.com/<YEAR>/day/<DAY>/input) to the relevant input file (e.g. year<YEAR>/inputs/<DAY>).
+
+Add your code to the relevant src file (e.g. year<YEAR>/src/day<DAY>.rs)
+- Recommend changing the top level function's input parameter to remove the leading underscore (it's there to stop Rust complaining when the functions are empty).
+- The input is provided as a `&[Vec<String>]`. Your input lines are split into top level slice elements split on double-line breaks, with individual lines forming the Strings of a lower-level slice.
+  - For days where the input doesn't have any double-line splits, you may want the first line of your code to be `let input_lines = input_lines[0]` for simplicity.
+- The output required is a pair of Strings, which will be printed to terminal. In the vast majority of days, the result values are numbers, but occasionally strings are wanted!
+- The test frameowrk in each file can also be used to put example cases from the puzzle page with the example answers inline, following the comments.
+
+To run the code, simply run `cargo run <DAY>` from within your copied directory. Remember to use `--release` if you want to compare run-times!

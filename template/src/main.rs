@@ -27,7 +27,7 @@ mod utils;
 
 use std::env;
 
-type DayFunction = fn(&[String]) -> (u64, u64);
+type DayFunction = fn(&[Vec<String>]) -> (String, String);
 static DAY_FUNCTIONS: [DayFunction; 25] = [
     day01::day01,
     day02::day02,
@@ -56,8 +56,6 @@ static DAY_FUNCTIONS: [DayFunction; 25] = [
     day25::day25,
 ];
 
-static SINGLE_INPUT_DAYS: [usize; 0] = [];
-
 fn main() {
     let args: Vec<String> = env::args().collect();
     let min_day: usize;
@@ -77,16 +75,17 @@ fn main() {
 
     for day in min_day..=max_day {
         println!("Day {}", day);
-        let input_lines: Vec<String> = if SINGLE_INPUT_DAYS.contains(&day) {
-            utils::load_inputs_as_one(day)
-        } else {
-            utils::load_inputs_by_line(day)
-        };
+        let input_lines: Vec<Vec<String>> = load_input(day);
         let start_time = std::time::Instant::now();
         let (part1, part2) = DAY_FUNCTIONS[day - 1](&input_lines);
         let elapsed = start_time.elapsed().as_micros();
         println!("Part 1: {}\nPart 2: {}", part1, part2);
         println!("{}.{:03}ms", elapsed / 1000, elapsed % 1000);
         println!("----------");
+    }
+    
+    pub fn load_input(day: usize) -> Vec<Vec<String>> {
+        let whole_input = std::fs::read_to_string(format!("{}/{}", "inputs", day)).expect("Can't open/read input file");
+        utils::load_input(&whole_input)
     }
 }
