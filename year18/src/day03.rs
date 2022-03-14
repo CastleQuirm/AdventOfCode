@@ -5,6 +5,10 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use regex::Regex;
 
+// My third solution: attempt to just look at every square inch, and for each one, determine if it's part of 2 or more claims.
+// It turns out it's really slow for Part 1 as well...but the weird thing is that it's FASTER if we do looping without a break claim
+// to skip unnecessary work than when I have the break claim in, which seems wild.
+
 pub fn day03(input_lines: &[Vec<String>]) -> (String, String) {
     let all_claims = input_lines[0].iter().map(|line| {
         let claim = Claim::from_line(&line);
@@ -38,17 +42,14 @@ pub fn day03(input_lines: &[Vec<String>]) -> (String, String) {
             }
         }
     }
-
-    let answer2 = 0;
-    // println!("Currently non-clashing: {:?}", non_clashing_claim_ids);
-
-    // // We've already eliminated any claim which was the first or second ID in a given clash,
-    // // but we might have claims that only clashed as the third claim or higher.
-    // // For remaining candidates, loop each one and see if they clash any original claim: we can bail as soon as we find one.
-    // let answer2 = non_clashing_claim_ids.iter().find(|claim_id| {
-    //     let candidate_claim = all_claims.get(claim_id).expect("Couldn't find the claim!");
-    //     all_claims.values().all(|other_claim| candidate_claim.id == other_claim.id || candidate_claim.is_claim_disjoint(other_claim))
-    // }).expect("Couldn't find a disjoint claim");
+    
+    // We've already eliminated any claim which was the first or second ID in a given clash,
+    // but we might have claims that only clashed as the third claim or higher.
+    // For remaining candidates, loop each one and see if they clash any original claim: we can bail as soon as we find one.
+    let answer2 = non_clashing_claim_ids.iter().find(|claim_id| {
+        let candidate_claim = all_claims.get(claim_id).expect("Couldn't find the claim!");
+        all_claims.values().all(|other_claim| candidate_claim.id == other_claim.id || candidate_claim.is_claim_disjoint(other_claim))
+    }).expect("Couldn't find a disjoint claim");
 
     // We've skipped checking that there isn't a second one!
 
@@ -99,6 +100,8 @@ impl Claim {
 }
 
 
+// My first/second solution (just look at the 'interesting' co-ordinates, determine a minimal set of overlap info, then size the overlaps)
+// This was slower than the version without the 'interesting' filtering, and just counting the rows directly.
 
 // pub fn day03(input_lines: &[Vec<String>]) -> (String, String) {
 //     // Convert the input into a set of claims.
@@ -145,6 +148,7 @@ impl Claim {
 
 // impl Claim {
 //     fn new(line: &str) -> Self {
+//         // #2 @ 3,1: 4x4
 //         let split_line = line.split(" @ ").collect::<Vec<&str>>();
 //         assert_eq!(split_line.len(), 2);
         
@@ -204,6 +208,8 @@ impl Claim {
 //     }
 // }
 
+// UT
+
 #[cfg(test)]
 mod tests {
     use super::day03;
@@ -229,9 +235,9 @@ mod tests {
     }
 }
 
-// ASLT's solution (no markups from me)
-// Potential improvements:
-//
+// // ASLT's solution (no markups from me)
+// // Potential improvements:
+// //
 // use std::collections::HashSet;
 // use itertools::Itertools;
 // use regex::Regex;
