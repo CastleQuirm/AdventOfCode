@@ -1,8 +1,8 @@
 // Potential improvements:
 //
 
-use std::collections::{HashMap, HashSet};
 use itertools::Itertools;
+use std::collections::{HashMap, HashSet};
 
 pub fn day02(input_lines: &[Vec<String>]) -> (String, String) {
     (day02_part1(input_lines), day02_part2(input_lines))
@@ -24,7 +24,11 @@ fn day02_part2(input_lines: &[Vec<String>]) -> String {
     let word_len = input_lines[0][0].len();
     let answer2 = input_lines[0].iter().combinations(2).find_map(|pair| {
         let intersection = string_intersection(pair[0], pair[1]);
-        if intersection.len() == word_len - 1 { Some(intersection) } else { None }
+        if intersection.len() == word_len - 1 {
+            Some(intersection)
+        } else {
+            None
+        }
     });
     answer2.expect("Couldn't find an answer")
 }
@@ -49,7 +53,9 @@ fn string_intersection(string_a: &str, string_b: &str) -> String {
     let mut chars_b = string_b.chars();
     for char_1 in chars_a {
         let char_2 = chars_b.next().expect("Word 2 was shorter than word 1");
-        if char_1 == char_2 { intersection.push(char_1) }
+        if char_1 == char_2 {
+            intersection.push(char_1)
+        }
     }
     assert_eq!(chars_b.next(), None);
     intersection
@@ -63,23 +69,33 @@ mod tests {
 
     #[test]
     fn check_day02_case01() {
-        assert_eq!(day02_part1(&load_input("abcdef
+        assert_eq!(
+            day02_part1(&load_input(
+                "abcdef
 bababc
 abbcde
 abcccd
 aabcdd
 abcdee
-ababab")), "12");
+ababab"
+            )),
+            "12"
+        );
     }
 
     #[test]
     fn check_day02_case02() {
-        assert_eq!(day02_part2(&load_input("abcde
+        assert_eq!(
+            day02_part2(&load_input(
+                "abcde
 fghij
 klmno
 pqrst
 fguij
 axcye
-wvxyz")), "fgij");
+wvxyz"
+            )),
+            "fgij"
+        );
     }
 }

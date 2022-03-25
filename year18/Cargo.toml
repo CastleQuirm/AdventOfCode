@@ -7,5 +7,6 @@ publish = ["metaswitch"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+chrono = { version = "0.4", features = ["serde"] }
 itertools = "0.10.3"
 regex = "1.5.4"

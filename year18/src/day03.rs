@@ -1,21 +1,30 @@
 // Potential improvements:
 //
 
+use regex::Regex;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use regex::Regex;
 
 // My third solution: attempt to just look at every square inch, and for each one, determine if it's part of 2 or more claims.
 // It turns out it's really slow for Part 1 as well...but the weird thing is that it's FASTER if we do looping without a break claim
 // to skip unnecessary work than when I have the break claim in, which seems wild.
 
 pub fn day03(input_lines: &[Vec<String>]) -> (String, String) {
-    let all_claims = input_lines[0].iter().map(|line| {
-        let claim = Claim::from_line(&line);
-        (claim.id, claim)
-    }).collect::<HashMap<usize, Claim>>();
-    let (all_upper_x, all_upper_y): (Vec<usize>, Vec<usize>) = all_claims.values().map(|claim| (claim.high_x, claim.high_y)).unzip();
-    let (max_x, max_y) = (all_upper_x.iter().max().expect("No max x"), all_upper_y.iter().max().expect("No max y"));
+    let all_claims = input_lines[0]
+        .iter()
+        .map(|line| {
+            let claim = Claim::from_line(line);
+            (claim.id, claim)
+        })
+        .collect::<HashMap<usize, Claim>>();
+    let (all_upper_x, all_upper_y): (Vec<usize>, Vec<usize>) = all_claims
+        .values()
+        .map(|claim| (claim.high_x, claim.high_y))
+        .unzip();
+    let (max_x, max_y) = (
+        all_upper_x.iter().max().expect("No max x"),
+        all_upper_y.iter().max().expect("No max y"),
+    );
 
     let mut non_clashing_claim_ids: HashSet<usize> = HashSet::from_iter(1..all_claims.len() + 1);
     let mut clashing_squares = 0;
@@ -42,14 +51,20 @@ pub fn day03(input_lines: &[Vec<String>]) -> (String, String) {
             }
         }
     }
-    
+
     // We've already eliminated any claim which was the first or second ID in a given clash,
     // but we might have claims that only clashed as the third claim or higher.
     // For remaining candidates, loop each one and see if they clash any original claim: we can bail as soon as we find one.
-    let answer2 = non_clashing_claim_ids.iter().find(|claim_id| {
-        let candidate_claim = all_claims.get(claim_id).expect("Couldn't find the claim!");
-        all_claims.values().all(|other_claim| candidate_claim.id == other_claim.id || candidate_claim.is_claim_disjoint(other_claim))
-    }).expect("Couldn't find a disjoint claim");
+    let answer2 = non_clashing_claim_ids
+        .iter()
+        .find(|claim_id| {
+            let candidate_claim = all_claims.get(claim_id).expect("Couldn't find the claim!");
+            all_claims.values().all(|other_claim| {
+                candidate_claim.id == other_claim.id
+                    || candidate_claim.is_claim_disjoint(other_claim)
+            })
+        })
+        .expect("Couldn't find a disjoint claim");
 
     // We've skipped checking that there isn't a second one!
 
@@ -71,20 +86,22 @@ impl Claim {
             low_x,
             low_y,
             high_x,
-            high_y 
+            high_y,
         }
     }
 
     fn from_line(line: &str) -> Self {
         let re = Regex::new(r"#(\d+) @ (\d+),(\d+): (\d+)x(\d+)").unwrap();
-        re.captures(line).map(|cap| {
-            let id = cap[1].parse::<usize>().expect("Didn't parse ID");
-            let x = cap[2].parse::<usize>().expect("Didn't parse x");
-            let y = cap[3].parse::<usize>().expect("Didn't parse y");
-            let width = cap[4].parse::<usize>().expect("Didn't parse width");
-            let height = cap[5].parse::<usize>().expect("Didn't parse height");
-            Claim::new(id, x, y, x+width, y+height)
-        }).expect("Regex didn't match")
+        re.captures(line)
+            .map(|cap| {
+                let id = cap[1].parse::<usize>().expect("Didn't parse ID");
+                let x = cap[2].parse::<usize>().expect("Didn't parse x");
+                let y = cap[3].parse::<usize>().expect("Didn't parse y");
+                let width = cap[4].parse::<usize>().expect("Didn't parse width");
+                let height = cap[5].parse::<usize>().expect("Didn't parse height");
+                Claim::new(id, x, y, x + width, y + height)
+            })
+            .expect("Regex didn't match")
     }
 
     fn is_point_in(&self, x: usize, y: usize) -> bool {
@@ -92,13 +109,12 @@ impl Claim {
     }
 
     fn is_claim_disjoint(&self, other: &Claim) -> bool {
-        self.low_x >= other.high_x ||
-          other.low_x >= self.high_x || 
-          self.low_y >= other.high_y ||
-          other.low_y >= self.high_y
+        self.low_x >= other.high_x
+            || other.low_x >= self.high_x
+            || self.low_y >= other.high_y
+            || other.low_y >= self.high_y
     }
 }
-
 
 // My first/second solution (just look at the 'interesting' co-ordinates, determine a minimal set of overlap info, then size the overlaps)
 // This was slower than the version without the 'interesting' filtering, and just counting the rows directly.
@@ -151,7 +167,7 @@ impl Claim {
 //         // #2 @ 3,1: 4x4
 //         let split_line = line.split(" @ ").collect::<Vec<&str>>();
 //         assert_eq!(split_line.len(), 2);
-        
+
 //         let mut id_chars = split_line.first().unwrap().chars();
 //         id_chars.next();
 
@@ -220,7 +236,7 @@ mod tests {
         full_test(
             "#1 @ 1,3: 4x4
 #2 @ 3,1: 4x4
-#3 @ 5,5: 2x2",  // INPUT STRING
+#3 @ 5,5: 2x2", // INPUT STRING
             "4", // PART 1 RESULT
             "3", // PART 2 RESULT
         )
