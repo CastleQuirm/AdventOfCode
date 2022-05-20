@@ -10,13 +10,29 @@ use std::{
 use regex::Regex;
 
 pub fn day07(input_lines: &[Vec<String>]) -> (String, String) {
-    let mut outstanding_dependencies = input_lines[0]
+    let outstanding_dependencies = input_lines[0]
         .iter()
         .map(|line| line.parse::<Dependency>().expect("Failed to parse line"))
         .collect::<Vec<Dependency>>();
 
-    let mut available_steps = BTreeSet::new();
+    let (answer1, _) = build_sled(&outstanding_dependencies, 1);
+    let (_, answer2) = build_sled(&outstanding_dependencies, 5);
+
+    (answer1, format!("{}", answer2))
+}
+
+fn build_sled(initial_dependencies: &[Dependency], worker_count: usize) -> (String, usize) {
+    // Create our starting state, including a collection of un-tasked workers.
+    let mut outstanding_dependencies: Vec<Dependency> = initial_dependencies.to_vec();
+    let mut available_steps: BTreeSet<char> = BTreeSet::new();
     let mut completed_steps = "".to_string();
+
+    let mut workers: Vec<Worker> = Vec::with_capacity(worker_count);
+    for _ in 0..worker_count {
+        workers.push(Worker::new());
+    }
+
+    let mut time = 0;
 
     // Create the initial options of available steps.  This is every step that is a dependency but isn't a dependant.
     let (dependency_steps, dependant_steps) = outstanding_dependencies
@@ -27,42 +43,88 @@ pub fn day07(input_lines: &[Vec<String>]) -> (String, String) {
         available_steps.insert(*first_step);
     }
 
-    // Start working through the list of work - do the first available step, then work out if any new steps are now available
+    // Check how many steps we have to do, so we know when the sled is built.
     let step_count = dependency_steps.union(&dependant_steps).count();
+
+    // Loop the following: while there are steps left to do...
+    // - if a worker is free and a task is availbale, give them the task
+    // - else, advance time to the next point a worker is free.
     while completed_steps.len() < step_count {
-        let next_step = *available_steps.iter().next().expect("No available steps!");
-        available_steps.remove(&next_step);
-        completed_steps.push(next_step);
+        let free_worker = workers.iter().enumerate().find(|(_, w)| w.task.is_none());
+        let next_step = available_steps.iter().next();
 
-        let possibly_unblocked: Vec<char> = outstanding_dependencies
-            .iter()
-            .filter_map(|rule| {
-                if rule.dependency == next_step {
-                    Some(rule.dependant)
-                } else {
-                    None
-                }
-            })
-            .collect();
+        if free_worker.is_some() && next_step.is_some() {
+            let next_step = *next_step.unwrap();
+            available_steps.remove(&next_step);
 
-        outstanding_dependencies = outstanding_dependencies
-            .into_iter()
-            .filter(|rule| rule.dependency != next_step)
-            .collect();
+            let free_worker_ix = free_worker.unwrap().0;
+            let time_needed = (next_step as usize) - ('A' as usize) + 61;
 
-        for unblocked_step in possibly_unblocked.iter().filter(|step| {
-            outstanding_dependencies
+            workers[free_worker_ix] = Worker {
+                task: Some(next_step),
+                remaining: time_needed,
+            }
+        } else {
+            let time_to_next_complete = workers
                 .iter()
-                .all(|rule| rule.dependant != **step)
-        }) {
-            available_steps.insert(*unblocked_step);
+                .filter_map(|w| {
+                    if w.task.is_some() {
+                        Some(w.remaining)
+                    } else {
+                        None
+                    }
+                })
+                .min()
+                .expect("No min?");
+            let mut new_workers = workers.clone();
+            time += time_to_next_complete;
+            for (i, worker) in workers.iter().enumerate() {
+                if worker.task.is_none() {
+                    continue;
+                }
+                if worker.remaining > time_to_next_complete {
+                    new_workers[i] = Worker {
+                        task: worker.task,
+                        remaining: worker.remaining - time_to_next_complete,
+                    };
+                } else {
+                    new_workers[i] = Worker::new();
+                    let completed_step = worker.task.unwrap();
+                    completed_steps.push(completed_step);
+
+                    let possibly_unblocked: Vec<char> = outstanding_dependencies
+                        .iter()
+                        .filter_map(|rule| {
+                            if rule.dependency == completed_step {
+                                Some(rule.dependant)
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
+
+                    outstanding_dependencies = outstanding_dependencies
+                        .into_iter()
+                        .filter(|rule| rule.dependency != completed_step)
+                        .collect();
+
+                    for unblocked_step in possibly_unblocked.iter().filter(|step| {
+                        outstanding_dependencies
+                            .iter()
+                            .all(|rule| rule.dependant != **step)
+                    }) {
+                        available_steps.insert(*unblocked_step);
+                    }
+                }
+            }
+            workers = new_workers;
         }
     }
 
-    let answer2 = 0;
-    (completed_steps.to_string(), format!("{}", answer2))
+    (completed_steps, time)
 }
 
+#[derive(Clone)]
 struct Dependency {
     dependency: char,
     dependant: char,
@@ -87,6 +149,21 @@ impl FromStr for Dependency {
     }
 }
 
+#[derive(Clone, Debug)]
+struct Worker {
+    task: Option<char>,
+    remaining: usize,
+}
+
+impl Worker {
+    fn new() -> Self {
+        Worker {
+            task: None,
+            remaining: 0,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::day07;
@@ -103,7 +180,7 @@ Step B must be finished before step E can begin.
 Step D must be finished before step E can begin.
 Step F must be finished before step E can begin.", // INPUT STRING
             "CABDFE", // PART 1 RESULT
-            "0",      // PART 2 RESULT
+            "15",     // PART 2 RESULT
         )
     }
 
