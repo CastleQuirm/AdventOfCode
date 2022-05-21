@@ -5,7 +5,6 @@ pub fn day08(input_lines: &[Vec<String>]) -> (String, String) {
     // Read the input
     let digits = input_lines[0][0]
         .split(' ')
-        .into_iter()
         .map(|s| s.parse::<usize>().expect("Didn't parse a number"))
         .collect::<Vec<usize>>();
     let (root, parsed_digits) = Node::parse(&digits);
