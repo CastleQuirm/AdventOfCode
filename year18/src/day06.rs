@@ -87,11 +87,7 @@ pub fn day06(input_lines: &[Vec<String>]) -> (String, String) {
     let mut extra_safe_points_outside = 0;
 
     // Horrible hack to work out whether to run with UT number or real puzzle number...
-    let safe_distance = if all_points.len() == 6 {
-        32
-    } else {
-        10_000
-    };
+    let safe_distance = if all_points.len() == 6 { 32 } else { 10_000 };
 
     for row in &distance_map {
         if let Some(coord) = row[0].closest_coord {
@@ -224,7 +220,7 @@ mod tests {
 5, 5
 8, 9", // INPUT STRING
             "17", // PART 1 RESULT
-            "16",  // PART 2 RESULT
+            "16", // PART 2 RESULT
         )
     }
 
