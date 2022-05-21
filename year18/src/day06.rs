@@ -166,7 +166,19 @@ struct Coord {
 
 impl Coord {
     fn manhattan_dist(&self, other: &Self) -> usize {
-        self.x.abs_diff(other.x) + self.y.abs_diff(other.y)
+        // self.x.abs_diff(other.x) + self.y.abs_diff(other.y)
+        let x_diff = if self.x >= other.x {
+            self.x - other.x
+        } else {
+            other.x - self.x
+        };
+        let y_diff = if self.y >= other.y {
+            self.y - other.y
+        } else {
+            other.y - self.y
+        };
+        assert!(usize::MAX - x_diff > y_diff);
+        x_diff + y_diff
     }
 }
 
