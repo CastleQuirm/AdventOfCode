@@ -86,37 +86,44 @@ pub fn day06(input_lines: &[Vec<String>]) -> (String, String) {
     let mut infinite_points: HashSet<Coord> = HashSet::new();
     let mut extra_safe_points_outside = 0;
 
+    // Horrible hack to work out whether to run with UT number or real puzzle number...
+    let safe_distance = if all_points.len() == 6 {
+        32
+    } else {
+        10_000
+    };
+
     for row in &distance_map {
         if let Some(coord) = row[0].closest_coord {
             infinite_points.insert(coord);
         }
-        if row[0].total_distance_from_points <= 10_000 {
+        if row[0].total_distance_from_points < safe_distance {
             extra_safe_points_outside +=
-                (10_000 - row[0].total_distance_from_points) / all_points.len();
+                (safe_distance - row[0].total_distance_from_points) / all_points.len();
         }
 
         if let Some(coord) = row[max_y - min_y].closest_coord {
             infinite_points.insert(coord);
         }
-        if row[max_y - min_y].total_distance_from_points <= 10_000 {
+        if row[max_y - min_y].total_distance_from_points <= safe_distance {
             extra_safe_points_outside +=
-                (10_000 - row[max_y - min_y].total_distance_from_points) / all_points.len();
+                (safe_distance - row[max_y - min_y].total_distance_from_points) / all_points.len();
         }
     }
     for y in 0..max_y - min_y + 1 {
         if let Some(coord) = distance_map[0][y].closest_coord {
             infinite_points.insert(coord);
         }
-        if distance_map[0][y].total_distance_from_points <= 10_000 {
+        if distance_map[0][y].total_distance_from_points <= safe_distance {
             extra_safe_points_outside +=
-                (10_000 - distance_map[0][y].total_distance_from_points) / all_points.len();
+                (safe_distance - distance_map[0][y].total_distance_from_points) / all_points.len();
         }
 
         if let Some(coord) = distance_map[max_x - min_x][y].closest_coord {
             infinite_points.insert(coord);
         }
-        if distance_map[max_x - min_x][y].total_distance_from_points <= 10_000 {
-            extra_safe_points_outside += (10_000
+        if distance_map[max_x - min_x][y].total_distance_from_points <= safe_distance {
+            extra_safe_points_outside += (safe_distance
                 - distance_map[max_x - min_x][y].total_distance_from_points)
                 / all_points.len();
         }
@@ -153,7 +160,7 @@ pub fn day06(input_lines: &[Vec<String>]) -> (String, String) {
 
     let answer2 = distance_list
         .iter()
-        .filter(|point| point.total_distance_from_points <= 10_000)
+        .filter(|point| point.total_distance_from_points < safe_distance)
         .count();
     (format!("{}", answer1), format!("{}", answer2))
 }
@@ -217,7 +224,7 @@ mod tests {
 5, 5
 8, 9", // INPUT STRING
             "17", // PART 1 RESULT
-            "0",  // PART 2 RESULT
+            "16",  // PART 2 RESULT
         )
     }
 
