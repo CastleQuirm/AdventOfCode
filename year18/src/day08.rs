@@ -1,5 +1,6 @@
 // Potential improvements:
 // 1. Could/should cache node's values for efficiency.
+// 2. AoC comment: could simply use an iterator during parsing and pass that around instead of faffing with our own pointer index.
 
 pub fn day08(input_lines: &[Vec<String>]) -> (String, String) {
     // Read the input
