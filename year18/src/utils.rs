@@ -17,3 +17,15 @@ pub fn load_input(whole_input: &str) -> Vec<Vec<String>> {
 
     grouped_input
 }
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub struct Coord {
+    pub x: i32,
+    pub y: i32,
+}
+
+impl Coord {
+    pub fn manhattan_dist(&self, other: &Self) -> u32 {
+        self.x.abs_diff(other.x) + self.y.abs_diff(other.y)
+    }
+}
