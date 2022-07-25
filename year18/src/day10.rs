@@ -57,10 +57,12 @@ pub fn day10(input_lines: &[Vec<String>]) -> (String, String) {
         })
         .expect("No such delta?");
 
+        
+    // It would be nice to have something to read the letters but I'm not excited to
+    // implement this or find anything that can.
+
     // Print out the image.
     print_image_at_time_t(t + delta, &stars);
-
-    // Would be nice to have something to read the letters but eh.
 
     (format!("{}", 0), format!("{}", t + delta))
 }
@@ -88,11 +90,8 @@ fn print_image_at_time_t(t: i32, stars: &[Star]) {
         .max()
         .expect("no max?");
 
-    // for star in normalised_stars_at_t.clone() { println!("{:?}", star); }
-
     let mut star_iter = normalised_stars_at_t.into_iter();
     let mut next_star = star_iter.next();
-    // println!("Image at time T={}, stars to print = {}", t, stars.len());
     for y in 0..=max_y {
         for x in 0..=max_x {
             if next_star == Some(Coord { x, y }) {
@@ -106,8 +105,10 @@ fn print_image_at_time_t(t: i32, stars: &[Star]) {
         }
         println!();
     }
-    // println!("Max x was {}, max y was {}", max_x, max_y);
 }
+
+// Wanted to get recap to work, but I also wanted a better strucutre and couldn't get
+// recap to do heirarchies, so resorted to captures.
 
 // #[derive(Debug, Clone, Copy, Deserialize, Recap)]
 // #[recap(regex = r#"position=<(?P<start_x>-?\d+),\s*(?P<start_y>-?\d+)> velocity=<(?P<vel_x>-?\d+),\s*(?P<vel_y>-?\d+)>"#)]
@@ -124,7 +125,7 @@ struct Star {
     velocity: Coord,
 }
 
-// This takes OVER 1 SECOND to parse all the input!
+// This takes OVER 1 SECOND to parse all the input in debug build!  (Reasonable time in release build)
 impl FromStr for Star {
     type Err = ParseError;
 
