@@ -57,7 +57,6 @@ pub fn day10(input_lines: &[Vec<String>]) -> (String, String) {
         })
         .expect("No such delta?");
 
-        
     // It would be nice to have something to read the letters but I'm not excited to
     // implement this or find anything that can.
 

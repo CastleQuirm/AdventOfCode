@@ -26,6 +26,23 @@ pub struct Coord {
 
 impl Coord {
     pub fn manhattan_dist(&self, other: &Self) -> u32 {
-        self.x.abs_diff(other.x) + self.y.abs_diff(other.y)
+        let abs_x_diff = if self.x > other.x {
+            self.x - other.x
+        } else {
+            other.x - self.x
+        };
+        let abs_y_diff = if self.y > other.y {
+            self.y - other.y
+        } else {
+            other.y - self.y
+        };
+        (abs_x_diff + abs_y_diff) as u32
+    }
+
+    pub fn plus(&self, x: i32, y: i32) -> Self {
+        Coord {
+            x: self.x + x,
+            y: self.y + y,
+        }
     }
 }
