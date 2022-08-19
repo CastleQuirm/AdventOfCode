@@ -8,13 +8,12 @@ pub fn load_input(whole_input: &str) -> Vec<Vec<String>> {
     for line in single_lines {
         if line.is_empty() {
             grouped_input.push(current_group.clone());
-            grouped_input = Vec::new();
+            current_group = Vec::new();
         } else {
             current_group.push(line)
         }
     }
     grouped_input.push(current_group);
-
     grouped_input
 }
 
