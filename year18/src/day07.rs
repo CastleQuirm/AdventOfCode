@@ -51,13 +51,12 @@ fn build_sled(initial_dependencies: &[Dependency], worker_count: usize) -> (Stri
     // - else, advance time to the next point a worker is free.
     while completed_steps.len() < step_count {
         let free_worker = workers.iter().enumerate().find(|(_, w)| w.task.is_none());
-        let next_step = available_steps.iter().next();
+        let next_step = available_steps.iter().next().copied();
 
-        if free_worker.is_some() && next_step.is_some() {
-            let next_step = *next_step.unwrap();
+        if let (Some(free_worker), Some(next_step)) = (free_worker, next_step) {
             available_steps.remove(&next_step);
 
-            let free_worker_ix = free_worker.unwrap().0;
+            let free_worker_ix = free_worker.0;
             let mut time_needed = (next_step as usize) - ('A' as usize) + 1;
             // Hacky way of handling the main code differently to the test.
             if worker_count == 5 {
