@@ -44,4 +44,39 @@ impl Coord {
             y: self.y + y,
         }
     }
+
+    pub fn sum(&self, other: &Self) -> Self {
+        Coord {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum Direction {
+    North,
+    East,
+    South,
+    West,
+}
+
+impl Direction {
+    pub fn turn_left(&self) -> Self {
+        match self {
+            Direction::North => Direction::West,
+            Direction::East => Direction::North,
+            Direction::South => Direction::East,
+            Direction::West => Direction::South,
+        }
+    }
+
+    pub fn turn_right(&self) -> Self {
+        match self {
+            Direction::North => Direction::East,
+            Direction::East => Direction::South,
+            Direction::South => Direction::West,
+            Direction::West => Direction::North,
+        }
+    }
 }
