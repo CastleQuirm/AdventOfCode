@@ -3,7 +3,8 @@
 
 use std::{
     cmp::Ordering,
-    collections::{HashMap, HashSet}, fmt::Display,
+    collections::{HashMap, HashSet},
+    fmt::Display,
 };
 
 use itertools::Itertools;
@@ -72,7 +73,10 @@ fn read_input(input: &[String]) -> (HashMap<Coord, TrackType>, HashMap<Coord, Ca
     (map, carts)
 }
 
-fn run_track(map: &HashMap<Coord, TrackType>, carts: &mut HashMap<Coord, Cart>) -> (String, String) {
+fn run_track(
+    map: &HashMap<Coord, TrackType>,
+    carts: &mut HashMap<Coord, Cart>,
+) -> (String, String) {
     let mut first_crash = None;
 
     while carts.len() > 1 {
@@ -82,7 +86,11 @@ fn run_track(map: &HashMap<Coord, TrackType>, carts: &mut HashMap<Coord, Cart>) 
 
     (
         first_crash.to_string(),
-        carts.keys().next().map(|c| c.to_string()).unwrap_or("No carts remained".to_owned()),
+        carts
+            .keys()
+            .next()
+            .map(|c| c.to_string())
+            .unwrap_or_else(|| "No carts remained".to_owned()),
     )
 }
 
@@ -259,8 +267,8 @@ mod tests {
 | | |  | v  |
 \\-+-/  \\-+--/
   \\------/   ", // INPUT STRING
-            "7,3", // PART 1 RESULT
-            "No carts remained",   // PART 2 RESULT
+            "7,3",               // PART 1 RESULT
+            "No carts remained", // PART 2 RESULT
         )
     }
 
