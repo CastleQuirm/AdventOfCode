@@ -30,7 +30,7 @@ pub fn day14(input_lines: &[Vec<String>]) -> (String, String) {
     }
 
     let answer1 = digits_as_str(&recipies[num_recipies..(num_recipies + 10)]);
-    (format!("{}", answer1), format!("{}", answer2.unwrap()))
+    (answer1, format!("{}", answer2.unwrap()))
 }
 
 fn create_recipies(recipies: &mut Vec<usize>, elf_positions: &mut Vec<usize>) {
