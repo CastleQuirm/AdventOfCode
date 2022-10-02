@@ -22,7 +22,7 @@ pub fn day16(input_lines: &[String]) -> (u64, u64) {
 
 fn invalid_ticket_scan(rules: &[InfoField], other_tickets: &[Ticket]) -> (Vec<Ticket>, u64) {
     // Create HashSet of all valid values across all InfoFields
-    let valid_values = all_valid_values(&rules);
+    let valid_values = all_valid_values(rules);
     let (valid_tickets, invalid_tickets): (Vec<&Ticket>, Vec<&Ticket>) = other_tickets
         .iter()
         .partition(|ticket| ticket.ticket_valid(&valid_values));
@@ -79,8 +79,7 @@ fn day16_part2_calc(rules: &[InfoField], my_ticket: &Ticket, valid_tickets: &[Ti
             .clone();
         assert_eq!(identified_rule_set.len(), 1);
         let identified_rule = identified_rule_set
-            .iter()
-            .nth(0)
+            .iter().next()
             .expect("How isn't this rule known?");
         (0..rules.len()).for_each(|index| {
             let candidate_rules = ticket_index_to_rules_map
@@ -106,8 +105,7 @@ fn day16_part2_calc(rules: &[InfoField], my_ticket: &Ticket, valid_tickets: &[Ti
         .filter_map(|(index, candidate_rules)| {
             assert_eq!(candidate_rules.len(), 1);
             if candidate_rules
-                .iter()
-                .nth(0)
+                .iter().next()
                 .expect("Should have had an element to take")
                 .field_name
                 .contains("departure")

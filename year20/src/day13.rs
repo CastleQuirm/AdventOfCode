@@ -38,7 +38,7 @@ fn bus_to_num_and_wait(arrival_time: u64, bus: u64) -> (u64, u64) {
 
 fn part2_calc(bus_list: &[Result<u64, std::num::ParseIntError>]) -> u64 {
     (0..bus_list.len())
-        .fold((0, 1 as u64), |(candidate_t, lcm), i| {
+        .fold((0, 1_u64), |(candidate_t, lcm), i| {
             match bus_list[i] {
                 Ok(bus_num) => {
                     // find minimum X such that (candidate_t + X * lcm + i) % bus_num == 0; then return ((candidate_t + X * lcm), LCM(lcm, bus_num))

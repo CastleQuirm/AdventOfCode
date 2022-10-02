@@ -33,7 +33,7 @@ struct Ship {
 impl Ship {
     fn sail_part1(&mut self, line: &str) {
         let instruction = line.chars().next().unwrap();
-        let amount = (&line[1..]).parse::<i64>().unwrap();
+        let amount = line[1..].parse::<i64>().unwrap();
 
         match instruction {
             'N' => self.north += amount,
@@ -49,7 +49,7 @@ impl Ship {
 
     fn sail_part2(&mut self, line: &str) {
         let instruction = line.chars().next().unwrap();
-        let amount = (&line[1..]).parse::<i64>().unwrap();
+        let amount = line[1..].parse::<i64>().unwrap();
 
         match instruction {
             'N' => self.waypoint_north += amount,

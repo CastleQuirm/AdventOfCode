@@ -5,7 +5,7 @@
 pub fn day2(input_lines: &[String]) -> (u64, u64) {
     let split_lines = input_lines
         .iter()
-        .map(|line| parse_rule_and_password(&line))
+        .map(|line| parse_rule_and_password(line))
         .collect::<Vec<RuleAndPassword>>();
 
     (

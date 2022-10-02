@@ -52,7 +52,7 @@ fn part2_mem_action(records: &mut HashMap<u64, u64>, line: &str, mask: &mut Bitm
         });
     defined_vals.iter().for_each(|val| {
         records.insert(
-            isize::from_str_radix(&val, 2).unwrap() as u64,
+            isize::from_str_radix(val, 2).unwrap() as u64,
             get_saved_val_from_line(line),
         );
     });
@@ -95,10 +95,10 @@ impl Bitmask {
         (store_num & self.and_mask()) | self.or_mask()
     }
     fn and_mask(&self) -> u64 {
-        isize::from_str_radix(&self.mask.replace("X", "1"), 2).unwrap() as u64
+        isize::from_str_radix(&self.mask.replace('X', "1"), 2).unwrap() as u64
     }
     fn or_mask(&self) -> u64 {
-        isize::from_str_radix(&self.mask.replace("X", "0"), 2).unwrap() as u64
+        isize::from_str_radix(&self.mask.replace('X', "0"), 2).unwrap() as u64
     }
     fn mask_address(&self, address: u64) -> String {
         (0..self.mask.len())

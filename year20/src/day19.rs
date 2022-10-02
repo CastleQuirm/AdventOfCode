@@ -85,19 +85,18 @@ fn candidate_substrings(rules: &HashMap<usize, Rule>, index: usize) -> HashSet<S
             .clone(),
     );
     while not_just_letters(&valid_strings) {
-        valid_strings = HashSet::from_iter(substitute_rules(&valid_strings, &rules).clone());
+        valid_strings = HashSet::from_iter(substitute_rules(&valid_strings, rules).clone());
     }
     valid_strings
         .iter()
-        .map(|string| string.replace(" ", ""))
+        .map(|string| string.replace(' ', ""))
         .collect::<HashSet<String>>()
 }
 
 fn substitute_rules(valid_strings: &HashSet<String>, rules: &HashMap<usize, Rule>) -> Vec<String> {
     valid_strings
         .iter()
-        .map(|candidate| substitute_candidate(candidate, rules))
-        .flatten()
+        .flat_map(|candidate| substitute_candidate(candidate, rules))
         .collect::<Vec<String>>()
 }
 
@@ -116,13 +115,13 @@ fn permute_elements(layered: Vec<Vec<String>>) -> Vec<String> {
         .fold(vec!["".to_string()], |result: Vec<String>, elt| {
             result
                 .iter()
-                .map(|pre| {
+                .flat_map(|pre| {
                     let mapped_pre = elt
                         .iter()
                         .map(|post| {
                             let mut added_space = pre.to_string();
                             if !added_space.is_empty() {
-                                added_space.push_str(" ");
+                                added_space.push(' ');
                             }
                             added_space.push_str(post);
                             added_space
@@ -130,7 +129,6 @@ fn permute_elements(layered: Vec<Vec<String>>) -> Vec<String> {
                         .collect::<Vec<String>>();
                     mapped_pre
                 })
-                .flatten()
                 .collect::<Vec<String>>()
         })
 }

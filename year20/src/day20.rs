@@ -240,7 +240,7 @@ fn try_placing_tile(candidate: (&Tile, &Rotation), already_placed: &[(&Tile, Rot
     // If this tile isn't on the top row, check its North edge.
     if place_number >= 12 {
         let existing = &already_placed[place_number - 12];
-        if candidate.0.get_edge(Direction::North, &candidate.1)
+        if candidate.0.get_edge(Direction::North, candidate.1)
             != existing.0.get_flipped_edge(Direction::South, &existing.1)
         {
             return false;
@@ -249,7 +249,7 @@ fn try_placing_tile(candidate: (&Tile, &Rotation), already_placed: &[(&Tile, Rot
     // If this tile isn't on the left row, check its West edge.
     if place_number % 12 != 0 {
         let existing = &already_placed[place_number - 1];
-        if candidate.0.get_edge(Direction::West, &candidate.1)
+        if candidate.0.get_edge(Direction::West, candidate.1)
             != existing.0.get_flipped_edge(Direction::East, &existing.1)
         {
             return false;
@@ -421,7 +421,7 @@ enum Rotation {
 }
 
 fn dir_and_r_dir_values(dir_string: &str) -> (usize, usize) {
-    let binary_string = dir_string.replace(".", "0").replace("#", "1");
+    let binary_string = dir_string.replace('.', "0").replace('#', "1");
     (
         isize::from_str_radix(&binary_string, 2).unwrap() as usize,
         isize::from_str_radix(&binary_string.chars().rev().collect::<String>(), 2).unwrap()

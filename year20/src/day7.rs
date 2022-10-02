@@ -87,7 +87,7 @@ fn read_line_into_hashes(line: &str) -> (String, Vec<(usize, String)>) {
     let inside_bags = if read_text[1] != "no other bags." {
         read_text[1]
             .split(", ")
-            .map(|s| read_content_into_pair(s))
+            .map(read_content_into_pair)
             .collect::<Vec<(usize, String)>>() // elements end in " bag[s]?[.]?"
     } else {
         Vec::new()

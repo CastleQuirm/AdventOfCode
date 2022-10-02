@@ -30,9 +30,9 @@ fn combat(p1: &mut Vec<usize>, p2: &mut Vec<usize>) -> u64 {
     }
 
     if p1.is_empty() {
-        calculate_score(&p2)
+        calculate_score(p2)
     } else {
-        calculate_score(&p1)
+        calculate_score(p1)
     }
 }
 
@@ -65,9 +65,9 @@ fn recursive_combat(p1: &mut Vec<usize>, p2: &mut Vec<usize>) -> (bool, u64) {
     }
 
     if p1.is_empty() {
-        (false, calculate_score(&p2))
+        (false, calculate_score(p2))
     } else {
-        (true, calculate_score(&p1))
+        (true, calculate_score(p1))
     }
 }
 

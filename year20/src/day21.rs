@@ -61,7 +61,7 @@ pub fn day21(input_lines: &[String]) -> (u64, u64) {
     });
     let part2_answer = dangerous_ingredients
         .reduce(|mut list, ingredient| {
-            list.push_str(",");
+            list.push(',');
             list.push_str(&ingredient);
             list
         })

@@ -21,7 +21,7 @@ fn calculate_answer(
 }
 
 fn calculate(line: &str, multiply_func: fn(&mut Vec<u64>, &mut u64, &mut Operator)) -> u64 {
-    let spaced_line = line.replace("(", "( ").replace(")", " )");
+    let spaced_line = line.replace('(', "( ").replace(')', " )");
     let split_line = spaced_line.split(' ').collect::<Vec<&str>>();
     let mut ptr: usize = 0;
     calc_part(&split_line, &mut ptr, multiply_func)

@@ -74,7 +74,7 @@ fn iterate(black_cells: &HashSet<(isize, isize)>) -> HashSet<(isize, isize)> {
         .copied()
         .collect::<HashSet<(isize, isize)>>()
         .difference(black_cells)
-        .filter(|cell| adjacent_cells.get(&cell).unwrap_or(&0) == &2)
+        .filter(|cell| adjacent_cells.get(cell).unwrap_or(&0) == &2)
         .copied()
         .collect::<HashSet<(isize, isize)>>();
 
@@ -82,8 +82,8 @@ fn iterate(black_cells: &HashSet<(isize, isize)>) -> HashSet<(isize, isize)> {
     let black_to_black = black_cells
         .iter()
         .filter(|cell| {
-            *adjacent_cells.get(&cell).unwrap_or(&0) == 1
-                || *adjacent_cells.get(&cell).unwrap_or(&0) == 2
+            *adjacent_cells.get(cell).unwrap_or(&0) == 1
+                || *adjacent_cells.get(cell).unwrap_or(&0) == 2
         })
         .copied()
         .collect::<HashSet<(isize, isize)>>();
