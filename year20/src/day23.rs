@@ -122,11 +122,7 @@ fn part2(input_lines: &[String]) -> u64 {
         // println!("First value {}", first_value);
         let second_value = circle[first_value - 1];
         let third_value = circle[second_value - 1];
-        let extracted_values: [usize; 3] = [
-            first_value,
-            second_value,
-            third_value,
-        ]; // [8, 9, 1]
+        let extracted_values: [usize; 3] = [first_value, second_value, third_value]; // [8, 9, 1]
         let next_cup = circle[extracted_values[2] - 1];
 
         let dest_cup = (1..5)

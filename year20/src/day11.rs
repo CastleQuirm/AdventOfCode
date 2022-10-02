@@ -142,9 +142,9 @@ impl Grid {
 
     fn get_range(index: usize, max: usize) -> std::ops::Range<usize> {
         match index {
-            0 => (0..2),
-            last if last == max - 1 => (max - 2..max),
-            _ => (index - 1..index + 2),
+            0 => 0..2,
+            last if last == max - 1 => max - 2..max,
+            _ => index - 1..index + 2,
         }
     }
 

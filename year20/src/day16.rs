@@ -270,7 +270,7 @@ impl Ticket {
 mod tests {
     use super::{invalid_ticket_scan, FieldRange, InfoField, Ticket};
 
-    #[test]
+    // #[test]
     //     fn day16_example1() {
     //         let example = vec!["class: 1-3 or 5-7
     // row: 6-11 or 33-44
