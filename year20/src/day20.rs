@@ -285,8 +285,8 @@ impl Tile {
             .expect("No number after Tile ")
             .parse::<usize>()
             .expect("Couldn't unwrap tile index");
-        let north_string = lines.iter().nth(1).expect("No first line");
-        let south_string = lines.iter().nth(10).expect("No tenth line");
+        let north_string = lines.get(1).expect("No first line");
+        let south_string = lines.get(10).expect("No tenth line");
         let east_string = &lines
             .iter()
             .filter(|line| !line.contains("Tile"))

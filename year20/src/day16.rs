@@ -79,7 +79,8 @@ fn day16_part2_calc(rules: &[InfoField], my_ticket: &Ticket, valid_tickets: &[Ti
             .clone();
         assert_eq!(identified_rule_set.len(), 1);
         let identified_rule = identified_rule_set
-            .iter().next()
+            .iter()
+            .next()
             .expect("How isn't this rule known?");
         (0..rules.len()).for_each(|index| {
             let candidate_rules = ticket_index_to_rules_map
@@ -105,7 +106,8 @@ fn day16_part2_calc(rules: &[InfoField], my_ticket: &Ticket, valid_tickets: &[Ti
         .filter_map(|(index, candidate_rules)| {
             assert_eq!(candidate_rules.len(), 1);
             if candidate_rules
-                .iter().next()
+                .iter()
+                .next()
                 .expect("Should have had an element to take")
                 .field_name
                 .contains("departure")
