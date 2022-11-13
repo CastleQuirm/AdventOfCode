@@ -3,6 +3,7 @@
 
 use std::collections::{HashMap, HashSet};
 
+use crate::utils::OpCode;
 use regex::Regex;
 
 pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
@@ -11,10 +12,10 @@ pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
         .iter()
         .map(|s| Sample::new(s))
         .collect::<Vec<Sample>>();
-    let behaves_like = samples
+    let behaves_like: Vec<(u64, HashSet<OpCode>)> = samples
         .iter()
         .map(|s| (s.instruction[0], s.behaves_like()))
-        .collect::<Vec<(u64, HashSet<OpCode>)>>();
+        .collect();
     let answer1 = behaves_like.iter().filter(|(_, i)| i.len() >= 3).count();
 
     let mut potential_opcodes = HashMap::new();
@@ -220,85 +221,6 @@ impl Sample {
         }
 
         possible_opcodes
-    }
-}
-
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
-enum OpCode {
-    AddI,
-    AddR,
-    MulI,
-    MulR,
-    BAnI,
-    BAnR,
-    BOrI,
-    BOrR,
-    SetI,
-    SetR,
-    GtIR,
-    GtRI,
-    GtRR,
-    EqIR,
-    EqRI,
-    EqRR,
-}
-
-impl OpCode {
-    fn act(&self, mem: &[u64], a: u64, b: u64) -> u64 {
-        match self {
-            OpCode::AddI => mem[a as usize] + b,
-            OpCode::AddR => mem[a as usize] + mem[b as usize],
-            OpCode::MulI => mem[a as usize] * b,
-            OpCode::MulR => mem[a as usize] * mem[b as usize],
-            OpCode::BAnI => mem[a as usize] & b,
-            OpCode::BAnR => mem[a as usize] & mem[b as usize],
-            OpCode::BOrI => mem[a as usize] | b,
-            OpCode::BOrR => mem[a as usize] | mem[b as usize],
-            OpCode::SetI => a,
-            OpCode::SetR => mem[a as usize],
-            OpCode::GtIR => {
-                if a > mem[b as usize] {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::GtRI => {
-                if mem[a as usize] > b {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::GtRR => {
-                if mem[a as usize] > mem[b as usize] {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::EqIR => {
-                if a == mem[b as usize] {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::EqRI => {
-                if mem[a as usize] == b {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::EqRR => {
-                if mem[a as usize] == mem[b as usize] {
-                    1
-                } else {
-                    0
-                }
-            }
-        }
     }
 }
 

@@ -106,10 +106,7 @@ fn build_sled(initial_dependencies: &[Dependency], worker_count: usize) -> (Stri
                         })
                         .collect();
 
-                    outstanding_dependencies = outstanding_dependencies
-                        .into_iter()
-                        .filter(|rule| rule.dependency != completed_step)
-                        .collect();
+                    outstanding_dependencies.retain(|rule| rule.dependency != completed_step);
 
                     for unblocked_step in possibly_unblocked.iter().filter(|step| {
                         outstanding_dependencies
