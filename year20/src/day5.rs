@@ -19,11 +19,13 @@ pub fn day5(input_lines: &[String]) -> (u64, u64) {
 }
 
 fn boarding_seat_as_uid(seat: &str) -> u64 {
-    let row_binary = &seat[0..7].replace('F', "0").replace('B', "1");
-    let row_num = isize::from_str_radix(row_binary, 2).unwrap() as u64;
-
-    let col_binary = &seat[7..].replace('L', "0").replace('R', "1");
-    let col_num = isize::from_str_radix(col_binary, 2).unwrap() as u64;
-
-    row_num * 8 + col_num
+    isize::from_str_radix(
+        &seat
+            .replace("F", "0")
+            .replace("B", "1")
+            .replace("L", "0")
+            .replace("R", "1"),
+        2,
+    )
+    .unwrap() as u64
 }
