@@ -21,10 +21,10 @@ pub fn day5(input_lines: &[String]) -> (u64, u64) {
 fn boarding_seat_as_uid(seat: &str) -> u64 {
     isize::from_str_radix(
         &seat
-            .replace("F", "0")
-            .replace("B", "1")
-            .replace("L", "0")
-            .replace("R", "1"),
+            .replace('F', "0")
+            .replace('B', "1")
+            .replace('L', "0")
+            .replace('R', "1"),
         2,
     )
     .unwrap() as u64
