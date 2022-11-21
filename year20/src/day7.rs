@@ -61,6 +61,7 @@ pub fn day7(input_lines: &[String]) -> (u64, u64) {
     (all_holding_colours.len() as u64, (bag_count - 1) as u64)
 }
 
+#[allow(clippy::type_complexity)]
 fn read_input_into_hashes(
     input_lines: &[String],
 ) -> (

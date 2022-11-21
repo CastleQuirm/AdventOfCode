@@ -80,7 +80,7 @@ fn calc_part(
 }
 
 fn set_multiply_operator(
-    _final_product_seq: &mut Vec<u64>,
+    #[allow(clippy::ptr_arg)] _final_product_seq: &mut Vec<u64>,
     _num1: &mut u64,
     operator: &mut Operator,
 ) {

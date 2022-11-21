@@ -126,11 +126,7 @@ impl Grid {
         if self.puzzle_part == 1 {
             let x_range = Grid::get_range(x, self.grid[0].len());
             let y_range = Grid::get_range(y, self.grid.len());
-            let own_space_value = if self.grid[y][x] == Seat::Filled {
-                1
-            } else {
-                0
-            };
+            let own_space_value = usize::from(self.grid[y][x] == Seat::Filled);
             self.count_subrange_filled(x_range, y_range) - own_space_value
         } else {
             assert_eq!(self.puzzle_part, 2);
