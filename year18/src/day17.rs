@@ -1,27 +1,47 @@
 // Potential improvements:
 //
 
-// use std::collections::HashSet;
+use std::collections::HashSet;
 
-// use crate::utils::Coord;
-// use regex::Regex;
+use crate::utils::Coord;
+use regex::Regex;
 
-pub fn day17(_input_lines: &[Vec<String>]) -> (String, String) {
+pub fn day17(input_lines: &[Vec<String>]) -> (String, String) {
     // Read the input into...just a hash of Coords?
-    // let rock: HashSet<Coord> = build_rock_map(&input_lines[0]);
-    // let depths = rock.iter().map(|c| c.y);
-    // let min_depth = depths.clone().min().unwrap();
-    // let max_depth = depths.max().unwrap();
+    let rock: HashSet<Coord> = build_rock_map(&input_lines[0]);
+    let depths = rock.iter().map(|c| c.y);
+    let min_depth = depths.clone().min().unwrap();
+    let _max_depth = depths.max().unwrap();
 
-    // let mut water_falling: HashSet<Coord> = HashSet::new();
-    // let mut water_standing: HashSet<Coord> = HashSet::new();
+    let mut water_falling: HashSet<Coord> = HashSet::new();
+    let _water_standing: HashSet<Coord> = HashSet::new();
 
-    // // first water source: (500,0)
-    // let mut water_sources = vec![Coord { x: 500, y: 0 }];
+    // first water source: (500,0)
+    let water_sources = vec![Coord { x: 500, y: 0 }];
 
-    // if min_depth <= 0 {
-    //     water_permeates.insert(Coord { x: 500, y: 0 });
-    // }
+    // Special code to catch if the original source should be counted
+    if min_depth <= 0 {
+        water_falling.insert(Coord { x: 500, y: 0 });
+    }
+
+    // 'tick' loop: increment time.
+    '_tick: loop {
+        // From each source, fill below.
+        for source in &water_sources {
+            let _space_below = source.plus(0, 1);
+            // If space below is rock or standing water, this becomes a layer. Search sideways until reaching rock or a fall in each direction.
+            todo!();
+                // If rock in each direction, this becomes a standing layer.
+                // If one or both directions reaches a fall (space below is empty) it becomes a flowing layer, and fall spot becomes a source.
+            // If space below is falling water, do nothing.
+            // If space below is empty, put falling water in it.
+        }
+        break; // SCC TODO
+    }
+
+
+
+
 
     // from a source:
     // 'source: loop {
@@ -127,33 +147,33 @@ pub fn day17(_input_lines: &[Vec<String>]) -> (String, String) {
     (format!("{}", answer1), format!("{}", answer2))
 }
 
-// fn build_rock_map(lines: &[String]) -> HashSet<Coord> {
-//     let mut rock: HashSet<Coord> = HashSet::new();
+fn build_rock_map(lines: &[String]) -> HashSet<Coord> {
+    let mut rock: HashSet<Coord> = HashSet::new();
 
-//     for line in lines {
-//         let re = Regex::new(r"(\w)=(\d+), (\w)=(\d+)..(\d+)").unwrap();
-//         re.captures(line).iter()
-//             .for_each(|cap| {
-//                 let const_letter = cap[1].parse::<char>().unwrap();
-//                 let const_val = cap[2].parse::<i32>().unwrap();
-//                 let range_letter = cap[3].parse::<char>().unwrap();
-//                 let range_low = cap[4].parse::<i32>().unwrap();
-//                 let range_high = cap[5].parse::<i32>().unwrap();
+    for line in lines {
+        let re = Regex::new(r"(\w)=(\d+), (\w)=(\d+)..(\d+)").unwrap();
+        re.captures(line).iter()
+            .for_each(|cap| {
+                let const_letter = cap[1].parse::<char>().unwrap();
+                let const_val = cap[2].parse::<i32>().unwrap();
+                let range_letter = cap[3].parse::<char>().unwrap();
+                let range_low = cap[4].parse::<i32>().unwrap();
+                let range_high = cap[5].parse::<i32>().unwrap();
 
-//                 assert!((const_letter == 'x' && range_letter == 'y') || (const_letter == 'y' && range_letter == 'x'));
+                assert!((const_letter == 'x' && range_letter == 'y') || (const_letter == 'y' && range_letter == 'x'));
 
-//                 (range_low..=range_high).for_each(|i| {
-//                     if const_letter == 'x' {
-//                         rock.insert(Coord { x: const_val, y: i });
-//                     } else {
-//                         rock.insert(Coord { x: i, y: const_val });
-//                     }
-//                 })
-//             });
-//     }
+                (range_low..=range_high).for_each(|i| {
+                    if const_letter == 'x' {
+                        rock.insert(Coord { x: const_val, y: i });
+                    } else {
+                        rock.insert(Coord { x: i, y: const_val });
+                    }
+                })
+            });
+    }
 
-//     rock
-// }
+    rock
+}
 
 // fn water_fall(
 //     source: Coord,
