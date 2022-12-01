@@ -11,13 +11,13 @@ pub fn day17(input_lines: &[Vec<String>]) -> (String, String) {
     let rock: HashSet<Coord> = build_rock_map(&input_lines[0]);
     let depths = rock.iter().map(|c| c.y);
     let min_depth = depths.clone().min().unwrap();
-    let _max_depth = depths.max().unwrap();
+    let max_depth = depths.max().unwrap();
 
     let mut water_falling: HashSet<Coord> = HashSet::new();
-    let _water_standing: HashSet<Coord> = HashSet::new();
+    let water_standing: HashSet<Coord> = HashSet::new();
 
     // first water source: (500,0)
-    let water_sources = vec![Coord { x: 500, y: 0 }];
+    let mut water_sources = vec![Coord { x: 500, y: 0 }];
 
     // Special code to catch if the original source should be counted
     if min_depth <= 0 {
@@ -25,23 +25,28 @@ pub fn day17(input_lines: &[Vec<String>]) -> (String, String) {
     }
 
     // 'tick' loop: increment time.
-    '_tick: loop {
+    while !water_sources.is_empty() {
+        let mut new_sources: Vec<Coord> = Vec::new();
         // From each source, fill below.
         for source in &water_sources {
-            let _space_below = source.plus(0, 1);
+            let space_below = source.plus(0, 1);
             // If space below is rock or standing water, this becomes a layer. Search sideways until reaching rock or a fall in each direction.
-            todo!();
+            if rock.contains(&space_below) || water_standing.contains(&space_below) {
+                todo!()
                 // If rock in each direction, this becomes a standing layer.
                 // If one or both directions reaches a fall (space below is empty) it becomes a flowing layer, and fall spot becomes a source.
-            // If space below is falling water, do nothing.
+            }
             // If space below is empty, put falling water in it.
+            if !water_falling.contains(&space_below) {
+                water_falling.insert(space_below);
+                new_sources.push(space_below);
+            }
+            // If space below is falling water, do nothing.
         }
-        break; // SCC TODO
+
+        // Update the water sources
+        water_sources = new_sources.into_iter().filter(|&c| c.y < max_depth).collect();
     }
-
-
-
-
 
     // from a source:
     // 'source: loop {
@@ -152,24 +157,26 @@ fn build_rock_map(lines: &[String]) -> HashSet<Coord> {
 
     for line in lines {
         let re = Regex::new(r"(\w)=(\d+), (\w)=(\d+)..(\d+)").unwrap();
-        re.captures(line).iter()
-            .for_each(|cap| {
-                let const_letter = cap[1].parse::<char>().unwrap();
-                let const_val = cap[2].parse::<i32>().unwrap();
-                let range_letter = cap[3].parse::<char>().unwrap();
-                let range_low = cap[4].parse::<i32>().unwrap();
-                let range_high = cap[5].parse::<i32>().unwrap();
+        re.captures(line).iter().for_each(|cap| {
+            let const_letter = cap[1].parse::<char>().unwrap();
+            let const_val = cap[2].parse::<i32>().unwrap();
+            let range_letter = cap[3].parse::<char>().unwrap();
+            let range_low = cap[4].parse::<i32>().unwrap();
+            let range_high = cap[5].parse::<i32>().unwrap();
 
-                assert!((const_letter == 'x' && range_letter == 'y') || (const_letter == 'y' && range_letter == 'x'));
+            assert!(
+                (const_letter == 'x' && range_letter == 'y')
+                    || (const_letter == 'y' && range_letter == 'x')
+            );
 
-                (range_low..=range_high).for_each(|i| {
-                    if const_letter == 'x' {
-                        rock.insert(Coord { x: const_val, y: i });
-                    } else {
-                        rock.insert(Coord { x: i, y: const_val });
-                    }
-                })
-            });
+            (range_low..=range_high).for_each(|i| {
+                if const_letter == 'x' {
+                    rock.insert(Coord { x: const_val, y: i });
+                } else {
+                    rock.insert(Coord { x: i, y: const_val });
+                }
+            })
+        });
     }
 
     rock
