@@ -1,18 +1,18 @@
-use itertools::Itertools;
-
-use crate::utils::split_input_on_line_breaks;
+use crate::utils::split_input_by_blocks;
 
 pub fn day01(input_lines: &str) -> (String, String) {
-    let input_set = split_input_on_line_breaks::<u64>(input_lines);
-
-    let elves_calories = input_set
-        .iter()
-        .map(|elf_list| elf_list.iter().sum::<u64>());
-    let elves_calories: Vec<_> = elves_calories.sorted().rev().collect();
-
-    let answer1 = elves_calories.first().expect("No elves?");
-    let answer2 = elves_calories[0..=2].iter().sum::<u64>();
+    let mut elves = split_input_by_blocks::<u64>(input_lines, elf_calories);
+    elves.sort();
+    let answer1 = elves.last().unwrap();
+    let answer2 = elves[elves.len() - 3..].iter().sum::<u64>();
     (format!("{}", answer1), format!("{}", answer2))
+}
+
+fn elf_calories(lines: &[&str]) -> u64 {
+    lines
+        .iter()
+        .map(|line| line.parse::<u64>().unwrap())
+        .sum::<u64>()
 }
 
 #[cfg(test)]
