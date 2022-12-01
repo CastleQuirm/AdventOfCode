@@ -67,10 +67,10 @@ struct Map {
 
 impl Map {
     fn adjacent(&self, x: usize, y: usize, acre: AcreState) -> usize {
-        let dy = if y > 0 { -1 } else { 0 }..=if y < self.map.len() - 1 { 1 } else { 0 };
+        let dy = if y > 0 { -1 } else { 0 }..=i32::from(y < self.map.len() - 1);
 
         dy.map(|dy| {
-            let dx = if x > 0 { -1 } else { 0 }..=if x < self.map[0].len() - 1 { 1 } else { 0 };
+            let dx = if x > 0 { -1 } else { 0 }..=i32::from(x < self.map[0].len() - 1);
             dx.filter(|&dx| {
                 let x: usize = (x as i32 + dx).try_into().expect("Negative result?");
                 let y: usize = (y as i32 + dy).try_into().expect("Negative result?");

@@ -116,48 +116,12 @@ impl OpCode {
             OpCode::BOrR => mem[a as usize] | mem[b as usize],
             OpCode::SetI => a,
             OpCode::SetR => mem[a as usize],
-            OpCode::GtIR => {
-                if a > mem[b as usize] {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::GtRI => {
-                if mem[a as usize] > b {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::GtRR => {
-                if mem[a as usize] > mem[b as usize] {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::EqIR => {
-                if a == mem[b as usize] {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::EqRI => {
-                if mem[a as usize] == b {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::EqRR => {
-                if mem[a as usize] == mem[b as usize] {
-                    1
-                } else {
-                    0
-                }
-            }
+            OpCode::GtIR => u64::from(a > mem[b as usize]),
+            OpCode::GtRI => u64::from(mem[a as usize] > b),
+            OpCode::GtRR => u64::from(mem[a as usize] > mem[b as usize]),
+            OpCode::EqIR => u64::from(a == mem[b as usize]),
+            OpCode::EqRI => u64::from(mem[a as usize] == b),
+            OpCode::EqRR => u64::from(mem[a as usize] == mem[b as usize]),
         }
     }
 
@@ -173,48 +137,12 @@ impl OpCode {
             OpCode::BOrR => mem[a] | mem[b],
             OpCode::SetI => a,
             OpCode::SetR => mem[a],
-            OpCode::GtIR => {
-                if a > mem[b] {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::GtRI => {
-                if mem[a] > b {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::GtRR => {
-                if mem[a] > mem[b] {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::EqIR => {
-                if a == mem[b] {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::EqRI => {
-                if mem[a] == b {
-                    1
-                } else {
-                    0
-                }
-            }
-            OpCode::EqRR => {
-                if mem[a] == mem[b] {
-                    1
-                } else {
-                    0
-                }
-            }
+            OpCode::GtIR => usize::from(a > mem[b]),
+            OpCode::GtRI => usize::from(mem[a] > b),
+            OpCode::GtRR => usize::from(mem[a] > mem[b]),
+            OpCode::EqIR => usize::from(a == mem[b]),
+            OpCode::EqRI => usize::from(mem[a] == b),
+            OpCode::EqRR => usize::from(mem[a] == mem[b]),
         }
     }
 }

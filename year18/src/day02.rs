@@ -40,8 +40,8 @@ fn count_duplicates(line: &str) -> (u64, u64) {
         *count += 1;
     });
     let overall_counts = letter_count.values().collect::<HashSet<&u64>>();
-    let contains_double = if overall_counts.contains(&&2) { 1 } else { 0 };
-    let contains_triple = if overall_counts.contains(&&3) { 1 } else { 0 };
+    let contains_double = u64::from(overall_counts.contains(&&2));
+    let contains_triple = u64::from(overall_counts.contains(&&3));
     (contains_double, contains_triple)
 }
 
