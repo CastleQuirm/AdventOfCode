@@ -3,14 +3,11 @@ use itertools::Itertools;
 use crate::utils::split_input_on_line_breaks;
 
 pub fn day01(input_lines: &str) -> (String, String) {
-    let input_set = split_input_on_line_breaks(input_lines);
+    let input_set = split_input_on_line_breaks::<u64>(input_lines);
 
-    let elves_calories = input_set.iter().map(|elf_list| {
-        elf_list
-            .iter()
-            .map(|item| item.parse::<u64>().expect("Oh no"))
-            .sum::<u64>()
-    });
+    let elves_calories = input_set
+        .iter()
+        .map(|elf_list| elf_list.iter().sum::<u64>());
     let elves_calories: Vec<_> = elves_calories.sorted().rev().collect();
 
     let answer1 = elves_calories.first().expect("No elves?");

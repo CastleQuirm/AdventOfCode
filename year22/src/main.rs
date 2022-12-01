@@ -75,7 +75,12 @@ fn main() {
         max_day = min_day;
     }
 
-    for (day, day_function) in DAY_FUNCTIONS.iter().enumerate().take(max_day + 1).skip(min_day) {
+    for (day, day_function) in DAY_FUNCTIONS
+        .iter()
+        .enumerate()
+        .take(max_day + 1)
+        .skip(min_day)
+    {
         println!("Day {}", day);
         let input_lines = load_input(day);
         let start_time = std::time::Instant::now();
