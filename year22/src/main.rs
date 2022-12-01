@@ -75,11 +75,11 @@ fn main() {
         max_day = min_day;
     }
 
-    for day in min_day..=max_day {
+    for (day, day_function) in DAY_FUNCTIONS.iter().enumerate().take(max_day + 1).skip(min_day) {
         println!("Day {}", day);
         let input_lines = load_input(day);
         let start_time = std::time::Instant::now();
-        let (part1, part2) = DAY_FUNCTIONS[day](&input_lines);
+        let (part1, part2) = day_function(&input_lines);
         let elapsed = start_time.elapsed().as_micros();
         println!("Part 1: {}\nPart 2: {}", part1, part2);
         println!("{}.{:03}ms", elapsed / 1000, elapsed % 1000);

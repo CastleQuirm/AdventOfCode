@@ -32,7 +32,7 @@ fn square_difference_in_line(line: &str) -> i32 {
         .map(|number| number.parse::<i32>().expect("Couldn't parse"))
         .collect::<Vec<i32>>();
     assert_eq!(numbers.len(), 2);
-    (numbers.get(0).unwrap() - numbers.get(1).unwrap()).pow(2)
+    (numbers.first().unwrap() - numbers.get(1).unwrap()).pow(2)
 }
 
 // The template per-day files also come with template UTs.  Most Advent of Code puzzles
