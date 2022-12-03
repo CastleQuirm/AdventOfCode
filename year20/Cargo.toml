@@ -3,7 +3,6 @@ name = "all_days"
 version = "0.1.0"
 authors = ["Simon Castle <simon.castle@metaswitch.com>"]
 edition = "2018"
-publish = ["metaswitch"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
