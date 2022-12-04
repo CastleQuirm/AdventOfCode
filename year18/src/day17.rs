@@ -155,8 +155,8 @@ pub fn day17(input_lines: &[Vec<String>]) -> (String, String) {
 fn build_rock_map(lines: &[String]) -> HashSet<Coord> {
     let mut rock: HashSet<Coord> = HashSet::new();
 
+    let re = Regex::new(r"(\w)=(\d+), (\w)=(\d+)..(\d+)").unwrap();
     for line in lines {
-        let re = Regex::new(r"(\w)=(\d+), (\w)=(\d+)..(\d+)").unwrap();
         re.captures(line).iter().for_each(|cap| {
             let const_letter = cap[1].parse::<char>().unwrap();
             let const_val = cap[2].parse::<i32>().unwrap();
