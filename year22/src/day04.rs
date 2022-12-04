@@ -4,17 +4,23 @@ use once_cell::sync::OnceCell;
 use regex::Regex;
 
 pub fn day04(input_lines: &str) -> (String, String) {
-    let elf_duos = input_lines
+    (
+        format!(
+            "{}",
+            parse_filter_count(input_lines, WorkOrders::elf_fully_overlapped)
+        ),
+        format!(
+            "{}",
+            parse_filter_count(input_lines, WorkOrders::elf_partially_overlapped)
+        ),
+    )
+}
+
+fn parse_filter_count(lines: &str, filter_fn: fn(&WorkOrders) -> bool) -> usize {
+    lines
         .lines()
-        .map(|line| line.parse::<WorkOrders>().expect("Couldn't parse"));
-    let answer1 = elf_duos
-        .clone()
-        .filter(|work| work.elf_fully_overlapped())
-        .count();
-    let answer2 = elf_duos
-        .filter(|work| work.elf_partially_overlapped())
-        .count();
-    (format!("{}", answer1), format!("{}", answer2))
+        .filter(|line| filter_fn(&line.parse::<WorkOrders>().unwrap()))
+        .count()
 }
 
 struct WorkOrders {
