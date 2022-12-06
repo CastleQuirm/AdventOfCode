@@ -1,22 +1,20 @@
 use std::collections::HashSet;
 
 pub fn day06(input_lines: &str) -> (String, String) {
-    let answer1 = find_window_end(input_lines, 4);
-    let answer2 = find_window_end(input_lines, 14);
-    (format!("{}", answer1), format!("{}", answer2))
+    (
+        format!("{}", find_window_end(input_lines, 4)),
+        format!("{}", find_window_end(input_lines, 14)),
+    )
 }
 
 fn find_window_end(input: &str, size: usize) -> usize {
-    let stream = input.chars().collect::<Vec<_>>();
-    let mut windows = stream.windows(size);
-    // Find the text for the start of stream.
-    let start_of_stream = windows
-        .find(|&w| w.iter().collect::<HashSet<_>>().len() == size)
+    input
+        .chars()
+        .collect::<Vec<_>>()
+        .windows(size)
+        .position(|w| w.iter().collect::<HashSet<_>>().len() == size)
         .expect("No start?")
-        .iter()
-        .collect::<String>();
-    // Find that text in the file.
-    input.find(&start_of_stream).expect("Where did it start?") + size
+        + size
 }
 
 #[cfg(test)]
