@@ -60,8 +60,8 @@ fn visible_from_and_scenic_count(
                     }
                 });
 
-        if x_prime.is_ok() && y_prime.is_ok() {
-            if forest[y_prime.unwrap()][x_prime.unwrap()] >= test_tree {
+        if let (Ok(new_x), Ok(new_y)) = (x_prime, y_prime) {
+            if forest[new_y][new_x] >= test_tree {
                 return (false, i);
             }
         } else {
