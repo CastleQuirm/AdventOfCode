@@ -36,7 +36,7 @@ pub fn day09(input_lines: &str) -> (String, String) {
                                 (prev_knot_location.x - knot.x) / 2,
                                 (prev_knot_location.y - knot.y) / 2,
                             );
-                            knot.moved(&knot_delta); // TODO
+                            knot.moved(&knot_delta);
                         }
                     }
                     3 | 4 => {
