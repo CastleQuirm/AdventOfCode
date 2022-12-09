@@ -7,8 +7,12 @@ pub fn day09(input_lines: &str) -> (String, String) {
         .lines()
         .map(|line| line.parse::<HeadMove>().unwrap())
         .collect::<Vec<_>>();
-    let mut tail_visited = HashSet::from([Coord2::new(0, 0)]);
 
+    (format!("{}", move_rope(&head_moves, 1)), format!("{}", move_rope(&head_moves, 10)))
+}
+
+fn move_rope(head_moves: &[HeadMove], rope_len: usize) -> usize {
+    let mut tail_visited = HashSet::from([Coord2::new(0, 0)]);
     let mut head_location = Coord2::new(0, 0);
     let mut tail_location = Coord2::new(0, 0);
 
@@ -46,10 +50,7 @@ pub fn day09(input_lines: &str) -> (String, String) {
             tail_visited.insert(tail_location);
         })
     });
-
-    let answer1 = tail_visited.len();
-    let answer2 = 0;
-    (format!("{}", answer1), format!("{}", answer2))
+    tail_visited.len()
 }
 
 struct HeadMove {
@@ -73,15 +74,17 @@ impl FromStr for HeadMove {
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn check_day09_part1_case1() {
-    //     assert_eq!(day09("").0, "0".to_string())
-    // }
-
-    // #[test]
-    // fn check_day09_part2_case1() {
-    //     assert_eq!(day09("").1, "0".to_string())
-    // }
+    #[test]
+    fn check_day09_larger_example_part2() {
+        assert_eq!(day09("R 5
+U 8
+L 8
+D 3
+R 17
+D 10
+L 25
+U 20").1, "36".to_string())
+    }
 
     #[test]
     fn check_day09_both_case1() {
@@ -96,7 +99,7 @@ D 1
 L 5
 R 2"
             ),
-            ("13".to_string(), "0".to_string())
+            ("13".to_string(), "1".to_string())
         )
     }
 }
