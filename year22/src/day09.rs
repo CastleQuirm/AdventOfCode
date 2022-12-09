@@ -8,11 +8,10 @@ pub fn day09(input_lines: &str) -> (String, String) {
         .map(|line| line.parse::<HeadMove>().unwrap())
         .collect::<Vec<_>>();
 
-    (format!("{}", move_rope(&head_moves, 1)), format!("{}", move_rope(&head_moves, 9)))
-}
-
-fn move_rope(head_moves: &[HeadMove], rope_len: usize) -> usize {
+    let head_moves: &[HeadMove] = &head_moves;
+    let rope_len = 9;
     let mut tail_visited = HashSet::from([Coord2::new(0, 0)]);
+    let mut neck_visited = HashSet::from([Coord2::new(0, 0)]);
     let mut head_location = Coord2::new(0, 0);
     let mut knot_locations = vec![Coord2::new(0, 0); rope_len];
 
@@ -27,7 +26,7 @@ fn move_rope(head_moves: &[HeadMove], rope_len: usize) -> usize {
             let mut prev_knot_location = head_location;
             knot_locations.iter_mut().for_each(|knot| {
                 // println!("Prev knot {:?}; next knot {:?}", prev_knot_location, knot);
-                match prev_knot_location.manhattan_dist(&knot) {
+                match prev_knot_location.manhattan_dist(knot) {
                     0 | 1 => (), // no-op if the previous knot is still adjacent or over the next knot
                     2 => {
                         // 2 distance could be diagonally adjacent, no-op, or straight line, tail moves straight
@@ -45,24 +44,26 @@ fn move_rope(head_moves: &[HeadMove], rope_len: usize) -> usize {
                         assert_ne!(prev_knot_location.x, knot.x);
                         assert_ne!(prev_knot_location.y, knot.y);
                         let knot_delta = Coord2::new(
-                            (prev_knot_location.x - knot.x)
-                                / (prev_knot_location.x - knot.x).abs(),
-                            (prev_knot_location.y - knot.y)
-                                / (prev_knot_location.y - knot.y).abs(),
+                            (prev_knot_location.x - knot.x) / (prev_knot_location.x - knot.x).abs(),
+                            (prev_knot_location.y - knot.y) / (prev_knot_location.y - knot.y).abs(),
                         );
                         knot.moved(&knot_delta);
                     }
                     _ => panic!(), // Can't get 5 or more away
                 }
                 // println!("New knot location {:?}", knot);
-                prev_knot_location = knot.clone();
+                prev_knot_location = *knot;
             });
-            
-            // Make sure we've counted where the tail is.
-            tail_visited.insert(knot_locations.last().unwrap().clone());
+
+            // Make sure we've counted where the neck and tail are.
+            neck_visited.insert(*knot_locations.first().unwrap());
+            tail_visited.insert(*knot_locations.last().unwrap());
         })
     });
-    tail_visited.len()
+    (
+        format!("{}", neck_visited.len()),
+        format!("{}", tail_visited.len()),
+    )
 }
 
 #[derive(Debug)]
@@ -89,14 +90,20 @@ mod tests {
 
     #[test]
     fn check_day09_larger_example_part2() {
-        assert_eq!(day09("R 5
+        assert_eq!(
+            day09(
+                "R 5
 U 8
 L 8
 D 3
 R 17
 D 10
 L 25
-U 20").1, "36".to_string())
+U 20"
+            )
+            .1,
+            "36".to_string()
+        )
     }
 
     #[test]
