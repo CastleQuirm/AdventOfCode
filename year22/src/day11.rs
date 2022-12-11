@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
 
 use itertools::Itertools;
 
@@ -6,6 +9,14 @@ use crate::utils::split_input_by_blocks;
 
 pub fn day11(input_lines: &str) -> (String, String) {
     let monkey_troop_and_items = split_input_by_blocks(input_lines, monkey_rules);
+
+    let (monkey_troop, throw_factors): (Vec<_>, HashSet<_>) = monkey_troop_and_items
+        .iter()
+        .map(|(monkey, _)| (monkey.clone(), monkey.rules.divisor))
+        .collect::<Vec<_>>()
+        .into_iter()
+        .unzip();
+
     // We should either sort the list of monkeys, or at least assert it's already sorted from the input.
     // It is indeed already sorted, but the simple function for confirming that is unstable, so commented out for now.
     // assert!(monkey_troop_and_items.is_sorted_by_key(|m| m.0.id));
@@ -15,19 +26,23 @@ pub fn day11(input_lines: &str) -> (String, String) {
             (
                 monkey.id,
                 MonkeyState {
-                    items: items.clone(),
-                    number_inspections: 0,
+                    part1: Part1MonkeyState {
+                        items: items.clone(),
+                        number_inspections: 0,
+                    },
+                    part2: Part2MonkeyState {
+                        items: items
+                            .iter()
+                            .map(|i| Item::new(i, &throw_factors))
+                            .collect::<Vec<Item>>(),
+                        number_inspections: 0,
+                    },
                 },
             )
         })
-        .collect::<HashMap<usize, MonkeyState>>();
+        .collect::<HashMap<_, _>>();
 
-    let monkey_troop = monkey_troop_and_items
-        .iter()
-        .map(|(monkey, _)| monkey.clone())
-        .collect::<Vec<_>>();
-
-    // Part 2 is up to 10_000.
+    // Part 1
     (1..=20).for_each(|_| {
         // Play a round
         monkey_troop.iter().for_each(|active_monkey| {
@@ -36,6 +51,7 @@ pub fn day11(input_lines: &str) -> (String, String) {
             for item in monkey_state
                 .get(&active_monkey.id)
                 .expect("Monkey state doesn't exist")
+                .part1
                 .items
                 .clone()
             {
@@ -43,6 +59,7 @@ pub fn day11(input_lines: &str) -> (String, String) {
                 monkey_state
                     .get_mut(&active_monkey.throw(new_value))
                     .expect("New monkey state doesn't exist")
+                    .part1
                     .items
                     .push(new_value);
             }
@@ -50,26 +67,10 @@ pub fn day11(input_lines: &str) -> (String, String) {
             let active_monkey_state = monkey_state
                 .get_mut(&active_monkey.id)
                 .expect("Monkey state doesn't exist");
-            active_monkey_state.number_inspections += active_monkey_state.items.len();
-            active_monkey_state.items = Vec::new();
+            active_monkey_state.part1.number_inspections += active_monkey_state.part1.items.len();
+            active_monkey_state.part1.items = Vec::new();
         });
-        // println!("End of round counts:");
-        // monkey_troop.iter().for_each(|monkey| {
-        //     println!(
-        //         "- Monkey {} has {} items",
-        //         monkey.id,
-        //         monkey_state.get(&monkey.id).unwrap().items.len()
-        //     )
-        // });
     });
-
-    let mut desc_inspection_count = monkey_state
-        .values()
-        .map(|state| state.number_inspections)
-        .sorted()
-        .rev();
-    let answer1 = desc_inspection_count.next().unwrap() * desc_inspection_count.next().unwrap();
-    // println!("Finished Part 1!");
 
     // Attempt at part 2.
 
@@ -107,53 +108,20 @@ pub fn day11(input_lines: &str) -> (String, String) {
     //     }
     // }
 
-    let throw_factors = monkey_troop
-        .iter()
-        .map(|m| m.rules.divisor)
-        .collect::<HashSet<_>>();
-    let mut monkey_advanced_state = monkey_troop_and_items
-        .iter()
-        .map(|(monkey, items)| {
-            (
-                monkey.id,
-                MonkeyAdvancedState {
-                    items: items
-                        .iter()
-                        .map(|i| Item::new(i, &throw_factors))
-                        .collect::<Vec<Item>>(),
-                    number_inspections: 0,
-                },
-            )
-        })
-        .collect::<HashMap<usize, MonkeyAdvancedState>>();
-    // println!("Finished prep of advanced state ready for part 2");
-
     // Part 2 is up to 10_000.
     (1..=10_000).for_each(|_| {
-        // Play a round
-        // println!("Play round {}", i);
-        // println!("Start of round counts:");
-        // monkey_troop.iter().for_each(|monkey| {
-        //     println!(
-        //         "- Monkey {} has {} items, has thrown {} items",
-        //         monkey.id,
-        //         monkey_advanced_state.get(&monkey.id).unwrap().items.len(),
-        //         monkey_advanced_state.get(&monkey.id).unwrap().number_inspections,
-        //     )
-        // });
         monkey_troop.iter().for_each(|active_monkey| {
             // Take a turn
-            // println!("Take a turn for monkey {}", active_monkey.id);
             // Get the active monkey items as a cloned immutable list before starting adding to other lists
-            for item in monkey_advanced_state
+            for item in monkey_state
                 .get(&active_monkey.id)
                 .expect("Monkey state doesn't exist")
+                .part2
                 .items
                 .clone()
             {
-                // println!("Throw an item");
                 let new_value = active_monkey.full_inspect(item);
-                monkey_advanced_state
+                monkey_state
                     .get_mut(
                         &active_monkey.throw(
                             *new_value
@@ -163,26 +131,45 @@ pub fn day11(input_lines: &str) -> (String, String) {
                         ),
                     )
                     .expect("New monkey state doesn't exist")
+                    .part2
                     .items
                     .push(new_value);
             }
             // Monkey will throw every one of the items; get the now safely mutable state and update it.
-            let active_monkey_state = monkey_advanced_state
+            let mut active_monkey_state = monkey_state
                 .get_mut(&active_monkey.id)
                 .expect("Monkey state doesn't exist");
-            active_monkey_state.number_inspections += active_monkey_state.items.len();
-            active_monkey_state.items = Vec::new();
+            active_monkey_state.part2.number_inspections += active_monkey_state.part2.items.len();
+            active_monkey_state.part2.items = Vec::new();
         });
     });
 
-    let mut desc_inspection_count = monkey_advanced_state
-        .values()
-        .map(|state| state.number_inspections)
-        .sorted()
-        .rev();
-    let answer2 = desc_inspection_count.next().unwrap() * desc_inspection_count.next().unwrap();
+    (
+        format!(
+            "{}",
+            determine_monkey_business(
+                monkey_state
+                    .values()
+                    .map(|state| state.part1.number_inspections)
+            )
+        ),
+        format!(
+            "{}",
+            determine_monkey_business(
+                monkey_state
+                    .values()
+                    .map(|state| state.part2.number_inspections)
+            )
+        ),
+    )
+}
 
-    (format!("{}", answer1), format!("{}", answer2))
+fn determine_monkey_business<I>(state: I) -> usize
+where
+    I: Iterator<Item = usize>,
+{
+    let mut counts = state.sorted().rev();
+    counts.next().unwrap() * counts.next().unwrap()
 }
 
 fn monkey_rules(lines: &[&str]) -> (Monkey, Vec<u64>) {
@@ -218,27 +205,14 @@ fn monkey_rules(lines: &[&str]) -> (Monkey, Vec<u64>) {
     };
 
     let rules = ThrowTest {
-        divisor: lines[3]
-            .strip_prefix("  Test: divisible by ")
-            .and_then(|x| x.parse::<u64>().ok())
-            .expect("Couldn't parse test divisor"),
-        if_true: lines[4]
-            .strip_prefix("    If true: throw to monkey ")
-            .and_then(|x| x.parse::<usize>().ok())
-            .expect("Couldn't parse test if_true"),
-        if_false: lines[5]
-            .strip_prefix("    If false: throw to monkey ")
-            .and_then(|x| x.parse::<usize>().ok())
-            .expect("Couldn't parse test if_false"),
+        divisor: strip_and_parse::<u64>(lines[3], "  Test: divisible by "),
+        if_true: strip_and_parse::<usize>(lines[4], "    If true: throw to monkey "),
+        if_false: strip_and_parse::<usize>(lines[5], "    If false: throw to monkey "),
     };
 
     (
         Monkey {
-            id: lines[0]
-                .strip_prefix("Monkey ")
-                .and_then(|line| line.strip_suffix(':'))
-                .and_then(|val| val.parse::<usize>().ok())
-                .expect("`Monkey X:` line not found"),
+            id: strip_and_parse::<usize>(lines[0].strip_suffix(':').unwrap(), "Monkey "),
             inspection: (operand, modifier),
             rules,
         },
@@ -249,6 +223,15 @@ fn monkey_rules(lines: &[&str]) -> (Monkey, Vec<u64>) {
             .map(|items| items.parse::<u64>().expect("Failed to parse an item"))
             .collect::<Vec<_>>(),
     )
+}
+
+fn strip_and_parse<T>(text: &str, prefix: &str) -> T
+where
+    T: FromStr,
+{
+    text.strip_prefix(prefix)
+        .and_then(|s| s.parse::<T>().ok())
+        .unwrap()
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -306,25 +289,31 @@ struct ThrowTest {
     if_false: usize,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct MonkeyState {
+    part1: Part1MonkeyState,
+    part2: Part2MonkeyState,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+struct Part1MonkeyState {
     items: Vec<u64>,
     number_inspections: usize,
 }
 
-struct MonkeyAdvancedState {
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Part2MonkeyState {
     items: Vec<Item>,
     number_inspections: usize,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct Item {
     panic_mods: HashMap<u64, u64>,
 }
 
 impl Item {
     fn new(panic_level: &u64, divisors: &HashSet<u64>) -> Self {
-        // println!("Create an Item!");
         Self {
             panic_mods: divisors
                 .iter()
