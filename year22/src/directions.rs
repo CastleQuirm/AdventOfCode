@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Copy)]
 pub enum Direction {
     Left,
     Right,

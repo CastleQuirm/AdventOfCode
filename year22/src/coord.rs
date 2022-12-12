@@ -41,12 +41,12 @@ impl Coord2 {
     //     }
     // }
 
-    // pub fn sum(&self, other: &Self) -> Self {
-    //     Self {
-    //         x: self.x + other.x,
-    //         y: self.y + other.y,
-    //     }
-    // }
+    pub fn sum(&self, other: &Self) -> Self {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
 
     pub fn moved(&mut self, other: &Self) {
         self.x += other.x;
