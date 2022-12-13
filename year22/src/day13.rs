@@ -1,40 +1,104 @@
-use std::{cmp::Ordering, str::FromStr, string::ParseError};
+use std::cmp::Ordering;
 
 use crate::utils::split_input_by_blocks;
 
 pub fn day13(input_lines: &str) -> (String, String) {
     let packet_pairs = split_input_by_blocks(input_lines, parse_packet_pair);
+    let all_packets = packet_pairs
+        .iter()
+        .fold(Vec::new(), |mut collection, (p1, p2)| {
+            collection.push(p1);
+            collection.push(p2);
+            collection
+        });
     let answer1 = packet_pairs
         .iter()
         .enumerate()
         .filter_map(|(i, pair)| if pair.0 < pair.1 { Some(i + 1) } else { None })
         .sum::<usize>();
-    let answer2 = 0;
+
+    let divider_packet_1 = divider_packet(2);
+    let divider_packet_2 = divider_packet(6);
+
+    let mut count_1 = 1;
+    let mut count_2 = 2;
+
+    for packet in all_packets {
+        if divider_packet_1 > *packet {
+            count_1 += 1;
+        }
+        if divider_packet_2 > *packet {
+            count_2 += 1;
+        }
+    }
+
+    let answer2 = count_1 * count_2;
     (format!("{}", answer1), format!("{}", answer2))
+}
+
+fn divider_packet(value: u64) -> Packet {
+    Packet {
+        contents: vec![Contents::Packet {
+            packet: Packet {
+                contents: vec![Contents::Value { value }],
+            },
+        }],
+    }
 }
 
 fn parse_packet_pair(lines: &[&str]) -> (Packet, Packet) {
     assert_eq!(lines.len(), 2);
-    (
-        lines[0]
-            .parse::<Packet>()
-            .expect("Couldn't parse first line of pair"),
-        lines[1]
-            .parse::<Packet>()
-            .expect("Couldn't parse second line of pair"),
-    )
+    (parse_packet(lines[0]).0, parse_packet(lines[1]).0)
 }
 
+#[derive(Debug)]
 struct Packet {
     contents: Vec<Contents>,
 }
 
-impl FromStr for Packet {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
+fn parse_packet(text: &str) -> (Packet, usize) {
+    let mut char_ptr = 1;
+    let mut content_list = Vec::new();
+    while text.chars().nth(char_ptr).expect("Looped off the string") != ']' {
+        let potential_content = match text.chars().nth(char_ptr).expect("Looped off the string") {
+            '[' => {
+                let (result, jump) = parse_packet(&text[char_ptr..]);
+                char_ptr += jump;
+                Some(Contents::Packet { packet: result })
+            }
+            d if d.is_numeric() => {
+                if text
+                    .chars()
+                    .nth(char_ptr + 1)
+                    .expect("Looped off the string")
+                    .is_numeric()
+                {
+                    Some(Contents::Value {
+                        value: text[char_ptr..=char_ptr + 1]
+                            .parse::<u64>()
+                            .expect("Parsing failed"),
+                    })
+                } else {
+                    Some(Contents::Value {
+                        value: d.to_string().parse::<u64>().expect("Parsing failed"),
+                    })
+                }
+            }
+            ']' => unreachable!(),
+            ',' => None,
+            _ => panic!(),
+        };
+        char_ptr += 1;
+        if let Some(content) = potential_content {
+            content_list.push(content);
+        }
     }
+    (
+        Packet {
+            contents: content_list,
+        },
+        char_ptr,
+    )
 }
 
 impl Ord for Packet {
@@ -63,6 +127,7 @@ impl PartialEq for Packet {
     }
 }
 
+#[derive(Debug)]
 enum Contents {
     Value { value: u64 },
     Packet { packet: Packet },
@@ -197,10 +262,10 @@ mod tests {
         // assert_eq!(day13("").0, "0".to_string())
     }
 
-    #[test]
-    fn check_day13_part2_case1() {
-        assert_eq!(day13("").1, "0".to_string())
-    }
+    // #[test]
+    // fn check_day13_part2_case1() {
+    //     assert_eq!(day13("").1, "0".to_string())
+    // }
 
     #[test]
     fn check_day13_both_case1() {
@@ -230,7 +295,7 @@ mod tests {
 [1,[2,[3,[4,[5,6,7]]]],8,9]
 [1,[2,[3,[4,[5,6,0]]]],8,9]"
             ),
-            ("13".to_string(), "0".to_string())
+            ("13".to_string(), "140".to_string())
         )
     }
 }
