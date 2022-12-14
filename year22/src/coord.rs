@@ -61,7 +61,7 @@ impl Coord2 {
     pub fn diff(&self, other: &Self) -> Self {
         Self {
             x: self.x - other.x,
-            y: self.y - other.y
+            y: self.y - other.y,
         }
     }
 
@@ -70,11 +70,15 @@ impl Coord2 {
     pub fn cardinal_direction_diff(&self, other: &Self) -> Option<Direction> {
         let diff = self.diff(other);
 
-        
-        if (diff.x != 0 && diff.y != 0) || (diff.x == 0 && diff.y == 0) {
-            None
-        } else {
-            todo!()
+        let x = diff.x.checked_div(diff.x.abs()).unwrap_or(0);
+        let y = diff.y.checked_div(diff.y.abs()).unwrap_or(0);
+
+        match (x, y) {
+            (-1, 0) => Some(Direction::Left),
+            (1, 0) => Some(Direction::Right),
+            (0, -1) => Some(Direction::Down),
+            (0, 1) => Some(Direction::Up),
+            _ => None,
         }
     }
 }
