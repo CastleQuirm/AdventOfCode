@@ -1,3 +1,8 @@
+use once_cell::sync::OnceCell;
+use std::{str::FromStr, string::ParseError};
+
+use regex::Regex;
+
 use crate::directions::Direction;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -51,5 +56,42 @@ impl Coord2 {
     pub fn moved(&mut self, other: &Self) {
         self.x += other.x;
         self.y += other.y;
+    }
+
+    pub fn diff(&self, other: &Self) -> Self {
+        Self {
+            x: self.x - other.x,
+            y: self.y - other.y
+        }
+    }
+
+    /// Determine the cardinal direction (as a Direction) from one coordinate to another, if there is one.
+    /// Returns None if the two points are the same, or if they're not in a straight line.
+    pub fn cardinal_direction_diff(&self, other: &Self) -> Option<Direction> {
+        let diff = self.diff(other);
+
+        
+        if (diff.x != 0 && diff.y != 0) || (diff.x == 0 && diff.y == 0) {
+            None
+        } else {
+            todo!()
+        }
+    }
+}
+
+static RE: OnceCell<Regex> = OnceCell::new();
+
+impl FromStr for Coord2 {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(RE
+            .get_or_init(|| Regex::new(r"(-?\d+),(-?\d+)").unwrap())
+            .captures(s)
+            .map(|cap| Self {
+                x: cap[1].parse::<i64>().unwrap(),
+                y: cap[2].parse::<i64>().unwrap(),
+            })
+            .expect("Didn't parse"))
     }
 }
