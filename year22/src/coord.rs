@@ -39,12 +39,12 @@ impl Coord2 {
         (abs_x_diff + abs_y_diff) as i64
     }
 
-    // pub fn plus(&self, x: i64, y: i64) -> Self {
-    //     Self {
-    //         x: self.x + x,
-    //         y: self.y + y,
-    //     }
-    // }
+    pub fn plus(&self, x: i64, y: i64) -> Self {
+        Self {
+            x: self.x + x,
+            y: self.y + y,
+        }
+    }
 
     pub fn sum(&self, other: &Self) -> Self {
         Self {
