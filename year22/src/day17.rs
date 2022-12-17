@@ -8,16 +8,59 @@ pub fn day17(input_lines: &str) -> (String, String) {
     let mut highest_rock = 0;
     let mut filled_rocks: HashSet<Coord2> = HashSet::new();
     let mut answer1 = 0;
+    let mut answer2 = 0;
+    let mut snapshots = Vec::<Snapshot>::new();
+    let mut additional_rocks_to_fall = None;
+    let mut rock_count = 0;
+    let mut extra_height_from_loop = 0;
 
-    (0..2022).for_each(|rock_count| {
+    while answer1 * answer2 == 0 {
         let mut falling_rock = Rock {
             shape: Shape::choose_shape(rock_count),
             handle: Coord2::new(2, highest_rock + 4),
         };
 
-        loop {
+        for i in 0.. {
             // Wind blows
             let wind_direction = match wind_iter.next().unwrap_or_else(|| {
+                // We've wrapped the input. Take a snapshot of our state and see if it's close enough to another to start iterating.
+                let new_snapshot = Snapshot {
+                    rocks_dropped: rock_count,
+                    max_height: highest_rock,
+                    steps_into_new_rock: i,
+                    current_shape: falling_rock.shape.clone(),
+                    top_ten_rows: filled_rocks
+                        .iter()
+                        .filter_map(|c| {
+                            if c.y >= highest_rock - 10 {
+                                Some(Coord2::new(c.x, c.y - highest_rock + 10))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect::<HashSet<Coord2>>(),
+                };
+
+                // Assume that there will be a loop after a certain amount of input
+                if let Some(matching_snapshot) = snapshots.iter().find(|old| {
+                    old.steps_into_new_rock == new_snapshot.steps_into_new_rock
+                        && old.current_shape == new_snapshot.current_shape
+                        && old.top_ten_rows == new_snapshot.top_ten_rows
+                }) {
+                    let rocks_in_loop =
+                        new_snapshot.rocks_dropped - matching_snapshot.rocks_dropped;
+
+                    let further_full_loops = (1_000_000_000_000 - rock_count) / rocks_in_loop;
+                    additional_rocks_to_fall =
+                        Some((1_000_000_000_000 - rock_count) % rocks_in_loop);
+
+                    extra_height_from_loop = (new_snapshot.max_height
+                        - matching_snapshot.max_height)
+                        * further_full_loops as i64;
+                } else {
+                    snapshots.push(new_snapshot);
+                }
+
                 wind_iter = input_lines.chars();
                 wind_iter.next().unwrap()
             }) {
@@ -58,7 +101,7 @@ pub fn day17(input_lines: &str) -> (String, String) {
             } else {
                 // The rock has landed!
                 falling_rock.all_spaces().iter().for_each(|c| {
-                    filled_rocks.insert(c.clone());
+                    filled_rocks.insert(*c);
                 });
                 highest_rock = i64::max(highest_rock, falling_rock.topmost_spot());
                 if rock_count == 2021 {
@@ -68,10 +111,28 @@ pub fn day17(input_lines: &str) -> (String, String) {
                 break;
             }
         }
-    });
+        rock_count += 1;
+        additional_rocks_to_fall = if let Some(additional_rocks) = additional_rocks_to_fall {
+            if additional_rocks == 1 {
+                answer2 = highest_rock + extra_height_from_loop;
+                None
+            } else {
+                Some(additional_rocks - 1)
+            }
+        } else {
+            None
+        };
+    }
 
-    let answer2 = highest_rock;
     (format!("{}", answer1), format!("{}", answer2))
+}
+
+struct Snapshot {
+    rocks_dropped: usize,
+    max_height: i64,
+    steps_into_new_rock: usize,
+    current_shape: Shape,
+    top_ten_rows: HashSet<Coord2>,
 }
 
 struct Rock {
@@ -97,6 +158,7 @@ impl Rock {
     }
 }
 
+#[derive(Clone, Eq, PartialEq)]
 enum Shape {
     Horizontal,
     Plus,
