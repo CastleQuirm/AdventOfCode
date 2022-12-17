@@ -27,26 +27,106 @@ pub fn day16(input_lines: &str) -> (String, String) {
         })
         .collect::<HashMap<_, _>>();
 
-    let mut route_set = HashSet::from([Route {
-        caverns_visited: Vec::from(["AA".to_string()]),
+    let mut human_only_route_set = Vec::from([Route {
+        caverns_visited: HashSet::from(["AA".to_string()]),
         pressure_released: 0,
         time_remaining: 30,
         can_move: true,
+        current_location: "AA".to_string(),
     }]);
 
-    while route_set.iter().any(|route| route.can_move) {
-        route_set = route_set
+    while human_only_route_set.iter().any(|route| route.can_move) {
+        let new_route_set = human_only_route_set
             .iter()
             .flat_map(|route| extend_route(route, &distance_map, &cavern_set))
-            .collect::<HashSet<Route>>();
+            .collect::<Vec<Route>>();
+
+        let current_max = new_route_set
+            .iter()
+            .map(|route| route.pressure_released)
+            .max()
+            .unwrap();
+
+        human_only_route_set = new_route_set
+            .into_iter()
+            .filter(|route| route.can_move || route.pressure_released >= current_max)
+            .collect::<Vec<Route>>();
     }
 
-    let answer1 = route_set
-        .iter()
-        .map(|route| route.pressure_released)
-        .max()
-        .unwrap();
-    let answer2 = 0;
+    assert_eq!(human_only_route_set.len(), 1);
+
+    let answer1 = human_only_route_set.first().unwrap().pressure_released;
+
+    let mut both_route_set = Vec::from([Route {
+        caverns_visited: HashSet::from(["AA".to_string()]),
+        pressure_released: 0,
+        time_remaining: 26,
+        can_move: true,
+        current_location: "AA".to_string(),
+    }]);
+
+    // Have the human explore as much as possible
+    let mut stopped_routes = Vec::new();
+    while both_route_set.iter().any(|route| route.can_move) {
+        let new_route_set = both_route_set
+            .iter()
+            .flat_map(|route| extend_route(route, &distance_map, &cavern_set))
+            .collect::<Vec<Route>>();
+
+        let mut newly_stopped_routes = new_route_set
+            .clone()
+            .into_iter()
+            .filter(|route| !route.can_move)
+            .collect::<Vec<_>>();
+        stopped_routes.append(&mut newly_stopped_routes);
+        both_route_set = new_route_set
+            .into_iter()
+            .filter(|route| route.can_move)
+            .collect::<Vec<_>>();
+    }
+
+    assert!(both_route_set.is_empty());
+    // both_route_set.append(&mut stopped_routes);
+    // assert!(!both_route_set.is_empty());
+    // assert!(stopped_routes.is_empty());
+    let mut answer2 = 0;
+
+    // Depth first search the human routes
+    stopped_routes.iter().for_each(|human_route| {
+        // Have the elephant explore
+        both_route_set = Vec::from([Route {
+            caverns_visited: human_route.caverns_visited.clone(),
+            pressure_released: human_route.pressure_released,
+            time_remaining: 26,
+            can_move: true,
+            current_location: "AA".to_string(),
+        }]);
+
+        while both_route_set.iter().any(|route| route.can_move) {
+            let new_route_set = both_route_set
+                .iter()
+                .flat_map(|route| extend_route(route, &distance_map, &cavern_set))
+                .collect::<Vec<Route>>();
+
+            let current_max = new_route_set
+                .iter()
+                .map(|route| route.pressure_released)
+                .max()
+                .unwrap();
+
+            both_route_set = new_route_set
+                .into_iter()
+                .filter(|route| route.can_move || route.pressure_released >= current_max)
+                .collect::<Vec<Route>>();
+        }
+        answer2 = usize::max(both_route_set.first().unwrap().pressure_released, answer2);
+        // println!("Candidate answer: {}", answer2);
+    });
+
+    // assert_eq!(both_route_set.len(), 1);
+
+    // let answer2 = both_route_set.iter().next().unwrap().pressure_released;
+    // let answer2 = 0;
     (format!("{}", answer1), format!("{}", answer2))
 }
 
@@ -54,9 +134,18 @@ fn extend_route(
     route: &Route,
     distance_map: &HashMap<String, HashMap<String, usize>>,
     caverns: &HashMap<String, Cavern>,
-) -> HashSet<Route> {
-    distance_map
-        .get(route.current_cavern())
+) -> Vec<Route> {
+    // Have one route where we just decide to stop moving (important for Part 2, to allow the elephant to have options)
+    let mut new_routes = Vec::from([Route {
+        caverns_visited: route.caverns_visited.clone(),
+        pressure_released: route.pressure_released,
+        time_remaining: route.time_remaining,
+        can_move: false,
+        current_location: route.current_location.clone(),
+    }]);
+
+    let mut extended_routes = distance_map
+        .get(&route.current_location)
         .unwrap()
         .iter()
         .filter_map(|(dest_cavern, travel_time)| {
@@ -68,7 +157,7 @@ fn extend_route(
                 // Possible new destination!
                 let time_remaining = route.time_remaining - (travel_time + 1);
                 let mut caverns_visited = route.caverns_visited.clone();
-                caverns_visited.push(dest_cavern.clone());
+                assert!(caverns_visited.insert(dest_cavern.clone()));
                 let cavern = caverns.get(dest_cavern).unwrap();
 
                 let can_move = distance_map.get(dest_cavern).unwrap().iter().any(
@@ -82,10 +171,13 @@ fn extend_route(
                     pressure_released: route.pressure_released + time_remaining * cavern.flow_rate,
                     time_remaining,
                     can_move,
+                    current_location: dest_cavern.to_owned(),
                 })
             }
         })
-        .collect::<HashSet<Route>>()
+        .collect::<Vec<Route>>();
+    new_routes.append(&mut extended_routes);
+    new_routes
 }
 
 fn dijkstra_caverns(
@@ -150,18 +242,13 @@ impl FromStr for Cavern {
     }
 }
 
-#[derive(Hash, Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct Route {
-    caverns_visited: Vec<String>,
+    caverns_visited: HashSet<String>,
     pressure_released: usize,
     time_remaining: usize,
     can_move: bool,
-}
-
-impl Route {
-    fn current_cavern(&self) -> &str {
-        self.caverns_visited.last().unwrap().as_ref()
-    }
+    current_location: String,
 }
 
 #[cfg(test)]
@@ -193,7 +280,7 @@ Valve HH has flow rate=22; tunnel leads to valve GG
 Valve II has flow rate=0; tunnels lead to valves AA, JJ
 Valve JJ has flow rate=21; tunnel leads to valve II"
             ),
-            ("1651".to_string(), "0".to_string())
+            ("1651".to_string(), "1707".to_string())
         )
     }
 }
