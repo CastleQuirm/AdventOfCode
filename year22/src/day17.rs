@@ -239,16 +239,6 @@ impl Shape {
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn check_day17_part1_case1() {
-    //     assert_eq!(day17("").0, "0".to_string())
-    // }
-
-    // #[test]
-    // fn check_day17_part2_case1() {
-    //     assert_eq!(day17("").1, "0".to_string())
-    // }
-
     #[test]
     fn check_day17_both_case1() {
         assert_eq!(
