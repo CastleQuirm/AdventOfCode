@@ -36,6 +36,74 @@ pub fn day21(input_lines: &str) -> (String, String) {
     // println!("Pending monkeys: {:?}", pending_monkeys);
     // println!("Lookup monkeys: {:?}", lookup_monkeys);
 
+    let mut declared_minus_human = declared_monkeys.clone();
+    declared_minus_human.remove("humn");
+    // let mut starting_pending = pending_monkeys.clone();
+    // let mut starting_lookup = lookup_monkeys.clone();
+
+    solve_forwards(&mut declared_monkeys, &pending_monkeys, &lookup_monkeys);
+    let answer1 = declared_monkeys.get("root").expect("Haven't learnt root");
+
+    solve_forwards(&mut declared_minus_human, &pending_monkeys, &lookup_monkeys);
+    assert!(declared_minus_human.get("root").is_none());
+    let root_dependants = pending_monkeys
+        .get("root")
+        .unwrap()
+        .split_ascii_whitespace()
+        .map(|s| s.to_string())
+        .collect::<Vec<String>>();
+    assert_eq!(root_dependants.len(), 3);
+    let (mut target_value, mut prev_name) = match (
+        declared_minus_human.get(&root_dependants[0]),
+        declared_minus_human.get(&root_dependants[2]),
+    ) {
+        (Some(val), None) => (*val, root_dependants[2].clone()),
+        (None, Some(val)) => (*val, root_dependants[0].clone()),
+        _ => unreachable!(),
+    };
+
+    while prev_name != "humn" {
+        let resolving_shout = pending_monkeys
+            .get(&prev_name)
+            .unwrap()
+            .split_ascii_whitespace()
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>();
+        assert_eq!(resolving_shout.len(), 3);
+        let (known_val, unknown_name, position) = match (
+            declared_minus_human.get(&resolving_shout[0]),
+            declared_minus_human.get(&resolving_shout[2]),
+        ) {
+            (Some(val), None) => (*val, resolving_shout[2].clone(), Position::First),
+            (None, Some(val)) => (*val, resolving_shout[0].clone(), Position::Second),
+            _ => unreachable!(),
+        };
+        prev_name = unknown_name;
+        target_value = match (resolving_shout[1].as_ref(), position) {
+            ("+", _) => target_value - known_val, // a = b + x | a = x + b => x = a - b
+            ("-", Position::First) => known_val - target_value, // a = b - x => x = b - a
+            ("-", Position::Second) => target_value + known_val, // a = x - b => x = a + b
+            ("*", _) => target_value / known_val, // a = b * x | a = x * b => x = a / b
+            ("/", Position::First) => known_val / target_value, // a = b / x => x = b / a
+            ("/", Position::Second) => target_value * known_val, // a = x / b => x = a * b
+            _ => unreachable!(),
+        }
+    }
+
+    let answer2 = target_value;
+    (format!("{}", answer1), format!("{}", answer2))
+}
+
+enum Position {
+    First,
+    Second,
+}
+
+fn solve_forwards(
+    declared_monkeys: &mut HashMap<String, i64>,
+    pending_monkeys: &HashMap<String, String>,
+    lookup_monkeys: &HashMap<String, Vec<String>>,
+) {
     let mut new_lookups = declared_monkeys
         .keys()
         .map(|k| k.to_string())
@@ -77,10 +145,6 @@ pub fn day21(input_lines: &str) -> (String, String) {
         }
         new_lookups = newly_learnt;
     }
-
-    let answer1 = declared_monkeys.get("root").expect("Haven't learnt root");
-    let answer2 = 0;
-    (format!("{}", answer1), format!("{}", answer2))
 }
 
 #[cfg(test)]
@@ -119,7 +183,7 @@ lgvd: ljgn * ptdq
 drzm: hmdt - zczc
 hmdt: 32"
             ),
-            ("152".to_string(), "0".to_string())
+            ("152".to_string(), "301".to_string())
         )
     }
 }
