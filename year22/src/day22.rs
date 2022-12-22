@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-
 use itertools::Itertools;
 
 use crate::coord::Coord2;
@@ -17,8 +16,6 @@ pub fn day22(input_lines: &str) -> (String, String) {
     let mut map = Map {
         map: input_lines
             .lines()
-            // .rev()
-            // .skip(2)
             .take(row_count)
             .enumerate()
             .flat_map(|(row_number, line)| {
@@ -36,6 +33,7 @@ pub fn day22(input_lines: &str) -> (String, String) {
             .collect::<HashMap<_, _>>(),
         max_x: width,
         max_y: row_count,
+        shape: MapShape::Flat,
     };
 
     // Fill out the rest of the HashMap for ease.
@@ -53,6 +51,20 @@ pub fn day22(input_lines: &str) -> (String, String) {
         // println!("");
     }
 
+    let answer1 = walkabout(input_lines, &map);
+
+    let answer2 = // Update the map to be a cube and rerun.
+    if row_count > 50 {
+        map.shape = MapShape::Cube;
+        walkabout(input_lines, &map)
+    } else {
+        0
+    };
+
+    (format!("{}", answer1), format!("{}", answer2))
+}
+
+fn walkabout(input_lines: &str, map: &Map) -> i64 {
     // Create the starting position
     let starting_x = input_lines
         .lines()
@@ -106,14 +118,18 @@ pub fn day22(input_lines: &str) -> (String, String) {
             // println!("Moved to: {:?}", mover);
         });
 
-    let answer1 = mover.score();
-    let answer2 = 0;
-    (format!("{}", answer1), format!("{}", answer2))
+    mover.score()
 }
 
 struct Step {
     distance: usize,
     rotation: Option<Rotation>,
+}
+
+#[derive(Debug)]
+enum MapShape {
+    Flat,
+    Cube,
 }
 
 #[derive(Debug)]
@@ -127,26 +143,29 @@ impl Mover {
         // Move forwards
         'all_moves: for _ in 0..step.distance {
             let mut keep_searching = true;
-            let mut candidate_location = self.location.sum(&Coord2::movement(&self.facing));
+            let mut current_direction = self.facing;
+            let mut candidate_location = self.location.sum(&Coord2::movement(&current_direction));
             while keep_searching {
                 // println!("- Consider moving to {:?}", candidate_location);
-                match map.map.get(&candidate_location) {
-                    Some(Square::Space) => {
+                match (map.map.get(&candidate_location), &map.shape)  {
+                    (Some(Square::Space), _) => {
                         // Found a space. Move into it, and move to next step
                         keep_searching = false;
                         self.location = candidate_location;
+                        self.facing = current_direction;
                     }
-                    Some(Square::Wall) => {
+                    (Some(Square::Wall), _) => {
                         // Found a wall.  Don't move and skip the rest of the movement
                         break 'all_moves;
                     }
-                    Some(Square::Void) => {
+                    (_, MapShape::Cube) => { (candidate_location, current_direction) = self.cube_wrap(&candidate_location, &current_direction) }
+                    (Some(Square::Void), MapShape::Flat) => {
                         // Found a void, keep looking for a candidate
-                        candidate_location.moved(&Coord2::movement(&self.facing));
+                        candidate_location.moved(&Coord2::movement(&current_direction));
                     }
-                    None => {
+                    (None, MapShape::Flat) => {
                         // We've wrapped off the edge.  Need to get the correct wrapped location.
-                        match self.facing {
+                        match current_direction {
                             Direction::Left => {
                                 candidate_location =
                                     Coord2::new(map.max_x as i64, candidate_location.y)
@@ -173,6 +192,59 @@ impl Mover {
         }
     }
 
+    fn cube_wrap(&mut self, wrapped_candidate: &Coord2, current_direction: &Direction) -> (Coord2, Direction) {
+        // THIS CODE ONLY WORKS FOR THE NET IN MY INPUT
+
+        //  AB
+        //  C
+        // DE
+        // F
+
+        match current_direction {
+            Direction::Left => {
+                // Were going left. Check coordinate
+                match (wrapped_candidate.x, wrapped_candidate.y) {
+                    (0, y) if y <= 100 => unreachable!(),
+                    (0, y) if y <= 150 => (Coord2::new(51, 151 - y), Direction::Right), // Left D -> Left A (upside down)
+                    (0, y) if y <= 200 => (Coord2::new(y - 100, 1), Direction::Up), // Left F -> Top A
+                    (50, y) if y <=50 => (Coord2::new(1, 151 - y), Direction::Right), // Left A -> Left D (upside down)
+                    (50, y) if y <= 100 => (Coord2::new(y - 50, 101), Direction::Up), // Left C -> Top D
+                    _ => unreachable!(),
+                }
+            },
+            Direction::Right => {
+                match (wrapped_candidate.x, wrapped_candidate.y) {
+                    (51, y) if y <= 150 => unreachable!(),
+                    (51, y) if y <= 200 => (Coord2::new(y - 100, 150), Direction::Down), // Right F -> Bottom E
+                    (101, y) if y <= 50 => unreachable!(),
+                    (101, y) if y <= 100 => (Coord2::new(y + 50, 50), Direction::Down), // Right C -> Bottom B
+                    (101, y) if y <= 150 => (Coord2::new(150, 151 - y), Direction::Left), // Right E -> Right B (upside down)
+                    (151, y) if y <= 50 => (Coord2::new(100, 151 - y), Direction::Left), // Right B -> Right E (upside down)
+                    _ => unreachable!(),
+                }
+            },
+            Direction::Up => {
+                match (wrapped_candidate.x, wrapped_candidate.y) {
+                    (x, 51) if x <= 100 => unreachable!(),
+                    (x, 51) if x <= 150 => (Coord2::new(100, x - 50), Direction::Left), // Bottom B -> Right C
+                    (x, 151) if x <= 50 => unreachable!(),
+                    (x, 151) if x <= 100 => (Coord2::new(50, x + 100), Direction::Left), // Bottom E -> Right F
+                    (x, 201) if x <= 50 => (Coord2::new(100 + x, 1), Direction::Up), // Bottom F -> Top B
+                    _ => unreachable!(),
+                }
+            },
+            Direction::Down =>  {
+                match (wrapped_candidate.x, wrapped_candidate.y) {
+                    (x, 0) if x <= 50 => unreachable!(),
+                    (x, 0) if x <= 100 => (Coord2::new(1, x + 100), Direction::Right), // Top A -> Left F
+                    (x, 0) if x <= 150 => (Coord2::new(x - 100, 200), Direction::Down), // Top B -> Bottom F
+                    (x, 100) if x <= 50 => (Coord2::new(51, x + 50), Direction::Right), // Top D -> Right C
+                    _ => unreachable!(),
+                }
+            },
+        }
+    } 
+
     fn score(&self) -> i64 {
         let facing_score = match self.facing {
             Direction::Left => 2,
@@ -188,6 +260,7 @@ struct Map {
     map: HashMap<Coord2, Square>,
     max_x: usize,
     max_y: usize,
+    shape: MapShape,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
@@ -200,16 +273,6 @@ enum Square {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // #[test]
-    // fn check_day22_part1_case1() {
-    //     assert_eq!(day22("").0, "0".to_string())
-    // }
-
-    // #[test]
-    // fn check_day22_part2_case1() {
-    //     assert_eq!(day22("").1, "0".to_string())
-    // }
 
     #[test]
     fn check_day22_both_case1() {
