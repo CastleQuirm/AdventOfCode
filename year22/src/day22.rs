@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use itertools::Itertools;
+use std::collections::HashMap;
 
 use crate::coord::Coord2;
 use crate::directions::{Direction, Rotation};
@@ -107,7 +107,7 @@ fn walkabout(input_lines: &str, map: &Map) -> i64 {
             };
 
             mover.step(
-                &map,
+                map,
                 Step {
                     distance: instruction[0..distance_string_len]
                         .parse::<usize>()
@@ -147,7 +147,7 @@ impl Mover {
             let mut candidate_location = self.location.sum(&Coord2::movement(&current_direction));
             while keep_searching {
                 // println!("- Consider moving to {:?}", candidate_location);
-                match (map.map.get(&candidate_location), &map.shape)  {
+                match (map.map.get(&candidate_location), &map.shape) {
                     (Some(Square::Space), _) => {
                         // Found a space. Move into it, and move to next step
                         keep_searching = false;
@@ -158,7 +158,10 @@ impl Mover {
                         // Found a wall.  Don't move and skip the rest of the movement
                         break 'all_moves;
                     }
-                    (_, MapShape::Cube) => { (candidate_location, current_direction) = self.cube_wrap(&candidate_location, &current_direction) }
+                    (_, MapShape::Cube) => {
+                        (candidate_location, current_direction) =
+                            self.cube_wrap(&candidate_location, &current_direction)
+                    }
                     (Some(Square::Void), MapShape::Flat) => {
                         // Found a void, keep looking for a candidate
                         candidate_location.moved(&Coord2::movement(&current_direction));
@@ -192,7 +195,11 @@ impl Mover {
         }
     }
 
-    fn cube_wrap(&mut self, wrapped_candidate: &Coord2, current_direction: &Direction) -> (Coord2, Direction) {
+    fn cube_wrap(
+        &mut self,
+        wrapped_candidate: &Coord2,
+        current_direction: &Direction,
+    ) -> (Coord2, Direction) {
         // THIS CODE ONLY WORKS FOR THE NET IN MY INPUT
 
         //  AB
@@ -207,11 +214,11 @@ impl Mover {
                     (0, y) if y <= 100 => unreachable!(),
                     (0, y) if y <= 150 => (Coord2::new(51, 151 - y), Direction::Right), // Left D -> Left A (upside down)
                     (0, y) if y <= 200 => (Coord2::new(y - 100, 1), Direction::Up), // Left F -> Top A
-                    (50, y) if y <=50 => (Coord2::new(1, 151 - y), Direction::Right), // Left A -> Left D (upside down)
+                    (50, y) if y <= 50 => (Coord2::new(1, 151 - y), Direction::Right), // Left A -> Left D (upside down)
                     (50, y) if y <= 100 => (Coord2::new(y - 50, 101), Direction::Up), // Left C -> Top D
                     _ => unreachable!(),
                 }
-            },
+            }
             Direction::Right => {
                 match (wrapped_candidate.x, wrapped_candidate.y) {
                     (51, y) if y <= 150 => unreachable!(),
@@ -222,7 +229,7 @@ impl Mover {
                     (151, y) if y <= 50 => (Coord2::new(100, 151 - y), Direction::Left), // Right B -> Right E (upside down)
                     _ => unreachable!(),
                 }
-            },
+            }
             Direction::Up => {
                 match (wrapped_candidate.x, wrapped_candidate.y) {
                     (x, 51) if x <= 100 => unreachable!(),
@@ -232,8 +239,8 @@ impl Mover {
                     (x, 201) if x <= 50 => (Coord2::new(100 + x, 1), Direction::Up), // Bottom F -> Top B
                     _ => unreachable!(),
                 }
-            },
-            Direction::Down =>  {
+            }
+            Direction::Down => {
                 match (wrapped_candidate.x, wrapped_candidate.y) {
                     (x, 0) if x <= 50 => unreachable!(),
                     (x, 0) if x <= 100 => (Coord2::new(1, x + 100), Direction::Right), // Top A -> Left F
@@ -241,9 +248,9 @@ impl Mover {
                     (x, 100) if x <= 50 => (Coord2::new(51, x + 50), Direction::Right), // Top D -> Right C
                     _ => unreachable!(),
                 }
-            },
+            }
         }
-    } 
+    }
 
     fn score(&self) -> i64 {
         let facing_score = match self.facing {
