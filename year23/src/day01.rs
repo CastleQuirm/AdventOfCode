@@ -44,7 +44,7 @@ pub fn day01(input_lines: &[Vec<String>]) -> (String, String) {
                 }
                 // The rfind would be dubious if any key string was wholly contained in another...but none are.
                 if let Some(right_index) = line.rfind(text) {
-                    if right_index > last_digit_index {
+                    if right_index >= last_digit_index {
                         last_digit = *value;
                         last_digit_index = right_index; 
                     }
