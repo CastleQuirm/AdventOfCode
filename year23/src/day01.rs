@@ -17,9 +17,24 @@ pub fn day01(input_lines: &[Vec<String>]) -> (String, String) {
         ("eight".to_string(), 8),
         ("nine".to_string(), 9),
     ]);
-    part2_vals.extend(written_words.into_iter());
+    part2_vals.extend(written_words);
 
-    (format!("{}", input_lines[0].iter().map(|line| convert_line_to_num(line, &part1_vals)).sum::<u32>()), format!("{}", input_lines[0].iter().map(|line| convert_line_to_num(line, &part2_vals)).sum::<u32>()))
+    (
+        format!(
+            "{}",
+            input_lines[0]
+                .iter()
+                .map(|line| convert_line_to_num(line, &part1_vals))
+                .sum::<u32>()
+        ),
+        format!(
+            "{}",
+            input_lines[0]
+                .iter()
+                .map(|line| convert_line_to_num(line, &part2_vals))
+                .sum::<u32>()
+        ),
+    )
 }
 
 fn convert_line_to_num(line: &str, dict: &HashMap<String, u32>) -> u32 {
@@ -27,10 +42,19 @@ fn convert_line_to_num(line: &str, dict: &HashMap<String, u32>) -> u32 {
     // Z doesn't appear in any of the numbers we search for.
     let extended_string = (line.to_owned() + "zzzz").chars().collect::<Vec<_>>();
     // Filter-Map each character in the (original) string into the number that starts at that character
-    let found_numbers = extended_string.windows(5).filter_map(|window_chars| {
-        let window_string = window_chars.iter().collect::<String>();
-        dict.iter().find_map(|(text_val, value)| if window_string.starts_with(text_val) { Some(value) } else { None })
-    } ).collect::<Vec<_>>();
+    let found_numbers = extended_string
+        .windows(5)
+        .filter_map(|window_chars| {
+            let window_string = window_chars.iter().collect::<String>();
+            dict.iter().find_map(|(text_val, value)| {
+                if window_string.starts_with(text_val) {
+                    Some(value)
+                } else {
+                    None
+                }
+            })
+        })
+        .collect::<Vec<_>>();
     // The only time the unwraps should fail is in the second test case, where there's a line with no digits
     // Treat those as 0 for simplicity.
     *found_numbers.first().unwrap_or(&&0) * 10 + *found_numbers.last().unwrap_or(&&0)
