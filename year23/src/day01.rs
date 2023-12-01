@@ -20,21 +20,17 @@ pub fn day01(input_lines: &[Vec<String>]) -> (String, String) {
     part2_vals.extend(written_words);
 
     (
-        format!(
-            "{}",
-            input_lines[0]
-                .iter()
-                .map(|line| convert_line_to_num(line, &part1_vals))
-                .sum::<u32>()
-        ),
-        format!(
-            "{}",
-            input_lines[0]
-                .iter()
-                .map(|line| convert_line_to_num(line, &part2_vals))
-                .sum::<u32>()
-        ),
+        solve_puzzle(input_lines, &part1_vals),
+        solve_puzzle(input_lines, &part2_vals),
     )
+}
+
+fn solve_puzzle(input_lines: &[Vec<String>], dict: &HashMap<String, u32>) -> String {
+    input_lines[0]
+        .iter()
+        .map(|line| convert_line_to_num(line, dict))
+        .sum::<u32>()
+        .to_string()
 }
 
 fn convert_line_to_num(line: &str, dict: &HashMap<String, u32>) -> u32 {
