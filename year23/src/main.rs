@@ -85,7 +85,7 @@ fn main() {
     }
 
     pub fn load_input(day: usize) -> Vec<Vec<String>> {
-        let whole_input = std::fs::read_to_string(format!("{}/{}", "inputs", day))
+        let whole_input = std::fs::read_to_string(format!("{}/{}.txt", "inputs", day))
             .expect("Can't open/read input file");
         utils::load_input(&whole_input)
     }
