@@ -1,3 +1,4 @@
+mod coord;
 mod day01;
 mod day02;
 mod day03;
@@ -23,6 +24,8 @@ mod day22;
 mod day23;
 mod day24;
 mod day25;
+mod directions;
+mod grid;
 mod utils;
 
 use std::env;
