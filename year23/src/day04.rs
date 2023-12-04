@@ -4,9 +4,12 @@
 use std::collections::HashSet;
 
 pub fn day04(input_lines: &[Vec<String>]) -> (String, String) {
+    let game_count = input_lines[0].len();
     let game_info = input_lines[0].iter().map(Card::from);
 
-    let answer1 = game_info.map(|game| game.score()).sum::<u32>();
+    let answer1 = game_info.map(|game| game.number_wins).sum::<u32>();
+
+    let mut card_count = vec![1; game_count];
 
     let answer2 = 0;
     (format!("{}", answer1), format!("{}", answer2))
@@ -14,8 +17,7 @@ pub fn day04(input_lines: &[Vec<String>]) -> (String, String) {
 
 struct Card {
     id: u32,
-    winning_numbers: HashSet<u32>,
-    elf_numbers: HashSet<u32>,
+    number_wins: u32
 }
 
 impl From<&String> for Card {
@@ -23,8 +25,6 @@ impl From<&String> for Card {
         let mut split_by_part = line.split(": ");
         let card_info = split_by_part.next().unwrap();
         let id = card_info
-            .strip_prefix("Card ")
-            .expect("Didn't start with 'card '")
             .split_ascii_whitespace()
             .into_iter()
             .last()
@@ -48,26 +48,15 @@ impl From<&String> for Card {
             .split_ascii_whitespace().into_iter()
             .map(|num| num.parse::<u32>().expect("Couldn't parse number"))
             .collect::<HashSet<u32>>();
-        Self {
-            id,
-            winning_numbers,
-            elf_numbers
-        }
-    }
-}
-
-impl Card {
-    fn score(&self) -> u32 {
-        // println!("Card {}", self.id);
-        // println!("our_numbers: {:?}", self.elf_numbers);
-        // println!("winning {:?}", self.winning_numbers);
-        // println!("intersection {:?}", self.elf_numbers.intersection(&self.winning_numbers));
-        let hits =self.elf_numbers.intersection(&self.winning_numbers).into_iter().count() as u32;
-        if hits > 0 {
-
+        let hits = elf_numbers.intersection(&winning_numbers).into_iter().count() as u32;
+        let number_wins = if hits > 0 {
             2_u32.pow( hits- 1)
         } else {
             0
+        };
+        Self {
+            id,
+            number_wins
         }
     }
 }
