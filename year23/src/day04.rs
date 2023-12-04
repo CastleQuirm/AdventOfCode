@@ -7,17 +7,31 @@ pub fn day04(input_lines: &[Vec<String>]) -> (String, String) {
     let game_count = input_lines[0].len();
     let game_info = input_lines[0].iter().map(Card::from);
 
-    let answer1 = game_info.map(|game| game.number_wins).sum::<u32>();
-
     let mut card_count = vec![1; game_count];
+    let answer1 = game_info
+        .enumerate()
+        .map(|(line_number, game)| {
+            // println!("{line_number}");
+            // println!("{}", game.number_wins);
+            assert_eq!((line_number + 1) as u32, game.id);
+            for i in 1..=game.number_wins as usize {
+                card_count[line_number + i] += card_count[line_number];
+            }
+            if game.number_wins > 0 {
+                2_u32.pow(game.number_wins - 1)
+            } else {
+                0
+            }
+        })
+        .sum::<u32>();
 
-    let answer2 = 0;
+    let answer2 = card_count.iter().sum::<u32>();
     (format!("{}", answer1), format!("{}", answer2))
 }
 
 struct Card {
     id: u32,
-    number_wins: u32
+    number_wins: u32,
 }
 
 impl From<&String> for Card {
@@ -26,7 +40,6 @@ impl From<&String> for Card {
         let card_info = split_by_part.next().unwrap();
         let id = card_info
             .split_ascii_whitespace()
-            .into_iter()
             .last()
             .unwrap()
             .parse::<u32>()
@@ -39,24 +52,19 @@ impl From<&String> for Card {
         let winning_numbers = numbers
             .next()
             .unwrap()
-            .split_ascii_whitespace().into_iter()
+            .split_ascii_whitespace()
             .map(|num| num.parse::<u32>().expect("Couldn't parse number"))
             .collect::<HashSet<u32>>();
         let elf_numbers = numbers
             .next()
             .expect("No second set of numbers!")
-            .split_ascii_whitespace().into_iter()
+            .split_ascii_whitespace()
             .map(|num| num.parse::<u32>().expect("Couldn't parse number"))
             .collect::<HashSet<u32>>();
-        let hits = elf_numbers.intersection(&winning_numbers).into_iter().count() as u32;
-        let number_wins = if hits > 0 {
-            2_u32.pow( hits- 1)
-        } else {
-            0
-        };
+        let hits = elf_numbers.intersection(&winning_numbers).count() as u32;
         Self {
             id,
-            number_wins
+            number_wins: hits,
         }
     }
 }
@@ -76,7 +84,7 @@ Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
 Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11", // INPUT STRING
             "13", // PART 1 RESULT
-            "0",  // PART 2 RESULT
+            "30", // PART 2 RESULT
         )
     }
 
