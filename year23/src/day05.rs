@@ -1,8 +1,9 @@
 // Potential improvements:
 //
 
+use itertools::Itertools;
 use regex::Regex;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, VecDeque};
 
 pub fn day05(input_lines: &[Vec<String>]) -> (String, String) {
     let conversion_tables = input_lines[1..]
@@ -38,27 +39,28 @@ pub fn day05(input_lines: &[Vec<String>]) -> (String, String) {
     let seed_pairs_regex = Regex::new(r"(\d+) (\d+)").unwrap();
     let seed_ranges = seed_pairs_regex
         .captures_iter(seed_line)
-        .map(|cap| {
-            let start_seed = cap[1].parse::<u64>().expect("Couldn't parse");
-            let range = cap[2].parse::<u64>().expect("Couldn't parse");
-            let mut seed_set = HashSet::new();
-            for i in 0..range {
-                seed_set.insert(start_seed + i);
-            }
-            seed_set
+        .map(|cap| Range {
+            start: cap[1].parse::<u64>().expect("Couldn't parse"),
+            length: cap[2].parse::<u64>().expect("Couldn't parse"),
         })
-        .reduce(|set, next| set.union(&next).cloned().collect::<HashSet<_>>())
-        .expect("no seed sets?");
+        .sorted()
+        .collect::<Vec<Range>>();
 
-    let answer2 = seed_ranges
-        .iter()
-        .map(|&seed| {
-            conversion_sequence
-                .iter()
-                .fold(seed, |val, table| table.apply(val))
-        })
-        .min()
-        .expect("No min?");
+    let mut assorted_ranges = seed_ranges;
+    for conversion_step in conversion_sequence {
+        assorted_ranges = conversion_step.apply_to_ranges(assorted_ranges);
+    }
+
+    let answer2 = assorted_ranges.first().expect("No resulting ranges?").start;
+    // let answer2 = seed_ranges
+    //     .iter()
+    //     .map(|&seed| {
+    //         conversion_sequence
+    //             .iter()
+    //             .fold(seed, |val, table| table.apply(val))
+    //     })
+    //     .min()
+    //     .expect("No min?");
     (format!("{}", answer1), format!("{}", answer2))
 }
 
@@ -70,7 +72,11 @@ struct ConversionCode {
 impl ConversionCode {
     fn new(block: &[String]) -> (String, Self) {
         let (from_type, to_type) = block[0].split_once("-to-").expect("Title line was wrong");
-        let maps = block[1..].iter().map(Map::from).collect::<Vec<Map>>();
+        let maps = block[1..]
+            .iter()
+            .map(Map::from)
+            .sorted_by(|map1, map2| map1.range.start.cmp(&map2.range.start))
+            .collect::<Vec<Map>>();
 
         (
             from_type.to_string(),
@@ -87,15 +93,61 @@ impl ConversionCode {
     fn apply(&self, value: u64) -> u64 {
         self.maps
             .iter()
-            .find_map(|map| map.apply(value))
+            .find_map(|map| map.apply_to_value(value))
             .unwrap_or(value)
+    }
+
+    fn apply_to_ranges(&self, ranges: Vec<Range>) -> Vec<Range> {
+        let mut ordered_ranges = ranges.clone();
+        ordered_ranges.sort();
+        assert_eq!(ranges, ordered_ranges);
+        for range_pair in ordered_ranges.windows(2) {
+            assert_eq!(range_pair.len(), 2);
+            assert!(range_pair[0].end_inc() < range_pair[1].start);
+        }
+        let mut ordered_ranges = ordered_ranges.into_iter().collect::<VecDeque<_>>();
+
+        let mut result_ranges = Vec::new();
+        let mut map_iter = self.maps.iter();
+        let mut active_map = map_iter.next().expect("No map?");
+
+        // The maps are sorted on creation so we can go through one at a time and apply them to the front of
+        // our dynamic ordered ranges.
+        while let Some(affected_range) = ordered_ranges.pop_front() {
+            let (mapped, unmapped_below, unmapped_above) =
+                active_map.apply_to_range(&affected_range);
+            if let Some(mapped) = mapped {
+                result_ranges.push(mapped);
+            }
+            if let Some(unmapped_below) = unmapped_below {
+                result_ranges.push(unmapped_below);
+            }
+            if let Some(unmapped_above) = unmapped_above {
+                ordered_ranges.push_front(unmapped_above);
+                match map_iter.next() {
+                    Some(map) => {
+                        active_map = map;
+                    }
+                    None => {
+                        break;
+                    }
+                }
+            }
+        }
+
+        for range in ordered_ranges {
+            result_ranges.push(range);
+        }
+
+        result_ranges.sort();
+        result_ranges
     }
 }
 
+#[derive(Debug)]
 struct Map {
     dest_base: u64,
-    source_base: u64,
-    range: u64,
+    range: Range,
 }
 
 impl From<&String> for Map {
@@ -107,28 +159,114 @@ impl From<&String> for Map {
         assert_eq!(values.len(), 3);
         Self {
             dest_base: values[0],
-            source_base: values[1],
-            range: values[2],
+            range: Range {
+                start: values[1],
+                length: values[2],
+            },
         }
     }
 }
 
 impl Map {
-    fn apply(&self, value: u64) -> Option<u64> {
-        if value >= self.source_base && value < self.source_base + self.range {
-            Some(self.dest_base + value - self.source_base)
+    fn apply_to_value(&self, value: u64) -> Option<u64> {
+        if value >= self.range.start && value < self.range.start + self.range.length {
+            Some(self.dest_base + value - self.range.start)
         } else {
             None
         }
     }
 
-    // fn apply_range(&self, range)
+    /// Returns a trio of possible Ranges: the set of mapped numbers,
+    /// the set of unchanged numbers below (which can now be ignored)
+    /// and the set of unchanged numbers above (which still need to be checked).
+    fn apply_to_range(
+        &self,
+        affected_range: &Range,
+    ) -> (Option<Range>, Option<Range>, Option<Range>) {
+        // Get range that is mapped and range that isn't - possibly.
+        if affected_range.start >= self.range.start {
+            // Affected range starts at or above the map
+            if affected_range.start > self.range.end_inc() {
+                // Affected range is entirely above map range
+                (None, None, Some(*affected_range))
+            } else {
+                // Affected range starts in the map
+                if affected_range.end_inc() <= self.range.end_inc() {
+                    // Affected range is wholly within the map
+                    (
+                        Some(Range {
+                            start: affected_range.start + self.dest_base - self.range.start,
+                            length: affected_range.length,
+                        }),
+                        None,
+                        None,
+                    )
+                } else {
+                    // Affected range extends past the map
+                    (
+                        Some(Range {
+                            start: affected_range.start + self.dest_base - self.range.start,
+                            length: self.range.end_inc() + 1 - affected_range.start,
+                        }),
+                        None,
+                        Some(Range {
+                            start: self.range.end_inc() + 1,
+                            length: affected_range.length
+                                - (self.range.end_inc() + 1 - affected_range.start),
+                        }),
+                    )
+                }
+            }
+        } else {
+            // Affected range starts below the map
+            if affected_range.end_inc() < self.range.start {
+                // Affected range is entirely below the map range
+                (None, Some(*affected_range), None)
+            } else if affected_range.end_inc() <= self.range.end_inc() {
+                // Affected range starts below the map, but ends within it
+                (
+                    Some(Range {
+                        start: self.dest_base,
+                        length: affected_range.end_inc() - self.range.start + 1,
+                    }),
+                    Some(Range {
+                        start: affected_range.start,
+                        length: self.range.start - affected_range.start,
+                    }),
+                    None,
+                )
+            } else {
+                // Affected range starts below and ends above
+                (
+                    Some(Range {
+                        start: self.dest_base,
+                        length: self.range.length,
+                    }),
+                    Some(Range {
+                        start: affected_range.start,
+                        length: self.range.start - affected_range.start,
+                    }),
+                    Some(Range {
+                        start: self.range.end_inc() + 1,
+                        length: affected_range.end_inc() - self.range.end_inc(),
+                    }),
+                )
+            }
+        }
+    }
 }
 
-// struct Range {
-//     start: u64,
-//     length: u64
-// }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
+struct Range {
+    start: u64,
+    length: u64,
+}
+
+impl Range {
+    fn end_inc(&self) -> u64 {
+        self.start + self.length - 1
+    }
+}
 
 #[cfg(test)]
 mod tests {
