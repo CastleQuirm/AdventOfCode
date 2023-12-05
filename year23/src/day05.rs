@@ -4,12 +4,37 @@
 use std::collections::HashMap;
 
 pub fn day05(input_lines: &[Vec<String>]) -> (String, String) {
-    let seeds = input_lines[0][0].strip_prefix("seeds: ").expect("Bad start").split_whitespace().map(|seed| seed.parse::<u32>().expect("Didn't parse a seed"));
+    let seeds = input_lines[0][0]
+        .strip_prefix("seeds: ")
+        .expect("Bad start")
+        .split_whitespace()
+        .map(|seed| seed.parse::<u64>().expect("Didn't parse a seed"));
 
-    let conversion_tables = input_lines[1..].iter().map(|block| ConversionCode::new(&block)).collect::<HashMap<String, ConversionCode>>();
+    let conversion_tables = input_lines[1..]
+        .iter()
+        .map(|block| ConversionCode::new(block))
+        .collect::<HashMap<String, ConversionCode>>();
 
-    // let answer1 = seeds.map(|seed| conversion_tables.apply());
-    let answer1 = 0;
+    let mut conversion_sequence = Vec::new();
+    let mut next_type = "seed";
+
+    while next_type != "location" {
+        let next_table = conversion_tables
+            .get(next_type)
+            .expect("Couldn't find next mapper");
+        conversion_sequence.push(next_table.clone());
+        next_type = &next_table.to_type;
+    }
+
+    let answer1 = seeds
+        .map(|seed| {
+            conversion_sequence
+                .iter()
+                .fold(seed, |val, table| table.apply(val))
+        })
+        .min()
+        .expect("No min?");
+
     let answer2 = 0;
     (format!("{}", answer1), format!("{}", answer2))
 }
@@ -25,33 +50,48 @@ impl ConversionCode {
         let maps = block[1..].iter().map(Map::from).collect::<Vec<Map>>();
 
         (
-            from_type.to_string(), 
+            from_type.to_string(),
             Self {
-                to_type: to_type.strip_suffix(" map:").expect("Title didn't end as expected").to_string(),
+                to_type: to_type
+                    .strip_suffix(" map:")
+                    .expect("Title didn't end as expected")
+                    .to_string(),
                 maps,
-            }
+            },
         )
     }
 
-    fn apply(&self, value: u32) -> u32 {
-        self.maps.iter().find_map(|map| map.apply(value)).unwrap_or(value)
+    fn apply(&self, value: u64) -> u64 {
+        self.maps
+            .iter()
+            .find_map(|map| map.apply(value))
+            .unwrap_or(value)
     }
 }
 
 struct Map {
-    dest_base: u32,
-    source_base: u32,
-    range: u32
+    dest_base: u64,
+    source_base: u64,
+    range: u64,
 }
 
 impl From<&String> for Map {
     fn from(value: &String) -> Self {
-        todo!()
+        let values = value
+            .split_whitespace()
+            .map(|val| val.parse::<u64>().expect("Couldn't parse"))
+            .collect::<Vec<_>>();
+        assert_eq!(values.len(), 3);
+        Self {
+            dest_base: values[0],
+            source_base: values[1],
+            range: values[2],
+        }
     }
 }
 
 impl Map {
-    fn apply(&self, value: u32) -> Option<u32> {
+    fn apply(&self, value: u64) -> Option<u64> {
         if value >= self.source_base && value < self.source_base + self.range {
             Some(self.dest_base + value - self.source_base)
         } else {
@@ -100,9 +140,9 @@ temperature-to-humidity map:
 
 humidity-to-location map:
 60 56 37
-56 93 4",  // INPUT STRING
+56 93 4", // INPUT STRING
             "35", // PART 1 RESULT
-            "0", // PART 2 RESULT
+            "0",  // PART 2 RESULT
         )
     }
 
