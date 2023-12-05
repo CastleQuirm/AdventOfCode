@@ -1,15 +1,10 @@
 // Potential improvements:
 //
 
-use std::collections::HashMap;
+use regex::Regex;
+use std::collections::{HashMap, HashSet};
 
 pub fn day05(input_lines: &[Vec<String>]) -> (String, String) {
-    let seeds = input_lines[0][0]
-        .strip_prefix("seeds: ")
-        .expect("Bad start")
-        .split_whitespace()
-        .map(|seed| seed.parse::<u64>().expect("Didn't parse a seed"));
-
     let conversion_tables = input_lines[1..]
         .iter()
         .map(|block| ConversionCode::new(block))
@@ -26,16 +21,44 @@ pub fn day05(input_lines: &[Vec<String>]) -> (String, String) {
         next_type = &next_table.to_type;
     }
 
-    let answer1 = seeds
+    let seed_line = input_lines[0][0]
+        .strip_prefix("seeds: ")
+        .expect("Bad start");
+    let answer1 = seed_line
+        .split_whitespace()
         .map(|seed| {
+            conversion_sequence.iter().fold(
+                seed.parse::<u64>().expect("Didn't parse a seed"),
+                |val, table| table.apply(val),
+            )
+        })
+        .min()
+        .expect("No min?");
+
+    let seed_pairs_regex = Regex::new(r"(\d+) (\d+)").unwrap();
+    let seed_ranges = seed_pairs_regex
+        .captures_iter(seed_line)
+        .map(|cap| {
+            let start_seed = cap[1].parse::<u64>().expect("Couldn't parse");
+            let range = cap[2].parse::<u64>().expect("Couldn't parse");
+            let mut seed_set = HashSet::new();
+            for i in 0..range {
+                seed_set.insert(start_seed + i);
+            }
+            seed_set
+        })
+        .reduce(|set, next| set.union(&next).cloned().collect::<HashSet<_>>())
+        .expect("no seed sets?");
+
+    let answer2 = seed_ranges
+        .iter()
+        .map(|&seed| {
             conversion_sequence
                 .iter()
                 .fold(seed, |val, table| table.apply(val))
         })
         .min()
         .expect("No min?");
-
-    let answer2 = 0;
     (format!("{}", answer1), format!("{}", answer2))
 }
 
@@ -98,7 +121,14 @@ impl Map {
             None
         }
     }
+
+    // fn apply_range(&self, range)
 }
+
+// struct Range {
+//     start: u64,
+//     length: u64
+// }
 
 #[cfg(test)]
 mod tests {
@@ -142,7 +172,7 @@ humidity-to-location map:
 60 56 37
 56 93 4", // INPUT STRING
             "35", // PART 1 RESULT
-            "0",  // PART 2 RESULT
+            "46", // PART 2 RESULT
         )
     }
 
