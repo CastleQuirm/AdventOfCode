@@ -18,7 +18,7 @@ pub fn day05(input_lines: &[Vec<String>]) -> (String, String) {
         let next_table = conversion_tables
             .get(next_type)
             .expect("Couldn't find next mapper");
-        conversion_sequence.push(next_table.clone());
+        conversion_sequence.push(<ConversionCode>::clone(next_table));
         next_type = &next_table.to_type;
     }
 
@@ -64,6 +64,7 @@ pub fn day05(input_lines: &[Vec<String>]) -> (String, String) {
     (format!("{}", answer1), format!("{}", answer2))
 }
 
+#[derive(Clone)]
 struct ConversionCode {
     to_type: String,
     maps: Vec<Map>,
@@ -144,7 +145,7 @@ impl ConversionCode {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Map {
     dest_base: u64,
     range: Range,
