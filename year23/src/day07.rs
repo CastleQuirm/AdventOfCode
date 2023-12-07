@@ -26,7 +26,7 @@ fn calculate_answers(input_lines: &[Vec<String>], with_jokers: bool) -> usize {
 /// (For even cleaner code, that wouldn't even be part of the struct!)
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 struct Hand {
-    rank: Rank,
+    rank: Vec<i32>,
     cards: Vec<u32>,
     bid: usize,
 }
@@ -52,7 +52,7 @@ impl Hand {
                 _ => c.to_digit(10).expect("not a digit"),
             })
             .collect::<Vec<u32>>();
-        let rank = Rank::determine(&cards);
+        let rank = rank(&cards);
         Self {
             rank,
             bid: bid.parse::<usize>().expect("Couldn't parse bid"),
@@ -61,62 +61,37 @@ impl Hand {
     }
 }
 
-/// HandRanks listed as an enum. If we write the values in ascending order,
-/// the derived PartialOrd gives us a ranking immediately.
-#[derive(Eq, PartialEq, PartialOrd, Ord, Debug)]
-enum Rank {
-    HighCard,
-    Pair,
-    TwoPair,
-    ThreeOfAKind,
-    FullHouse,
-    FourOfAKind,
-    FiveOfAKind,
-}
-
-impl Rank {
-    fn determine(cards: &[u32]) -> Self {
-        let mut card_count = HashMap::new();
-        for card in cards {
-            card_count
-                .entry(card)
-                .and_modify(|count| *count += 1)
-                .or_insert(1);
-        }
-        assert_eq!(card_count.values().sum::<i32>(), 5);
-
-        // Get the number of jokers and remove its entry from the list.
-        let joker_count = card_count.remove(&1).unwrap_or(0);
-
-        // Collect the hand rank by ordering how many of different values we have; we no longer care what
-        // the values are. Use `.rev()` to put the largest values at the start.
-        let mut hand_collection = card_count
-            .values()
-            .sorted()
-            .rev()
-            .cloned()
-            .collect::<Vec<i32>>();
-
-        if hand_collection.is_empty() {
-            // Special case for five jokers
-            hand_collection = Vec::from([5]);
-        } else {
-            // Add any jokers to our single largest set, which is the first one.
-            hand_collection[0] += joker_count;
-        }
-
-        // Get the hand rank
-        match hand_collection[0] {
-            5 => Self::FiveOfAKind,
-            4 => Self::FourOfAKind,
-            3 if hand_collection[1] == 2 => Self::FullHouse,
-            3 => Self::ThreeOfAKind,
-            2 if hand_collection[1] == 2 => Self::TwoPair,
-            2 => Self::Pair,
-            1 => Self::HighCard,
-            _ => unreachable!(),
-        }
+fn rank(cards: &[u32]) -> Vec<i32> {
+    let mut card_count = HashMap::new();
+    for card in cards {
+        card_count
+            .entry(card)
+            .and_modify(|count| *count += 1)
+            .or_insert(1);
     }
+    assert_eq!(card_count.values().sum::<i32>(), 5);
+
+    // Get the number of jokers and remove its entry from the list.
+    let joker_count = card_count.remove(&1).unwrap_or(0);
+
+    // Collect the hand rank by ordering how many of different values we have; we no longer care what
+    // the values are. Use `.rev()` to put the largest values at the start.
+    let mut hand_collection = card_count
+        .values()
+        .sorted()
+        .rev()
+        .cloned()
+        .collect::<Vec<i32>>();
+
+    if hand_collection.is_empty() {
+        // Special case for five jokers
+        hand_collection = Vec::from([5]);
+    } else {
+        // Add any jokers to our single largest set, which is the first one.
+        hand_collection[0] += joker_count;
+    }
+
+    hand_collection
 }
 
 #[cfg(test)]
