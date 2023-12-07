@@ -131,7 +131,10 @@ impl HandRank {
         } else {
             panic!()
         }
-        // match foo {
+        
+        // Using the more compact match statement fails: the compiler complains that the 'five_of_a_kind' etc
+        // variables are unused, and then matches everything on the first line for reasons I don't understand.
+        // match hand_collection {
         //     five_of_a_kind => HandRank::FiveOfAKind,
         //     four_of_a_kind => HandRank::FourOfAKind,
         //     full_house => HandRank::FullHouse,
