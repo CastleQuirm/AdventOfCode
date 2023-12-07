@@ -6,22 +6,19 @@ use std::collections::HashMap;
 use itertools::Itertools;
 
 pub fn day07(input_lines: &[Vec<String>]) -> (String, String) {
-    let answer1 = input_lines[0]
-        .iter()
-        .map(|line| Hand::from(line, false))
-        .sorted()
-        .enumerate()
-        .map(|(pos, hand)| (pos + 1) * hand.bid)
-        .sum::<usize>();
-
-    let answer2 = input_lines[0]
-        .iter()
-        .map(|line| Hand::from(line, true))
-        .sorted()
-        .enumerate()
-        .map(|(pos, hand)| (pos + 1) * hand.bid)
-        .sum::<usize>();
+    let answer1 = calculate_answers(input_lines, false);
+    let answer2 = calculate_answers(input_lines, true);
     (format!("{}", answer1), format!("{}", answer2))
+}
+
+fn calculate_answers(input_lines: &[Vec<String>], with_jokers: bool) -> usize {
+    input_lines[0]
+        .iter()
+        .map(|line| Hand::from(line, with_jokers))
+        .sorted()
+        .enumerate()
+        .map(|(pos, hand)| (pos + 1) * hand.bid)
+        .sum::<usize>()
 }
 
 /// Hand, with fields ordered to ensure the derived Ord and PartialOrd compare the rank first.
@@ -79,15 +76,6 @@ enum HandRank {
 
 impl HandRank {
     fn rank(cards: &[u32]) -> Self {
-        // IMPROVEMENT: make these into statics or OneCell'd or similar
-        let five_of_a_kind = Vec::from([5]);
-        let four_of_a_kind = Vec::from([1, 4]);
-        let full_house = Vec::from([2, 3]);
-        let three_of_a_kind = Vec::from([1, 1, 3]);
-        let two_pair = Vec::from([1, 2, 2]);
-        let pair = Vec::from([1, 1, 1, 2]);
-        let high_card = Vec::from([1, 1, 1, 1, 1]);
-
         let mut card_count = HashMap::new();
         for card in cards {
             card_count
@@ -101,49 +89,33 @@ impl HandRank {
         let joker_count = card_count.remove(&1).unwrap_or(0);
 
         // Collect the hand rank by ordering how many of different values we have; we no longer care what
-        // the values are.
-        let mut hand_collection = card_count.values().sorted().cloned().collect::<Vec<i32>>();
+        // the values are. Use `.rev()` to put the largest values at the start.
+        let mut hand_collection = card_count
+            .values()
+            .sorted()
+            .rev()
+            .cloned()
+            .collect::<Vec<i32>>();
 
         if hand_collection.is_empty() {
             // Special case for five jokers
-            hand_collection = five_of_a_kind.clone();
+            hand_collection = Vec::from([5]);
         } else {
-            // Add any jokers to our single largest set, which is always the last one.
-            let last_index = hand_collection.len() - 1;
-            hand_collection[last_index] += joker_count;
+            // Add any jokers to our single largest set, which is the first one.
+            hand_collection[0] += joker_count;
         }
 
         // Get the hand rank
-        if hand_collection == five_of_a_kind {
-            HandRank::FiveOfAKind
-        } else if hand_collection == four_of_a_kind {
-            HandRank::FourOfAKind
-        } else if hand_collection == full_house {
-            HandRank::FullHouse
-        } else if hand_collection == three_of_a_kind {
-            HandRank::ThreeOfAKind
-        } else if hand_collection == two_pair {
-            HandRank::TwoPair
-        } else if hand_collection == pair {
-            HandRank::Pair
-        } else if hand_collection == high_card {
-            HandRank::HighCard
-        } else {
-            panic!()
+        match hand_collection[0] {
+            5 => HandRank::FiveOfAKind,
+            4 => HandRank::FourOfAKind,
+            3 if hand_collection[1] == 2 => HandRank::FullHouse,
+            3 => HandRank::ThreeOfAKind,
+            2 if hand_collection[1] == 2 => HandRank::TwoPair,
+            2 => HandRank::Pair,
+            1 => HandRank::HighCard,
+            _ => unreachable!(),
         }
-        
-        // Using the more compact match statement fails: the compiler complains that the 'five_of_a_kind' etc
-        // variables are unused, and then matches everything on the first line for reasons I don't understand.
-        // match hand_collection {
-        //     five_of_a_kind => HandRank::FiveOfAKind,
-        //     four_of_a_kind => HandRank::FourOfAKind,
-        //     full_house => HandRank::FullHouse,
-        //     three_of_a_kind=> HandRank::ThreeOfAKind,
-        //     two_pair => HandRank::TwoPair,
-        //     pair => HandRank::Pair,
-        //     high_card => HandRank::HighCard,
-        //     _ => panic!()
-        // }
     }
 }
 
