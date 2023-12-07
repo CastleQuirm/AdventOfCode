@@ -23,10 +23,10 @@ fn calculate_answers(input_lines: &[Vec<String>], with_jokers: bool) -> usize {
 
 /// Hand, with fields ordered to ensure the derived Ord and PartialOrd compare the rank first.
 /// The bid shouldn't technically distinguish hands but we don't expect to ever have an equal hand before that.
-/// (For even cleaner code, that wouldn't even be part of the)
+/// (For even cleaner code, that wouldn't even be part of the struct!)
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 struct Hand {
-    rank: HandRank,
+    rank: Rank,
     cards: Vec<u32>,
     bid: usize,
 }
@@ -52,11 +52,11 @@ impl Hand {
                 _ => c.to_digit(10).expect("not a digit"),
             })
             .collect::<Vec<u32>>();
-        let rank = HandRank::rank(&cards);
+        let rank = Rank::determine(&cards);
         Self {
-            cards,
-            bid: bid.parse::<usize>().expect("Couldn't parse bid"),
             rank,
+            bid: bid.parse::<usize>().expect("Couldn't parse bid"),
+            cards,
         }
     }
 }
@@ -64,7 +64,7 @@ impl Hand {
 /// HandRanks listed as an enum. If we write the values in ascending order,
 /// the derived PartialOrd gives us a ranking immediately.
 #[derive(Eq, PartialEq, PartialOrd, Ord, Debug)]
-enum HandRank {
+enum Rank {
     HighCard,
     Pair,
     TwoPair,
@@ -74,8 +74,8 @@ enum HandRank {
     FiveOfAKind,
 }
 
-impl HandRank {
-    fn rank(cards: &[u32]) -> Self {
+impl Rank {
+    fn determine(cards: &[u32]) -> Self {
         let mut card_count = HashMap::new();
         for card in cards {
             card_count
@@ -107,13 +107,13 @@ impl HandRank {
 
         // Get the hand rank
         match hand_collection[0] {
-            5 => HandRank::FiveOfAKind,
-            4 => HandRank::FourOfAKind,
-            3 if hand_collection[1] == 2 => HandRank::FullHouse,
-            3 => HandRank::ThreeOfAKind,
-            2 if hand_collection[1] == 2 => HandRank::TwoPair,
-            2 => HandRank::Pair,
-            1 => HandRank::HighCard,
+            5 => Self::FiveOfAKind,
+            4 => Self::FourOfAKind,
+            3 if hand_collection[1] == 2 => Self::FullHouse,
+            3 => Self::ThreeOfAKind,
+            2 if hand_collection[1] == 2 => Self::TwoPair,
+            2 => Self::Pair,
+            1 => Self::HighCard,
             _ => unreachable!(),
         }
     }
