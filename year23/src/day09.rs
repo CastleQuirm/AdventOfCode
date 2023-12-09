@@ -13,11 +13,13 @@ pub fn day09(input_lines: &[Vec<String>]) -> (String, String) {
 }
 
 fn extrapolated_numbers(line: &str) -> (i64, i64) {
-    // Would like sequences to be VecDeques as well but then I can't use .windows() on them
+    // Collect the numbers from the line as a Vec
     let sequence = line
         .split_ascii_whitespace()
         .map(|num| num.parse::<i64>().expect("Couldn't parse a number!"))
         .collect::<Vec<i64>>();
+
+    // Calculate the series of derivatives until we have a constant (determined by actually reaching the all-zero line)
     let mut derivatives = Vec::from([sequence]);
     while !derivatives.last().unwrap().iter().all(|&val| val == 0) {
         // Generate another derivative
