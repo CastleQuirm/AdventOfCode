@@ -37,7 +37,7 @@ impl FromStr for Direction {
 //     }
 // }
 
-#[derive(Eq, PartialEq, Debug, Copy, Clone)]
+#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
 pub enum CompassDirection {
     North,
     East,
