@@ -1,7 +1,7 @@
 // use once_cell::sync::OnceCell;
 // use std::collections::HashSet;
 
-// use crate::directions::Direction;
+use crate::directions::CompassDirection;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Coord2 {
@@ -40,6 +40,29 @@ impl Coord2 {
     //         y: self.y + other.y,
     //     }
     // }
+
+    /// Get the coordinates of the next cell in a given cardinal direction, to be used with a grid
+    /// N and W reduce indices, S and E increase.
+    pub fn compass_sum(&self, direction: &CompassDirection) -> Self {
+        match direction {
+            CompassDirection::North => Self {
+                x: self.x,
+                y: self.y - 1,
+            },
+            CompassDirection::East => Self {
+                x: self.x + 1,
+                y: self.y,
+            },
+            CompassDirection::South => Self {
+                x: self.x,
+                y: self.y + 1,
+            },
+            CompassDirection::West => Self {
+                x: self.x - 1,
+                y: self.y,
+            },
+        }
+    }
 
     // pub fn moved(&mut self, other: &Self) {
     //     self.x += other.x;

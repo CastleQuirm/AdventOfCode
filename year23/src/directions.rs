@@ -37,11 +37,23 @@ impl FromStr for Direction {
 //     }
 // }
 
-// pub enum CompassDirection {
-//     North,
-//     East,
-//     South,
-//     West
+#[derive(Eq, PartialEq, Debug, Copy, Clone)]
+pub enum CompassDirection {
+    North,
+    East,
+    South,
+    West,
+}
+
+// impl CompassDirection {
+//     pub fn opposite(&self) -> Self {
+//         match self {
+//             CompassDirection::North => CompassDirection::South,
+//             CompassDirection::East => CompassDirection::West,
+//             CompassDirection::South => CompassDirection::North,
+//             CompassDirection::West => CompassDirection::East,
+//         }
+//     }
 // }
 
 pub enum Rotation {

@@ -102,7 +102,7 @@ fn check_and_record_gear(
     current_num: u32,
     surrounding_characters: &mut HashSet<char>,
 ) {
-    let adj_char = input_grid.get(check_coord);
+    let adj_char = input_grid.get(&check_coord);
     if adj_char == '*' {
         gear_map
             .entry(check_coord)
