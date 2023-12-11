@@ -16,7 +16,7 @@ pub fn day11(input_lines: &[Vec<String>]) -> (String, String) {
     let empty_cols = (0i64..input_lines[0][0].len() as i64).filter(|col_ix| !cols_with_g.contains(col_ix)).collect::<Vec<i64>>();
     // println!("Empty rows: {:?}", empty_rows);
     // println!("Empty cols: {:?}", empty_cols);
-    let answer1 = galaxies.iter().combinations(2).map(|pair| {
+    let (unexpanded_dist, expansions) : (Vec<i64>, Vec<i64>)= galaxies.iter().combinations(2).map(|pair| {
         assert_eq!(pair.len(), 2);
         let (galaxy1, galaxy2) = (*pair[0], *pair[1]);
         let basic_dist = galaxy1.manhattan_dist(&galaxy2);
@@ -28,9 +28,12 @@ pub fn day11(input_lines: &[Vec<String>]) -> (String, String) {
         }).count();
         let added_cols = (min_x..=max_x).filter(|x| empty_cols.contains(x)).count();
         // println!("{:?} to {:?} has basic {basic_dist} plus {added_rows} rows and {added_cols} cols", galaxy1, galaxy2);
-        basic_dist + added_cols as i64 + added_rows as i64
-    }).sum::<i64>();
-    let answer2 = 0;
+        (basic_dist, (added_cols as i64 + added_rows as i64))
+    }).unzip();
+    let unexpanded_total = unexpanded_dist.iter().sum::<i64>();
+    let expansion_total = expansions.iter().sum::<i64>();
+    let answer1 = unexpanded_total + expansion_total;
+    let answer2 = unexpanded_total + 999999 * expansion_total;
     (format!("{}", answer1), format!("{}", answer2))
 }
 
@@ -53,7 +56,7 @@ mod tests {
 .......#..
 #...#.....",  // INPUT STRING
             "374", // PART 1 RESULT
-            "0", // PART 2 RESULT
+            "82000210", // PART 2 RESULT
         )
     }
 
