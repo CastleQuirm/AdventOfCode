@@ -23,9 +23,9 @@ impl Coord2 {
     //     }
     // }
 
-    // pub fn manhattan_dist(&self, other: &Self) -> i64 {
-    //     (self.x - other.x).abs() + (self.y - other.y).abs()
-    // }
+    pub fn manhattan_dist(&self, other: &Self) -> i64 {
+        (self.x - other.x).abs() + (self.y - other.y).abs()
+    }
 
     // pub fn plus(&self, x: i64, y: i64) -> Self {
     //     Self {
