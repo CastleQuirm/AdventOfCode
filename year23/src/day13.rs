@@ -8,7 +8,6 @@ pub fn day13(input_lines: &[Vec<String>]) -> (String, String) {
         .iter()
         .map(|map| find_reflection_value(map, &find_mirror_line))
         .sum::<usize>();
-    // let answer2 = 0;
     let answer2 = input_lines
         .iter()
         .map(|map| find_reflection_value(map, &find_near_mirror_line))
@@ -16,7 +15,10 @@ pub fn day13(input_lines: &[Vec<String>]) -> (String, String) {
     (format!("{}", answer1), format!("{}", answer2))
 }
 
-fn find_reflection_value(map: &[String], comparison_function: &dyn Fn(&[String]) -> Option<usize>) -> usize {
+fn find_reflection_value(
+    map: &[String],
+    comparison_function: &dyn Fn(&[String]) -> Option<usize>,
+) -> usize {
     // While we've got ready-formed rows, search for a horizontal line of reflection.
     if let Some(row_result) = comparison_function(map) {
         return row_result * 100;
