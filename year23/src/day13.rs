@@ -1,10 +1,41 @@
 // Potential improvements:
 //
 
-pub fn day13(_input_lines: &[Vec<String>]) -> (String, String) {
-    let answer1 = 0;
+use std::collections::VecDeque;
+
+pub fn day13(input_lines: &[Vec<String>]) -> (String, String) {
+    let answer1 = input_lines.iter().map(|map| find_reflection_value(map)).sum::<usize>();
     let answer2 = 0;
     (format!("{}", answer1), format!("{}", answer2))
+}
+
+fn find_reflection_value(map: &[String]) -> usize {
+    // While we've got ready-formed rows, search for a horizontal line of reflection.
+    if let Some(row_result) = find_mirror_line(map) {
+        return row_result * 100
+    }
+
+    // Convert the rows into columns
+    let mut columns = Vec::new();
+    for i in 0..map[0].len() {
+        columns.push(map.iter().map(|row| row.chars().nth(i).unwrap()).collect::<String>());
+    }
+
+    // Return the mirror result, which we must find.
+    find_mirror_line(&columns).expect("Didn't find a mirror line in rows or columns")
+}
+
+fn find_mirror_line(lines: &[String]) -> Option<usize> {
+    let mut rows_to_go = lines.iter().cloned().collect::<VecDeque<String>>();
+    let mut rows_passed = VecDeque::from([rows_to_go.pop_front().unwrap()]);
+    while !rows_to_go.is_empty() {
+        let row_count = rows_to_go.len().min(rows_passed.len());
+        if (0..row_count).all(|i| rows_to_go[i] == rows_passed[i]) {
+            return Some(rows_passed.len())
+        }
+        rows_passed.push_front(rows_to_go.pop_front().unwrap())
+    }
+    None
 }
 
 #[cfg(test)]
@@ -15,8 +46,22 @@ mod tests {
     #[test]
     fn check_day13_case01() {
         full_test(
-            "",  // INPUT STRING
-            "0", // PART 1 RESULT
+            "#.##..##.
+..#.##.#.
+##......#
+##......#
+..#.##.#.
+..##..##.
+#.#.##.#.
+
+#...##..#
+#....#..#
+..##..###
+#####.##.
+#####.##.
+..##..###
+#....#..#",  // INPUT STRING
+            "405", // PART 1 RESULT
             "0", // PART 2 RESULT
         )
     }
