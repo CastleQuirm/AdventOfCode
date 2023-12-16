@@ -7,10 +7,7 @@ use itertools::Itertools;
 use regex::Regex;
 
 pub fn day15(input_lines: &[Vec<String>]) -> (String, String) {
-    let answer1 = input_lines[0][0]
-        .split(',')
-        .map(|step| hash(step))
-        .sum::<u64>();
+    let answer1 = input_lines[0][0].split(',').map(hash).sum::<u64>();
 
     let step_sections_regex = Regex::new(r"([a-z]+)([=-])(\d?)").unwrap();
     let instructions = step_sections_regex
