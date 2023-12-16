@@ -28,32 +28,50 @@ pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
 
     // Maintain a list of beams we have to progress.
     let mut pending_beams = vec![(top_left, East)];
+    // let mut steps_run = 0;
 
     // Progress the beams
     while let Some((beam_loc, beam_dir)) = pending_beams.pop() {
+        // steps_run += 1;
+        // if steps_run > 100 { break; }
+        // println!("{steps_run}: Process beam from {:?}, going direction {:?}", beam_loc, beam_dir);
+        let mut add_next = |beam_dir| {
+            add_next_space(
+                &mut activated_spaces,
+                beam_loc.compass_sum(&beam_dir),
+                beam_dir,
+                &mut pending_beams,
+            );
+        };
         let cell_type = maze.get(&beam_loc);
-        match cell_type {
-            MirrorType::Space => {
+        match (cell_type, beam_dir) {
+            (MirrorType::Space, _)
+            | (MirrorType::Horizontal, East)
+            | (MirrorType::Horizontal, West)
+            | (MirrorType::Vertical, North)
+            | (MirrorType::Vertical, South) => {
                 // continue forwards
-                // TODO commonise some of this for the following branches!
-                let next_space = beam_loc.compass_sum(&beam_dir);
-                let next_space_current_dirs = activated_spaces.get(&next_space);
-                assert!(!next_space_current_dirs.directions.contains(&beam_dir));
-                let mut collated_dirs = next_space_current_dirs.directions.clone();
-                collated_dirs.insert(beam_dir);
-                activated_spaces.set_cell(
-                    &next_space,
-                    &LightDirections {
-                        directions: collated_dirs,
-                    },
-                );
-                pending_beams.push((next_space, beam_dir));
+                add_next(beam_dir)
             }
-            MirrorType::Edge => (), // Drop
-            MirrorType::Horizontal => todo!(),
-            MirrorType::Vertical => todo!(),
-            MirrorType::Backward => todo!(),
-            MirrorType::Forward => todo!(),
+            (MirrorType::Edge, _) => (), // Drop
+            (MirrorType::Horizontal, _) => {
+                assert!(beam_dir == North || beam_dir == South);
+                add_next(West);
+                add_next(East);
+            }
+            (MirrorType::Vertical, _) => {
+                assert!(beam_dir == East || beam_dir == West);
+                add_next(North);
+                add_next(South);
+            }
+            (MirrorType::Forward, North) => add_next(East),
+            (MirrorType::Forward, East) => add_next(North),
+            (MirrorType::Forward, South) => add_next(West),
+            (MirrorType::Forward, West) => add_next(South),
+            (MirrorType::Backward, North) => add_next(West),
+            (MirrorType::Backward, East) => add_next(South),
+            (MirrorType::Backward, South) => add_next(East),
+            (MirrorType::Backward, West) => add_next(North),
         }
     }
 
@@ -66,6 +84,26 @@ pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
 
     let answer2 = 0;
     (format!("{}", answer1), format!("{}", answer2))
+}
+
+fn add_next_space(
+    activated_spaces: &mut Grid<LightDirections>,
+    next_space: Coord2,
+    beam_dir: CompassDirection,
+    pending_beams: &mut Vec<(Coord2, CompassDirection)>,
+) {
+    let mut collated_dirs = activated_spaces.get(&next_space).directions;
+    // If the new direction is being added to this cell for the first time, update the grid and
+    // push a new entry to progress. If it's already there, we don't need to do anything.
+    if collated_dirs.insert(beam_dir) {
+        activated_spaces.set_cell(
+            &next_space,
+            &LightDirections {
+                directions: collated_dirs,
+            },
+        );
+        pending_beams.push((next_space, beam_dir));
+    }
 }
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
@@ -120,7 +158,7 @@ mod tests {
 .........\\
 ..../.\\\\..
 .-.-/..|..
-.|....-|.\
+.|....-|.\\
 ..//.|....", // INPUT STRING
             "46", // PART 1 RESULT
             "0",  // PART 2 RESULT
