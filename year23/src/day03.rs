@@ -10,7 +10,7 @@ pub fn day03(input_lines: &[Vec<String>]) -> (String, String) {
     // Add a grid of '.' around it for easier border checks. Note this effectively makes the
     // original grid 1-indexed.
     let mut input_grid = Grid::<char>::from_input(&input_lines[0]);
-    input_grid.add_border('.');
+    input_grid.add_border(&'.');
 
     // Create a hash-map of gear co-ordinates and the values of parts next to them.
     let mut gear_map: HashMap<Coord2, Vec<u32>> = HashMap::new();

@@ -10,7 +10,7 @@ use crate::grid::Grid;
 pub fn day10(input_lines: &[Vec<String>]) -> (String, String) {
     // Build the map and add a border of plain ground.
     let mut map = Grid::<PipeType>::from_input(&input_lines[0]);
-    map.add_border(PipeType::Ground);
+    map.add_border(&PipeType::Ground);
 
     // Find the starting point.
     let starting_coord = map

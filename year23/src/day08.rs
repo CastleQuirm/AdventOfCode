@@ -46,10 +46,10 @@ pub fn day08(input_lines: &[Vec<String>]) -> (String, String) {
 
     // Create a map of all the next hops needed to get from any Z to the next Z from any point in the pathing.
     let mut z_to_z_steps: HashMap<(String, usize), (String, usize)> = HashMap::new();
-    for start_z in pathmaps.keys().filter(|loc| loc.ends_with('Z')) { 
+    for start_z in pathmaps.keys().filter(|loc| loc.ends_with('Z')) {
         for start_index in 0..directions.len() {
             num_steps = 0;
-            current_location = start_z.clone(); 
+            current_location = start_z.clone();
             while !current_location.ends_with('Z') || num_steps == 0 {
                 // TODO factor out
                 let next_direction = directions[num_steps % directions.len()];
@@ -63,36 +63,60 @@ pub fn day08(input_lines: &[Vec<String>]) -> (String, String) {
                 };
                 num_steps += 1;
             }
-            z_to_z_steps.insert((start_z.clone(), start_index), (current_location.clone(), num_steps));
+            z_to_z_steps.insert(
+                (start_z.clone(), start_index),
+                (current_location.clone(), num_steps),
+            );
         }
     }
 
     // Move each ghost to its first Z location, counting how many steps it's taken.
-    let mut ghosts = pathmaps.keys().filter_map(|loc| if loc.ends_with('A') {
-        num_steps = 0;
-        current_location = loc.clone(); 
-        while !current_location.ends_with('Z') {
-            // TODO factor out
-            let next_direction = directions[num_steps % directions.len()];
-            let node = pathmaps
-                .get(&current_location)
-                .expect("No map from where we are!");
-            current_location = match next_direction {
-                'L' => node.left.clone(),
-                'R' => node.right.clone(),
-                _ => panic!(),
-            };
-            num_steps += 1;
-        }
+    let mut ghosts = pathmaps
+        .keys()
+        .filter_map(|loc| {
+            if loc.ends_with('A') {
+                num_steps = 0;
+                current_location = loc.clone();
+                while !current_location.ends_with('Z') {
+                    // TODO factor out
+                    let next_direction = directions[num_steps % directions.len()];
+                    let node = pathmaps
+                        .get(&current_location)
+                        .expect("No map from where we are!");
+                    current_location = match next_direction {
+                        'L' => node.left.clone(),
+                        'R' => node.right.clone(),
+                        _ => panic!(),
+                    };
+                    num_steps += 1;
+                }
 
-        Some((current_location.clone(), num_steps))
-    } else { None }).collect::<Vec<_>>();
+                Some((current_location.clone(), num_steps))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
 
     // If not every ghost has moved the same distance, move the one that's moved the least.
-    while ghosts.iter().map(|(_, steps)| *steps).collect::<HashSet<usize>>().len() > 1 {
-        let least_moved_ghost = ghosts.iter_mut().min_by(|g1, g2| g1.1.cmp(&g2.1)).expect("Spoooooooky");
-        let ghost_lookup = (least_moved_ghost.0.clone(), least_moved_ghost.1 % directions.len());
-        let next_jump = z_to_z_steps.get(&ghost_lookup).expect("Lost track of the ghost");
+    while ghosts
+        .iter()
+        .map(|(_, steps)| *steps)
+        .collect::<HashSet<usize>>()
+        .len()
+        > 1
+    {
+        let least_moved_ghost = ghosts
+            .iter_mut()
+            .min_by(|g1, g2| g1.1.cmp(&g2.1))
+            .expect("Spoooooooky");
+        let ghost_lookup = (
+            least_moved_ghost.0.clone(),
+            least_moved_ghost.1 % directions.len(),
+        );
+        let next_jump = z_to_z_steps
+            .get(&ghost_lookup)
+            .expect("Lost track of the ghost");
         *least_moved_ghost = (next_jump.0.clone(), least_moved_ghost.1 + next_jump.1)
     }
     let answer2 = ghosts[0].1;

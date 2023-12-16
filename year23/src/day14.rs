@@ -10,7 +10,7 @@ use itertools::Itertools;
 
 pub fn day14(input_lines: &[Vec<String>]) -> (String, String) {
     let mut grid = Grid::<RockType>::from_input(&input_lines[0]);
-    grid.add_border(RockType::Fixed);
+    grid.add_border(&RockType::Fixed);
 
     tilt_board(&mut grid, &North);
     let answer1 = north_load(&grid);

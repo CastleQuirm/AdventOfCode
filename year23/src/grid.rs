@@ -21,26 +21,31 @@ impl<T: std::convert::From<char>> Grid<T> {
     }
 }
 
-impl<T: Copy> Grid<T> {
-    pub fn add_border(&mut self, border_element: T) {
+impl<T: Clone> Grid<T> {
+    pub fn add_border(&mut self, border_element: &T) {
         let line_len = self.grid[0].len();
         for row in &mut self.grid {
-            row.insert(0, border_element);
-            row.push(border_element);
+            row.insert(0, border_element.clone());
+            row.push(border_element.clone());
         }
-        self.grid.insert(0, vec![border_element; line_len + 2]);
-        self.grid.push(vec![border_element; line_len + 2]);
+        self.grid
+            .insert(0, vec![border_element.clone(); line_len + 2]);
+        self.grid.push(vec![border_element.clone(); line_len + 2]);
     }
 
     pub fn get(&self, coord: &Coord2) -> T {
         let row = TryInto::<usize>::try_into(coord.y).unwrap();
         let column = TryInto::<usize>::try_into(coord.x).unwrap();
-        self.grid[row][column]
+        self.grid[row][column].clone()
     }
 }
 
 impl<T: Eq> Grid<T> {
     pub fn find_elements(&self, element: &T) -> HashSet<Coord2> {
+        self.filter_elements(&(|t: &T| t == element))
+    }
+
+    pub fn filter_elements(&self, predicate: &dyn Fn(&T) -> bool) -> HashSet<Coord2> {
         self.grid
             .iter()
             .enumerate()
@@ -48,7 +53,7 @@ impl<T: Eq> Grid<T> {
                 row.iter()
                     .enumerate()
                     .filter_map(|(col_ix, entry)| {
-                        if entry == element {
+                        if predicate(entry) {
                             Some(Coord2 {
                                 x: col_ix as i64,
                                 y: row_ix as i64,
@@ -73,5 +78,15 @@ impl<T: Eq> Grid<T> {
             println!("Found more than one element in the grid");
             None
         }
+    }
+}
+
+impl<T: Clone> Grid<T> {
+    pub fn set_cell(&mut self, coord: &Coord2, value: &T) {
+        let y =
+            TryInto::<usize>::try_into(coord.y).expect("Can't unwrap the y coordinate as a usize");
+        let x =
+            TryInto::<usize>::try_into(coord.x).expect("Can't unwrap the x coordinate as a usize");
+        self.grid[y][x] = value.clone()
     }
 }
