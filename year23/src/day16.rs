@@ -10,31 +10,64 @@ pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
     let mut maze = Grid::<MirrorType>::from_input(&input_lines[0]);
     maze.add_border(&MirrorType::Edge);
 
-    // Maintain a second grid of the light going through the grid: each space has a Vec of the
+    let answer1 = calculate_active_cells(&maze, Coord2 { x: 1, y: 1}, East);
+
+    // Brute force Part 2 - there aren't enough possibilities to justify finding anything clever to do.
+    // For additional simplicity make use of the fact it's a square grid.
+    assert_eq!(input_lines[0].len(), input_lines[0][0].len());
+    let core_maze_size = TryInto::<i64>::try_into(input_lines[0].len()).expect("Grid size doesn't fit an i64?");
+    let answer2 = (1..=core_maze_size).map(|i| 
+        calculate_active_cells(&maze, Coord2 { x: 1, y: i }, East).max(
+            calculate_active_cells(&maze, Coord2 { x: core_maze_size, y: i }, West)
+        ).max(
+            calculate_active_cells(&maze, Coord2 { x: i, y: 1 }, South)
+        ).max(
+            calculate_active_cells(&maze, Coord2 { x: i, y: core_maze_size }, North)
+        )
+    ).max().unwrap();
+    (format!("{}", answer1), format!("{}", answer2))
+}
+
+fn add_next_space(
+    activated_spaces: &mut Grid<LightDirections>,
+    next_space: Coord2,
+    beam_dir: CompassDirection,
+    pending_beams: &mut Vec<(Coord2, CompassDirection)>,
+) {
+    let mut collated_dirs = activated_spaces.get(&next_space).directions;
+    // If the new direction is being added to this cell for the first time, update the grid and
+    // push a new entry to progress. If it's already there, we don't need to do anything.
+    if collated_dirs.insert(beam_dir) {
+        activated_spaces.set_cell(
+            &next_space,
+            &LightDirections {
+                directions: collated_dirs,
+            },
+        );
+        pending_beams.push((next_space, beam_dir));
+    }
+}
+
+fn calculate_active_cells(maze: &Grid<MirrorType>, starting_coord: Coord2, starting_dir: CompassDirection) -> usize {
+// Maintain a second grid of the light going through the grid: each space has a Vec of the
     // directions that we know light is travelling out from.
-    // Make it two larger in either direction than the original to get the matching co-ords as
-    // the version with the border added.
     let mut activated_spaces = Grid {
         grid: vec![
-            vec![LightDirections::none(); input_lines[0][0].len() + 2];
-            input_lines[0].len() + 2
+            vec![LightDirections::none(); maze.grid[0].len()];
+            maze.grid.len()
         ],
     };
-    let top_left = Coord2 { x: 1, y: 1 };
     let east_beam = LightDirections {
-        directions: HashSet::from([East]),
+        directions: HashSet::from([starting_dir]),
     };
-    activated_spaces.set_cell(&top_left, &east_beam);
+    activated_spaces.set_cell(&starting_coord, &east_beam);
 
     // Maintain a list of beams we have to progress.
-    let mut pending_beams = vec![(top_left, East)];
-    // let mut steps_run = 0;
+    let mut pending_beams = vec![(starting_coord, starting_dir)];
 
     // Progress the beams
     while let Some((beam_loc, beam_dir)) = pending_beams.pop() {
-        // steps_run += 1;
-        // if steps_run > 100 { break; }
-        // println!("{steps_run}: Process beam from {:?}, going direction {:?}", beam_loc, beam_dir);
+        // Create a short local function call to the larger function call using some consistent variables.
         let mut add_next = |beam_dir| {
             add_next_space(
                 &mut activated_spaces,
@@ -43,7 +76,10 @@ pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
                 &mut pending_beams,
             );
         };
+        // Check where this beam has ended up
         let cell_type = maze.get(&beam_loc);
+        // Work out the cell or cells where the beam ends up next based on its direction and
+        // what's in its current location
         match (cell_type, beam_dir) {
             (MirrorType::Space, _)
             | (MirrorType::Horizontal, East)
@@ -76,34 +112,11 @@ pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
     }
 
     // Get the total set of activated spaces. Remember not to include any with type edge.
-    let answer1 = activated_spaces
+    activated_spaces
         .filter_elements(&(|dir_set: &LightDirections| !dir_set.directions.is_empty()))
         .iter()
         .filter(|coord| maze.get(coord) != MirrorType::Edge)
-        .count();
-
-    let answer2 = 0;
-    (format!("{}", answer1), format!("{}", answer2))
-}
-
-fn add_next_space(
-    activated_spaces: &mut Grid<LightDirections>,
-    next_space: Coord2,
-    beam_dir: CompassDirection,
-    pending_beams: &mut Vec<(Coord2, CompassDirection)>,
-) {
-    let mut collated_dirs = activated_spaces.get(&next_space).directions;
-    // If the new direction is being added to this cell for the first time, update the grid and
-    // push a new entry to progress. If it's already there, we don't need to do anything.
-    if collated_dirs.insert(beam_dir) {
-        activated_spaces.set_cell(
-            &next_space,
-            &LightDirections {
-                directions: collated_dirs,
-            },
-        );
-        pending_beams.push((next_space, beam_dir));
-    }
+        .count()
 }
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
@@ -161,7 +174,7 @@ mod tests {
 .|....-|.\\
 ..//.|....", // INPUT STRING
             "46", // PART 1 RESULT
-            "0",  // PART 2 RESULT
+            "51",  // PART 2 RESULT
         )
     }
 
