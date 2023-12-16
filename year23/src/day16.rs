@@ -10,21 +10,36 @@ pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
     let mut maze = Grid::<MirrorType>::from_input(&input_lines[0]);
     maze.add_border(&MirrorType::Edge);
 
-    let answer1 = calculate_active_cells(&maze, Coord2 { x: 1, y: 1}, East);
+    let answer1 = calculate_active_cells(&maze, Coord2 { x: 1, y: 1 }, East);
 
     // Brute force Part 2 - there aren't enough possibilities to justify finding anything clever to do.
     // For additional simplicity make use of the fact it's a square grid.
     assert_eq!(input_lines[0].len(), input_lines[0][0].len());
-    let core_maze_size = TryInto::<i64>::try_into(input_lines[0].len()).expect("Grid size doesn't fit an i64?");
-    let answer2 = (1..=core_maze_size).map(|i| 
-        calculate_active_cells(&maze, Coord2 { x: 1, y: i }, East).max(
-            calculate_active_cells(&maze, Coord2 { x: core_maze_size, y: i }, West)
-        ).max(
-            calculate_active_cells(&maze, Coord2 { x: i, y: 1 }, South)
-        ).max(
-            calculate_active_cells(&maze, Coord2 { x: i, y: core_maze_size }, North)
-        )
-    ).max().unwrap();
+    let core_maze_size =
+        TryInto::<i64>::try_into(input_lines[0].len()).expect("Grid size doesn't fit an i64?");
+    let answer2 = (1..=core_maze_size)
+        .map(|i| {
+            calculate_active_cells(&maze, Coord2 { x: 1, y: i }, East)
+                .max(calculate_active_cells(
+                    &maze,
+                    Coord2 {
+                        x: core_maze_size,
+                        y: i,
+                    },
+                    West,
+                ))
+                .max(calculate_active_cells(&maze, Coord2 { x: i, y: 1 }, South))
+                .max(calculate_active_cells(
+                    &maze,
+                    Coord2 {
+                        x: i,
+                        y: core_maze_size,
+                    },
+                    North,
+                ))
+        })
+        .max()
+        .unwrap();
     (format!("{}", answer1), format!("{}", answer2))
 }
 
@@ -48,14 +63,15 @@ fn add_next_space(
     }
 }
 
-fn calculate_active_cells(maze: &Grid<MirrorType>, starting_coord: Coord2, starting_dir: CompassDirection) -> usize {
-// Maintain a second grid of the light going through the grid: each space has a Vec of the
+fn calculate_active_cells(
+    maze: &Grid<MirrorType>,
+    starting_coord: Coord2,
+    starting_dir: CompassDirection,
+) -> usize {
+    // Maintain a second grid of the light going through the grid: each space has a Vec of the
     // directions that we know light is travelling out from.
     let mut activated_spaces = Grid {
-        grid: vec![
-            vec![LightDirections::none(); maze.grid[0].len()];
-            maze.grid.len()
-        ],
+        grid: vec![vec![LightDirections::none(); maze.grid[0].len()]; maze.grid.len()],
     };
     let east_beam = LightDirections {
         directions: HashSet::from([starting_dir]),
@@ -174,7 +190,7 @@ mod tests {
 .|....-|.\\
 ..//.|....", // INPUT STRING
             "46", // PART 1 RESULT
-            "51",  // PART 2 RESULT
+            "51", // PART 2 RESULT
         )
     }
 
