@@ -1,6 +1,7 @@
 // Potential improvements:
 //
 
+use std::collections::hash_map::Entry::Vacant;
 use std::collections::HashMap;
 
 use crate::coord::Coord2;
@@ -34,8 +35,8 @@ pub fn day14(input_lines: &[Vec<String>]) -> (String, String) {
     // with the same north AND west load are the same complete positions
     let mut known_positions = HashMap::new();
     let mut cycles_run = 1;
-    while !known_positions.contains_key(&(north_load(&grid), west_load(&grid))) {
-        known_positions.insert((north_load(&grid), west_load(&grid)), cycles_run);
+    while let Vacant(e) = known_positions.entry((north_load(&grid), west_load(&grid))) {
+        e.insert(cycles_run);
         cycle(&mut grid);
         cycles_run += 1;
     }
