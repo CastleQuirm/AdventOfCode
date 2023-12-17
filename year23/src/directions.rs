@@ -45,20 +45,37 @@ pub enum CompassDirection {
     West,
 }
 
-// impl CompassDirection {
-//     pub fn opposite(&self) -> Self {
-//         match self {
-//             CompassDirection::North => CompassDirection::South,
-//             CompassDirection::East => CompassDirection::West,
-//             CompassDirection::South => CompassDirection::North,
-//             CompassDirection::West => CompassDirection::East,
-//         }
-//     }
-// }
+impl CompassDirection {
+    // pub fn opposite(&self) -> Self {
+    //     self.rotate(&Rotation::Reverse)
+    // }
 
+    pub fn rotate(&self, rotation: &Rotation) -> Self {
+        // Guess I could implement a 'degrees' system to make this a bit less text heavy but...eh
+        match (self, rotation) {
+            (direction, Rotation::Straight) => *direction,
+            (Self::North, Rotation::Left) => Self::West,
+            (Self::North, Rotation::Right) => Self::East,
+            (Self::North, Rotation::_Reverse) => Self::South,
+            (Self::East, Rotation::Left) => Self::North,
+            (Self::East, Rotation::Right) => Self::South,
+            (Self::East, Rotation::_Reverse) => Self::West,
+            (Self::South, Rotation::Left) => Self::East,
+            (Self::South, Rotation::Right) => Self::West,
+            (Self::South, Rotation::_Reverse) => Self::North,
+            (Self::West, Rotation::Left) => Self::South,
+            (Self::West, Rotation::Right) => Self::North,
+            (Self::West, Rotation::_Reverse) => Self::East,
+        }
+    }
+}
+
+#[derive(Eq, PartialEq, Hash, Debug)]
 pub enum Rotation {
     Left,
     Right,
+    Straight,
+    _Reverse,
 }
 
 impl FromStr for Rotation {

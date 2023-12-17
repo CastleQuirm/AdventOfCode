@@ -2,6 +2,7 @@
 // use std::collections::HashSet;
 
 use crate::directions::CompassDirection;
+use anyhow::Result;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Coord2 {
@@ -12,6 +13,20 @@ pub struct Coord2 {
 impl Coord2 {
     pub fn new(x: i64, y: i64) -> Self {
         Self { x, y }
+    }
+
+    pub fn from(coord: (i64, i64)) -> Self {
+        Self {
+            x: coord.0,
+            y: coord.1,
+        }
+    }
+
+    pub fn from_len_pair((x, y): (usize, usize)) -> Result<Self> {
+        Ok(Self {
+            x: TryInto::<i64>::try_into(x)?,
+            y: TryInto::<i64>::try_into(y)?,
+        })
     }
 
     // pub fn movement(direction: &Direction) -> Self {

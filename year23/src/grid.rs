@@ -10,6 +10,21 @@ pub struct Grid<T> {
     pub grid: Vec<Vec<T>>,
 }
 
+impl<T: std::convert::From<u32>> Grid<T> {
+    pub fn from_digits(input_lines: &[String]) -> Self {
+        Grid {
+            grid: input_lines
+                .iter()
+                .map(|line| {
+                    line.chars()
+                        .map(|c| TryInto::<T>::try_into(c.to_digit(10).unwrap()).unwrap())
+                        .collect::<Vec<T>>()
+                })
+                .collect::<Vec<Vec<T>>>(),
+        }
+    }
+}
+
 impl<T: std::convert::From<char>> Grid<T> {
     pub fn from_input(input_lines: &[String]) -> Self {
         Grid {
@@ -37,6 +52,14 @@ impl<T: Clone> Grid<T> {
         let row = TryInto::<usize>::try_into(coord.y).unwrap();
         let column = TryInto::<usize>::try_into(coord.x).unwrap();
         self.grid[row][column].clone()
+    }
+
+    pub fn set_cell(&mut self, coord: &Coord2, value: &T) {
+        let y =
+            TryInto::<usize>::try_into(coord.y).expect("Can't unwrap the y coordinate as a usize");
+        let x =
+            TryInto::<usize>::try_into(coord.x).expect("Can't unwrap the x coordinate as a usize");
+        self.grid[y][x] = value.clone()
     }
 }
 
@@ -78,15 +101,5 @@ impl<T: Eq> Grid<T> {
             println!("Found more than one element in the grid");
             None
         }
-    }
-}
-
-impl<T: Clone> Grid<T> {
-    pub fn set_cell(&mut self, coord: &Coord2, value: &T) {
-        let y =
-            TryInto::<usize>::try_into(coord.y).expect("Can't unwrap the y coordinate as a usize");
-        let x =
-            TryInto::<usize>::try_into(coord.x).expect("Can't unwrap the x coordinate as a usize");
-        self.grid[y][x] = value.clone()
     }
 }
