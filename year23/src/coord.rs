@@ -49,12 +49,12 @@ impl Coord2 {
     //     }
     // }
 
-    // pub fn sum(&self, other: &Self) -> Self {
-    //     Self {
-    //         x: self.x + other.x,
-    //         y: self.y + other.y,
-    //     }
-    // }
+    pub fn sum(&self, other: &Self) -> Self {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
 
     /// Get the coordinates of the next cell in a given cardinal direction, to be used with a grid
     /// N and W reduce indices, S and E increase.

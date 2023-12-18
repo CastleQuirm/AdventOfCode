@@ -22,20 +22,51 @@ impl FromStr for Direction {
     }
 }
 
-// impl Direction {
-//     pub fn rotate(&self, rot: &Rotation) -> Self {
-//         match (self, rot) {
-//             (Direction::Left, Rotation::Left) => Direction::Down,
-//             (Direction::Left, Rotation::Right) => Direction::Up,
-//             (Direction::Right, Rotation::Left) => Direction::Up,
-//             (Direction::Right, Rotation::Right) => Direction::Down,
-//             (Direction::Up, Rotation::Left) => Direction::Left,
-//             (Direction::Up, Rotation::Right) => Direction::Right,
-//             (Direction::Down, Rotation::Left) => Direction::Right,
-//             (Direction::Down, Rotation::Right) => Direction::Left,
-//         }
-//     }
-// }
+impl Direction {
+    pub fn _rotate(&self, rot: &Rotation) -> Self {
+        match (self, rot) {
+            // Could commonise with CompassDirection::rotate but...eh.
+            (dir, Rotation::Straight) => *dir,
+            (Direction::Left, Rotation::Left) => Direction::Down,
+            (Direction::Left, Rotation::Right) => Direction::Up,
+            (Direction::Right, Rotation::Left) => Direction::Up,
+            (Direction::Right, Rotation::Right) => Direction::Down,
+            (Direction::Up, Rotation::Left) => Direction::Left,
+            (Direction::Up, Rotation::Right) => Direction::Right,
+            (Direction::Down, Rotation::Left) => Direction::Right,
+            (Direction::Down, Rotation::Right) => Direction::Left,
+            (Direction::Left, Rotation::_Reverse) => Direction::Right,
+            (Direction::Right, Rotation::_Reverse) => Direction::Left,
+            (Direction::Up, Rotation::_Reverse) => Direction::Down,
+            (Direction::Down, Rotation::_Reverse) => Direction::Up,
+        }
+    }
+
+    /// Determine the rotation needed to get from Self to Other, as if you were travelling
+    /// in the direction of Self (viewed from above) and want to be travelling in the direction
+    /// of Other.  'Right' could also be 'Clockwise' and 'Left' 'Anti-Clockwise'.
+    // TODO 'could' => 'SHOULD'?!
+    pub fn count_rotation(&self, turn_to: &Self) -> Rotation {
+        match (self, turn_to) {
+            (Direction::Left, Direction::Left) => Rotation::Straight,
+            (Direction::Left, Direction::Right) => Rotation::_Reverse,
+            (Direction::Left, Direction::Up) => Rotation::Right,
+            (Direction::Left, Direction::Down) => Rotation::Left,
+            (Direction::Right, Direction::Left) => Rotation::_Reverse,
+            (Direction::Right, Direction::Right) => Rotation::Straight,
+            (Direction::Right, Direction::Up) => Rotation::Left,
+            (Direction::Right, Direction::Down) => Rotation::Right,
+            (Direction::Up, Direction::Left) => Rotation::Left,
+            (Direction::Up, Direction::Right) => Rotation::Right,
+            (Direction::Up, Direction::Up) => Rotation::Straight,
+            (Direction::Up, Direction::Down) => Rotation::_Reverse,
+            (Direction::Down, Direction::Left) => Rotation::Right,
+            (Direction::Down, Direction::Right) => Rotation::Left,
+            (Direction::Down, Direction::Up) => Rotation::_Reverse,
+            (Direction::Down, Direction::Down) => Rotation::Straight,
+        }
+    }
+}
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
 pub enum CompassDirection {
