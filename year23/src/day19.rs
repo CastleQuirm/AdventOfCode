@@ -1,7 +1,7 @@
 // Potential improvements:
 //
 
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::RangeInclusive};
 
 use itertools::Itertools;
 
@@ -16,7 +16,7 @@ pub fn day19(input_lines: &[Vec<String>]) -> (String, String) {
         .iter()
         .filter_map(|line| process(line, &rules))
         .sum::<u64>();
-    let answer2 = 0;
+    let answer2 = process_ranges(&rules);
     (format!("{}", answer1), format!("{}", answer2))
 }
 
@@ -31,7 +31,7 @@ fn process(line: &str, rules: &HashMap<String, RuleSet>) -> Option<u64> {
             .get(action.get_goto_label())
             .expect("Couldn't find rule");
         for rule in &ruleset.rules {
-            action = rule(&part);
+            action = (rule.rule)(&part);
             if action != RuleResult::Continue {
                 break;
             }
@@ -46,8 +46,106 @@ fn process(line: &str, rules: &HashMap<String, RuleSet>) -> Option<u64> {
     }
 }
 
+fn process_ranges(rules: &HashMap<String, RuleSet>) -> u64 {
+    let mut starting_ranges = HashMap::new();
+    starting_ranges.insert('x', 1..=4000);
+    starting_ranges.insert('m', 1..=4000);
+    starting_ranges.insert('a', 1..=4000);
+    starting_ranges.insert('s', 1..=4000);
+    let mut candidate_ranges_and_actions = Vec::new();
+    candidate_ranges_and_actions.push((
+        Catalogue {
+            ranges: starting_ranges,
+        },
+        "in".to_string(),
+    ));
+    let mut accepted_ranges: Vec<Catalogue> = Vec::new();
+
+    while let Some((catalogue, label)) = candidate_ranges_and_actions.pop() {
+        // Process the range through this rule, subdividing it into Ranges that do one of:
+        // - Accept (push it onto accepted_ranges)
+        // - Reject (just drop it)
+        // - GoTo (push to the candidate_ranges_and_actions along with the action)
+
+        let ruleset = rules.get(&label).expect("No rule");
+        let mut processing_catalogue = catalogue.clone();
+
+        for rule in &ruleset.rules {
+            let (meets_criteria, doesnt_meet) = if let Some(test) = &rule.test {
+                // See if the range needs to be subdivided
+                let comp_range = processing_catalogue
+                    .ranges
+                    .get(&test.variable)
+                    .expect("Must have variable");
+                // Should do something neat here but my brain is melting
+                if (*comp_range.start() > test.threshold && test.comparison == '>')
+                    || (*comp_range.end() < test.threshold && test.comparison == '<')
+                {
+                    (Some(processing_catalogue), None)
+                } else if (*comp_range.end() <= test.threshold && test.comparison == '>')
+                    || (*comp_range.start() >= test.threshold && test.comparison == '<')
+                {
+                    (None, Some(processing_catalogue))
+                } else {
+                    assert!(comp_range.contains(&test.threshold));
+                    let mut meet_criteria = processing_catalogue.clone();
+                    let mut doesnt_meet = processing_catalogue.clone();
+                    if test.comparison == '>' {
+                        let _ = meet_criteria
+                            .ranges
+                            .insert(test.variable, test.threshold + 1..=*comp_range.end());
+                        let _ = doesnt_meet
+                            .ranges
+                            .insert(test.variable, *comp_range.start()..=test.threshold);
+                    } else {
+                        assert_eq!(test.comparison, '<');
+                        let _ = meet_criteria
+                            .ranges
+                            .insert(test.variable, *comp_range.start()..=test.threshold - 1);
+                        let _ = doesnt_meet
+                            .ranges
+                            .insert(test.variable, test.threshold..=*comp_range.end());
+                    }
+
+                    (Some(meet_criteria), Some(doesnt_meet))
+                }
+            } else {
+                // Final catchall, process the whole range
+                (Some(processing_catalogue.clone()), None)
+            };
+
+            if let Some(meets_criteria) = meets_criteria {
+                match &rule.action {
+                    RuleResult::Accept => accepted_ranges.push(meets_criteria.clone()),
+                    RuleResult::Reject => (),
+                    RuleResult::GoTo { label } => {
+                        candidate_ranges_and_actions.push((meets_criteria.clone(), label.clone()))
+                    }
+                    RuleResult::Continue => panic!(),
+                }
+            }
+            if let Some(doesnt_meet) = doesnt_meet {
+                processing_catalogue = doesnt_meet;
+            } else {
+                // Nothing left in this rule
+                break;
+            }
+        }
+    }
+
+    accepted_ranges
+        .iter()
+        .map(|cat| {
+            cat.ranges
+                .values()
+                .map(|range| range.end() - range.start() + 1)
+                .product::<u64>()
+        })
+        .sum::<u64>()
+}
+
 struct RuleSet {
-    rules: Vec<Box<dyn Fn(&Part) -> RuleResult>>,
+    rules: Vec<SingleRule>,
 }
 
 impl RuleSet {
@@ -67,12 +165,13 @@ impl RuleSet {
                 if rule_txt.contains(|c| c == '<' || c == '>') {
                     // main rule
                     let chars = rule_txt.chars().collect_vec();
-                    let (variable, comparison) = (chars[0].to_string(), chars[1]);
+                    let (variable, comparison) = (chars[0], chars[1]);
                     let (threshold, result) =
                         rule_txt[2..].split_once(':').expect("Couldn't parse rule");
                     let threshold = threshold.parse::<u64>().expect("Couldn't parse threshold");
                     let meet_threshold_result = RuleResult::from(result);
-                    Box::new(move |part: &Part| match comparison {
+                    let meet_threshold_result_for_struct = meet_threshold_result.clone();
+                    let rule = Box::new(move |part: &Part| match comparison {
                         '<' => {
                             if *part.values.get(&variable).expect("unknown variable") < threshold {
                                 meet_threshold_result.clone()
@@ -88,11 +187,25 @@ impl RuleSet {
                             }
                         }
                         _ => panic!(),
-                    })
+                    });
+                    SingleRule {
+                        rule,
+                        test: Some(Test {
+                            variable,
+                            comparison,
+                            threshold,
+                        }),
+                        action: meet_threshold_result_for_struct,
+                    }
                 } else {
                     // Fall-through rule
-                    Box::new(move |_: &Part| RuleResult::from(rule_txt.as_str()))
-                        as Box<dyn Fn(&Part) -> RuleResult>
+                    let action = RuleResult::from(rule_txt.as_str());
+                    let action_for_struct = action.clone();
+                    SingleRule {
+                        rule: Box::new(move |_: &Part| action.clone()),
+                        test: None,
+                        action: action_for_struct,
+                    }
                 }
             })
             .collect_vec();
@@ -100,9 +213,21 @@ impl RuleSet {
     }
 }
 
+struct SingleRule {
+    rule: Box<dyn Fn(&Part) -> RuleResult>, // Used for part 1 'elegance'
+    test: Option<Test>,
+    action: RuleResult,
+}
+
+struct Test {
+    variable: char,
+    comparison: char,
+    threshold: u64,
+}
+
 #[derive(Debug, Clone)]
 struct Part {
-    values: HashMap<String, u64>,
+    values: HashMap<char, u64>,
 }
 
 impl From<&str> for Part {
@@ -114,15 +239,21 @@ impl From<&str> for Part {
                 .expect("Bad line")
                 .split(',')
                 .map(|v| {
-                    let (property, value) = v.split_once('=').expect("Invalid part");
-                    (
-                        property.to_string(),
-                        value.parse::<u64>().expect("Invalid value"),
-                    )
+                    let (variable, value) = v.split_once('=').expect("Invalid part");
+                    let mut variable_iter = variable.chars();
+                    let variable = variable_iter.next().unwrap();
+                    assert!(variable_iter.next().is_none());
+                    (variable, value.parse::<u64>().expect("Invalid value"))
                 })
                 .collect::<HashMap<_, _>>(),
         }
     }
+}
+
+/// A Catalogue is a conecptual selection of Ranges for parts!
+#[derive(Clone, Debug)]
+struct Catalogue {
+    ranges: HashMap<char, RangeInclusive<u64>>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -180,8 +311,8 @@ hdj{m>838:A,pv}
 {x=2036,m=264,a=79,s=2244}
 {x=2461,m=1339,a=466,s=291}
 {x=2127,m=1623,a=2188,s=1013}", // INPUT STRING
-            "19114", // PART 1 RESULT
-            "0",     // PART 2 RESULT
+            "19114",           // PART 1 RESULT
+            "167409079868000", // PART 2 RESULT
         )
     }
 
