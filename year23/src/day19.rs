@@ -31,7 +31,7 @@ fn process(line: &str, rules: &HashMap<String, RuleSet>) -> Option<u64> {
             .get(action.get_goto_label())
             .expect("Couldn't find rule");
         for rule in &ruleset.rules {
-            action = rule(part.clone());
+            action = rule(&part);
             if action != RuleResult::Continue {
                 break;
             }
@@ -47,7 +47,7 @@ fn process(line: &str, rules: &HashMap<String, RuleSet>) -> Option<u64> {
 }
 
 struct RuleSet {
-    rules: Vec<Box<dyn Fn(Part) -> RuleResult>>,
+    rules: Vec<Box<dyn Fn(&Part) -> RuleResult>>,
 }
 
 impl RuleSet {
@@ -71,26 +71,18 @@ impl RuleSet {
                     let (threshold, result) =
                         rule_txt[2..].split_once(':').expect("Couldn't parse rule");
                     let threshold = threshold.parse::<u64>().expect("Couldn't parse threshold");
-                    // let result_owned = result.to_owned();
-                    // TODO this could be commonised with the else branch
-                    let result = match result {
-                        "A" => RuleResult::Accept,
-                        "R" => RuleResult::Reject,
-                        _ => RuleResult::GoTo {
-                            label: result.to_string(),
-                        },
-                    };
-                    Box::new(move |part: Part| match comparison {
+                    let meet_threshold_result = RuleResult::from(result);
+                    Box::new(move |part: &Part| match comparison {
                         '<' => {
                             if *part.values.get(&variable).expect("unknown variable") < threshold {
-                                result.clone()
+                                meet_threshold_result.clone()
                             } else {
                                 RuleResult::Continue
                             }
                         }
                         '>' => {
                             if *part.values.get(&variable).expect("unknown variable") > threshold {
-                                result.clone()
+                                meet_threshold_result.clone()
                             } else {
                                 RuleResult::Continue
                             }
@@ -99,15 +91,8 @@ impl RuleSet {
                     })
                 } else {
                     // Fall-through rule
-                    match rule_txt.as_str() {
-                        "A" => {
-                            Box::new(move |_| RuleResult::Accept) as Box<dyn Fn(Part) -> RuleResult>
-                        }
-                        "R" => Box::new(move |_| RuleResult::Reject),
-                        _ => Box::new(move |_| RuleResult::GoTo {
-                            label: rule_txt.to_string(),
-                        }),
-                    }
+                    Box::new(move |_: &Part| RuleResult::from(rule_txt.as_str()))
+                        as Box<dyn Fn(&Part) -> RuleResult>
                 }
             })
             .collect_vec();
@@ -146,6 +131,18 @@ enum RuleResult {
     Reject,
     Continue,
     GoTo { label: String },
+}
+
+impl From<&str> for RuleResult {
+    fn from(value: &str) -> Self {
+        match value {
+            "A" => RuleResult::Accept,
+            "R" => RuleResult::Reject,
+            label => RuleResult::GoTo {
+                label: label.to_string(),
+            },
+        }
+    }
 }
 
 impl RuleResult {
