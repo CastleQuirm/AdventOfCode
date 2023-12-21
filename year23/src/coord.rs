@@ -1,6 +1,8 @@
 // use once_cell::sync::OnceCell;
 // use std::collections::HashSet;
 
+use std::collections::HashSet;
+
 use crate::directions::CompassDirection;
 use anyhow::Result;
 
@@ -42,12 +44,12 @@ impl Coord2 {
         (self.x - other.x).abs() + (self.y - other.y).abs()
     }
 
-    // pub fn plus(&self, x: i64, y: i64) -> Self {
-    //     Self {
-    //         x: self.x + x,
-    //         y: self.y + y,
-    //     }
-    // }
+    pub fn plus(&self, x: i64, y: i64) -> Self {
+        Self {
+            x: self.x + x,
+            y: self.y + y,
+        }
+    }
 
     pub fn sum(&self, other: &Self) -> Self {
         Self {
@@ -56,7 +58,7 @@ impl Coord2 {
         }
     }
 
-    /// Get the coordinates of the next cell in a given cardinal direction, to be used with a grid
+    /// Get the coordinates of the next cell in a given cardinal direction, to be used with a grid.
     /// N and W reduce indices, S and E increase.
     pub fn compass_sum(&self, direction: &CompassDirection) -> Self {
         match direction {
@@ -77,6 +79,16 @@ impl Coord2 {
                 y: self.y,
             },
         }
+    }
+
+    /// Get a HashSet of all four orthoganally adjacent coordinates to the provided one.
+    pub fn orthoganally_adjacent(&self) -> HashSet<Self> {
+        HashSet::from([
+            self.plus(1, 0),
+            self.plus(-1, 0),
+            self.plus(0, 1),
+            self.plus(0, -1),
+        ])
     }
 
     // pub fn moved(&mut self, other: &Self) {

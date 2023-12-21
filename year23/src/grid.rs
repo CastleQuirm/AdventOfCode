@@ -6,6 +6,7 @@ use crate::coord::Coord2;
 /// They can be accessed directly in the Vec<Vec<>> format with grid[y][x] but for ease there
 /// is also a .get(Coord2) function.
 /// Grids are 0-indexed with (0,0) being the top-left-hand corner.
+
 pub struct Grid<T> {
     pub grid: Vec<Vec<T>>,
 }
@@ -60,6 +61,14 @@ impl<T: Clone> Grid<T> {
         let x =
             TryInto::<usize>::try_into(coord.x).expect("Can't unwrap the x coordinate as a usize");
         self.grid[y][x] = value.clone()
+    }
+}
+
+impl<T: Clone> Clone for Grid<T> {
+    fn clone(&self) -> Self {
+        Self {
+            grid: self.grid.clone(),
+        }
     }
 }
 
