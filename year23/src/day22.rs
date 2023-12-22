@@ -11,11 +11,12 @@ use crate::{coord::Coord2, grid::Grid};
 pub fn day22(input_lines: &[Vec<String>]) -> (String, String) {
     // Read the set of bricks, ordered from their lowest starting point.
     // Note the range of x and y coords as we go.
+    let block_def_regex = Regex::new(r"(\d+),(\d+),(\d+)~(\d+),(\d+),(\d+)").unwrap();
     let (mut max_x, mut max_y) = (0, 0);
     let mut bricks = input_lines[0]
         .iter()
         .map(|line| {
-            let brick = Brick::from(line);
+            let brick = Brick::from(line, &block_def_regex);
             max_x = max_x.max(brick.horizontal_cells.last().expect("non-existent brick").x);
             max_y = max_y.max(brick.horizontal_cells.last().expect("non-existent brick").y);
             brick
@@ -134,9 +135,8 @@ struct Brick {
     // supporting_bricks: HashSet<usize>
 }
 
-impl From<&String> for Brick {
-    fn from(value: &String) -> Self {
-        let block_def_regex = Regex::new(r"(\d+),(\d+),(\d+)~(\d+),(\d+),(\d+)").unwrap();
+impl Brick {
+    fn from(value: &str, block_def_regex: &Regex) -> Self {
         let (horizontal_cells, height, starting_bottom) = block_def_regex
             .captures(value)
             .map(|cap| {
