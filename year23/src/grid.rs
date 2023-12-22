@@ -38,6 +38,20 @@ impl<T: std::convert::From<char>> Grid<T> {
 }
 
 impl<T: Clone> Grid<T> {
+    /// Initialize a Grid with `len_x` elements in its X co-ord, `len_y` elements in its Y co-ord,
+    /// and a starting value of `init_element` in every cell.
+    pub fn initialize(len_x: usize, len_y: usize, init_element: T) -> Self {
+        let mut line = Vec::new();
+        for _ in 0..len_x {
+            line.push(init_element.clone());
+        }
+        let mut grid = Vec::new();
+        for _ in 0..len_y {
+            grid.push(line.clone());
+        }
+        Self { grid }
+    }
+
     pub fn add_border(&mut self, border_element: &T) {
         let line_len = self.grid[0].len();
         for row in &mut self.grid {
