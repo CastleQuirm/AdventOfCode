@@ -79,7 +79,7 @@ fn attempt_karger(
         for (_, edge) in reducing_edges.iter_mut() {
             for i in 0..=1 {
                 if edge.nodes[i] == node1_name || edge.nodes[i] == node2_name {
-                    edge.nodes[i] = combo_name.clone();
+                    edge.nodes[i].clone_from(&combo_name);
                 }
             }
         }

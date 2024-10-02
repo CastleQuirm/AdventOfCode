@@ -18,7 +18,7 @@ impl<T: std::convert::From<u32>> Grid<T> {
                 .iter()
                 .map(|line| {
                     line.chars()
-                        .map(|c| TryInto::<T>::try_into(c.to_digit(10).unwrap()).unwrap())
+                        .map(|c| Into::<T>::into(c.to_digit(10).unwrap()))
                         .collect::<Vec<T>>()
                 })
                 .collect::<Vec<Vec<T>>>(),

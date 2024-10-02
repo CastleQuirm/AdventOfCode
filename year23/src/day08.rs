@@ -49,7 +49,7 @@ pub fn day08(input_lines: &[Vec<String>]) -> (String, String) {
     for start_z in pathmaps.keys().filter(|loc| loc.ends_with('Z')) {
         for start_index in 0..directions.len() {
             num_steps = 0;
-            current_location = start_z.clone();
+            current_location.clone_from(start_z);
             while !current_location.ends_with('Z') || num_steps == 0 {
                 // TODO factor out
                 let next_direction = directions[num_steps % directions.len()];
@@ -76,7 +76,7 @@ pub fn day08(input_lines: &[Vec<String>]) -> (String, String) {
         .filter_map(|loc| {
             if loc.ends_with('A') {
                 num_steps = 0;
-                current_location = loc.clone();
+                current_location.clone_from(loc);
                 while !current_location.ends_with('Z') {
                     // TODO factor out
                     let next_direction = directions[num_steps % directions.len()];

@@ -44,11 +44,7 @@ pub fn day24(input_lines: &[Vec<String>]) -> (String, String) {
                 && pair[0].velocity.x > pair[1].velocity.x
             {
                 acc_x = acc_x
-                    .union(
-                        &(pair[1].velocity.x..pair[0].velocity.x)
-                            .into_iter()
-                            .collect::<HashSet<_>>(),
-                    )
+                    .union(&(pair[1].velocity.x..pair[0].velocity.x).collect::<HashSet<_>>())
                     .cloned()
                     .collect();
             }
@@ -56,11 +52,7 @@ pub fn day24(input_lines: &[Vec<String>]) -> (String, String) {
                 && pair[0].velocity.y > pair[1].velocity.y
             {
                 acc_y = acc_y
-                    .union(
-                        &(pair[1].velocity.y..pair[0].velocity.y)
-                            .into_iter()
-                            .collect::<HashSet<_>>(),
-                    )
+                    .union(&(pair[1].velocity.y..pair[0].velocity.y).collect::<HashSet<_>>())
                     .cloned()
                     .collect();
             }
@@ -68,11 +60,7 @@ pub fn day24(input_lines: &[Vec<String>]) -> (String, String) {
                 && pair[0].velocity.z > pair[1].velocity.z
             {
                 acc_z = acc_z
-                    .union(
-                        &(pair[1].velocity.z..pair[0].velocity.z)
-                            .into_iter()
-                            .collect::<HashSet<_>>(),
-                    )
+                    .union(&(pair[1].velocity.z..pair[0].velocity.z).collect::<HashSet<_>>())
                     .cloned()
                     .collect();
             }

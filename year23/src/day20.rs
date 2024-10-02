@@ -80,7 +80,7 @@ pub fn day20(input_lines: &[Vec<String>]) -> (String, String) {
                 // For simplicity we'll assume all the submodules finish before any one of them finishes twice.
                 // If this weren't the case we'd just have to not overwrite, which is easy but I don't need to
                 // do it given my input.
-                assert!(subnetwork_cycle_values.get(&submodule_egress).is_none());
+                assert!(!subnetwork_cycle_values.contains_key(&submodule_egress));
                 subnetwork_cycle_values.insert(submodule_egress, button_pushes);
             }
         }

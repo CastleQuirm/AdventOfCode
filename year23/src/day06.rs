@@ -59,11 +59,7 @@ fn size_of_quadratic_peak((t, d): (u32, u32)) -> u64 {
     // The question equates to finding the integer solutions for the quadratic inequality
     // x^2 - x*t + d > 0
 
-    size_of_quadratic_peak_with_factor(
-        1f64,
-        -1f64 * TryInto::<f64>::try_into(t).unwrap(),
-        TryInto::<f64>::try_into(d).unwrap(),
-    )
+    size_of_quadratic_peak_with_factor(1f64, -1f64 * Into::<f64>::into(t), Into::<f64>::into(d))
 }
 
 fn size_of_quadratic_peak_with_factor(f: f64, t: f64, d: f64) -> u64 {
