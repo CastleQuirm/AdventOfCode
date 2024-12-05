@@ -1,9 +1,43 @@
 // Potential improvements:
 //
 
-pub fn day04(_input_lines: &[Vec<String>]) -> (String, String) {
-    let answer1 = 0;
-    let answer2 = 0;
+use crate::{
+    coord::{DELTAS_DIAG_ONLY, DELTAS_ORTH_AND_DIAG},
+    grid::Grid,
+};
+
+pub fn day04(input_lines: &[Vec<String>]) -> (String, String) {
+    let mut wordsearch = Grid::<char>::from_input(&input_lines[0]);
+    wordsearch.add_border(&'Z');
+
+    let answer1 = wordsearch
+        .find_elements(&'X')
+        .iter()
+        .map(|x| {
+            DELTAS_ORTH_AND_DIAG
+                .iter()
+                .filter(|d| {
+                    wordsearch.get(&x.sum(d)) == 'M'
+                        && wordsearch.get(&x.sum(d).sum(d)) == 'A'
+                        && wordsearch.get(&x.sum(d).sum(d).sum(d)) == 'S'
+                })
+                .count()
+        })
+        .sum::<usize>();
+
+    let answer2 = wordsearch
+        .find_elements(&'A')
+        .iter()
+        .filter(|a| {
+            DELTAS_DIAG_ONLY
+                .iter()
+                .filter(|d| {
+                    wordsearch.get(&a.sum(d)) == 'M' && wordsearch.get(&a.sum(&d.mult(-1))) == 'S'
+                })
+                .count()
+                == 2
+        })
+        .count();
     (format!("{}", answer1), format!("{}", answer2))
 }
 
@@ -15,9 +49,18 @@ mod tests {
     #[test]
     fn check_day04_case01() {
         full_test(
-            "",  // INPUT STRING
-            "0", // PART 1 RESULT
-            "0", // PART 2 RESULT
+            "MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX", // INPUT STRING
+            "18", // PART 1 RESULT
+            "9",  // PART 2 RESULT
         )
     }
 
