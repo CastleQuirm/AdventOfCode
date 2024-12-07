@@ -37,6 +37,23 @@ impl<T: std::convert::From<char>> Grid<T> {
     }
 }
 
+impl<T: std::convert::From<char> + Clone> Grid<T> {
+    pub fn from_input_with_border(input_lines: &[String], border: &T) -> Self {
+        let line_len = input_lines[0].len();
+        let mut grid = Vec::from([vec![border.clone(); line_len + 2]]);
+        for line in input_lines {
+            let mut new_row = vec![border.clone()];
+            for c in line.chars() {
+                new_row.push(c.into());
+            }
+            new_row.push(border.clone());
+            grid.push(new_row);
+        }
+        grid.push(vec![border.clone(); line_len + 2]);
+        Grid { grid }
+    }
+}
+
 impl<T: Clone> Grid<T> {
     /// Initialize a Grid with `len_x` elements in its X co-ord, `len_y` elements in its Y co-ord,
     /// and a starting value of `init_element` in every cell.
@@ -72,7 +89,7 @@ impl<T: Clone> Grid<T> {
         self.grid[row][column].clone()
     }
 
-    pub fn _set_cell(&mut self, coord: &Coord2, value: &T) {
+    pub fn set_cell(&mut self, coord: &Coord2, value: &T) {
         let y =
             TryInto::<usize>::try_into(coord.y).expect("Can't unwrap the y coordinate as a usize");
         let x =
@@ -116,7 +133,7 @@ impl<T: Eq> Grid<T> {
             .collect::<HashSet<_>>()
     }
 
-    pub fn _find_single_element(&self, element: &T) -> Option<Coord2> {
+    pub fn find_single_element(&self, element: &T) -> Option<Coord2> {
         let possible_elements = self.find_elements(element);
         if possible_elements.len() == 1 {
             Some(*possible_elements.iter().next().unwrap())

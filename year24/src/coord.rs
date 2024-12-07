@@ -68,9 +68,9 @@ impl Coord2 {
 
     /// Get the coordinates of the next cell in a given cardinal direction, to be used with a grid.
     /// N and W reduce indices, S and E increase.
-    pub fn _compass_sum(&self, direction: &CompassDirection) -> Self {
+    pub fn compass_sum(&self, direction: &CompassDirection) -> Self {
         match direction {
-            CompassDirection::_North => Self {
+            CompassDirection::North => Self {
                 x: self.x,
                 y: self.y - 1,
             },
