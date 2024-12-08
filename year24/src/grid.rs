@@ -146,3 +146,14 @@ impl<T: Eq> Grid<T> {
         }
     }
 }
+
+impl<T> Grid<T> {
+    /// Checks if the given coordinate is within the grid's coordinate space (0-indexed, border included if it is present)
+    /// Requires the Grid to have at least one row.
+    pub fn in_bounds(&self, coord: &Coord2) -> bool {
+        coord.x >= 0
+            && coord.y >= 0
+            && coord.x < self.grid.len() as i64
+            && coord.y < self.grid[0].len() as i64
+    }
+}

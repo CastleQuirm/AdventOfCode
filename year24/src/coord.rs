@@ -110,12 +110,12 @@ impl Coord2 {
     //     self.y += other.y;
     // }
 
-    // pub fn diff(&self, other: &Self) -> Self {
-    //     Self {
-    //         x: self.x - other.x,
-    //         y: self.y - other.y,
-    //     }
-    // }
+    pub fn diff(&self, other: &Self) -> Self {
+        Self {
+            x: self.x - other.x,
+            y: self.y - other.y,
+        }
+    }
 
     // Determine the cardinal direction (as a Direction) from one coordinate to another, if there is one.
     // Returns None if the two points are the same, or if they're not in a straight line.
