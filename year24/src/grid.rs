@@ -26,6 +26,23 @@ impl<T: std::convert::From<u32>> Grid<T> {
     }
 }
 
+impl<T: std::convert::From<u32> + Clone> Grid<T> {
+    pub fn from_digits_with_border(input_lines: &[String], border: &T) -> Self {
+        let line_len = input_lines[0].len();
+        let mut grid = Vec::from([vec![border.clone(); line_len + 2]]);
+        for line in input_lines {
+            let mut new_row = vec![border.clone()];
+            for c in line.chars() {
+                new_row.push(Into::<T>::into(c.to_digit(10).unwrap()));
+            }
+            new_row.push(border.clone());
+            grid.push(new_row);
+        }
+        grid.push(vec![border.clone(); line_len + 2]);
+        Grid { grid }
+    }
+}
+
 impl<T: std::convert::From<char>> Grid<T> {
     pub fn from_input(input_lines: &[String]) -> Self {
         Grid {
