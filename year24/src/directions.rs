@@ -66,14 +66,25 @@ impl Direction {
             (Direction::Down, Direction::Down) => Rotation::_Straight,
         }
     }
+
+    /// Produce an iterator of each Direction (starting with Up and moving clockwise)
+    pub fn _iter() -> impl Iterator<Item = Direction> {
+        [
+            Direction::Up,
+            Direction::Right,
+            Direction::Down,
+            Direction::Left,
+        ]
+        .into_iter()
+    }
 }
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
 pub enum CompassDirection {
     North,
-    _East,
-    _South,
-    _West,
+    East,
+    South,
+    West,
 }
 
 impl CompassDirection {
@@ -85,19 +96,30 @@ impl CompassDirection {
         // Guess I could implement a 'degrees' system to make this a bit less text heavy but...eh
         match (self, rotation) {
             (direction, Rotation::_Straight) => *direction,
-            (Self::North, Rotation::Left) => Self::_West,
-            (Self::North, Rotation::Right) => Self::_East,
-            (Self::North, Rotation::_Reverse) => Self::_South,
-            (Self::_East, Rotation::Left) => Self::North,
-            (Self::_East, Rotation::Right) => Self::_South,
-            (Self::_East, Rotation::_Reverse) => Self::_West,
-            (Self::_South, Rotation::Left) => Self::_East,
-            (Self::_South, Rotation::Right) => Self::_West,
-            (Self::_South, Rotation::_Reverse) => Self::North,
-            (Self::_West, Rotation::Left) => Self::_South,
-            (Self::_West, Rotation::Right) => Self::North,
-            (Self::_West, Rotation::_Reverse) => Self::_East,
+            (Self::North, Rotation::Left) => Self::West,
+            (Self::North, Rotation::Right) => Self::East,
+            (Self::North, Rotation::_Reverse) => Self::South,
+            (Self::East, Rotation::Left) => Self::North,
+            (Self::East, Rotation::Right) => Self::South,
+            (Self::East, Rotation::_Reverse) => Self::West,
+            (Self::South, Rotation::Left) => Self::East,
+            (Self::South, Rotation::Right) => Self::West,
+            (Self::South, Rotation::_Reverse) => Self::North,
+            (Self::West, Rotation::Left) => Self::South,
+            (Self::West, Rotation::Right) => Self::North,
+            (Self::West, Rotation::_Reverse) => Self::East,
         }
+    }
+
+    /// Produce an iterator of each CompassDirection (starting with North and moving clockwise)
+    pub fn iter() -> impl Iterator<Item = CompassDirection> {
+        [
+            CompassDirection::North,
+            CompassDirection::East,
+            CompassDirection::South,
+            CompassDirection::West,
+        ]
+        .into_iter()
     }
 }
 

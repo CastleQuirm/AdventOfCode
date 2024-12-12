@@ -18,7 +18,7 @@ impl Coord2 {
         Self { x, y }
     }
 
-    pub fn _from(coord: (i64, i64)) -> Self {
+    pub fn from(coord: (i64, i64)) -> Self {
         Self {
             x: coord.0,
             y: coord.1,
@@ -74,15 +74,15 @@ impl Coord2 {
                 x: self.x,
                 y: self.y - 1,
             },
-            CompassDirection::_East => Self {
+            CompassDirection::East => Self {
                 x: self.x + 1,
                 y: self.y,
             },
-            CompassDirection::_South => Self {
+            CompassDirection::South => Self {
                 x: self.x,
                 y: self.y + 1,
             },
-            CompassDirection::_West => Self {
+            CompassDirection::West => Self {
                 x: self.x - 1,
                 y: self.y,
             },
