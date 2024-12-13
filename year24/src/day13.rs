@@ -90,9 +90,7 @@ impl ClawMachine {
                 if a_presses >= 0 && b_presses >= 0 {
                     // We don't check for the 100 limit: that's part 1 only and as a guideline/trap for
                     // people doing searching rather than linear algebra.
-                    Some(
-                        3 * alpha_numerator / alpha_denominator + beta_numerator / beta_denominator,
-                    )
+                    Some(3 * a_presses + b_presses)
                 } else {
                     None
                 }
