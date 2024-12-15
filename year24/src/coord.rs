@@ -25,6 +25,10 @@ impl Coord2 {
         }
     }
 
+    pub fn from_compass(direction: &CompassDirection) -> Self {
+        Coord2 { x: 0, y: 0 }.compass_sum(direction)
+    }
+
     pub fn _from_len_pair((x, y): (usize, usize)) -> Result<Self> {
         Ok(Self {
             x: TryInto::<i64>::try_into(x)?,

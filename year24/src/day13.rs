@@ -124,8 +124,8 @@ Prize: X=7870, Y=6450
 Button A: X+69, Y+23
 Button B: X+27, Y+71
 Prize: X=18641, Y=10279", // INPUT STRING
-            "480", // PART 1 RESULT
-            "875318608908",   // PART 2 RESULT
+            "480",          // PART 1 RESULT
+            "875318608908", // PART 2 RESULT
         )
     }
 
