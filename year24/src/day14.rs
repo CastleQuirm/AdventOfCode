@@ -26,18 +26,18 @@ pub fn day14(input_lines: &[Vec<String>]) -> (String, String) {
     let answer1 = quad_count.values().product::<i64>();
 
     if !test {
-        let droids = input_lines[0]
+        let _droids = input_lines[0]
             .iter()
             .map(|line| SecurityDroid::from_line(line))
             .collect::<Vec<SecurityDroid>>();
         // Reduced range to show the answer without giving it away completely!
-        (6200..6300).for_each(|time| render_at(&droids, time));
+        // (6200..6300).for_each(|time| render_at(&droids, time));
     }
 
     (format!("{}", answer1), format!("{}", 0))
 }
 
-fn render_at(droids: &[SecurityDroid], time: usize) {
+fn _render_at(droids: &[SecurityDroid], time: usize) {
     print!("\x1B[2J\x1B[1;1H");
     let test = false;
     let height = if test { 7 } else { 103 };
