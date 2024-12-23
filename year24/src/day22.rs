@@ -1,19 +1,46 @@
 // Potential improvements:
 //
 
+use std::collections::{HashMap, VecDeque};
+
 pub fn day22(input_lines: &[Vec<String>]) -> (String, String) {
+    let zero_bananas = (0..input_lines[0].len()).map(|_| 0).collect::<Vec<usize>>();
+    let mut stock_market: HashMap<VecDeque<isize>, Vec<usize>> = HashMap::new();
+
     let answer1 = input_lines[0]
         .iter()
-        .rev()
-        .map(|line| {
+        .enumerate()
+        .map(|(ix, line)| {
             let mut number = line.parse::<u64>().expect("couldn't parse");
+            let mut delta_seq = VecDeque::new();
             (0..2000).for_each(|_| {
-                number = compute_next_secret(number);
+                let new_number = compute_next_secret(number);
+                let delta = (new_number % 10) as isize - (number % 10) as isize;
+                delta_seq.push_back(delta);
+                if delta_seq.len() == 5 {
+                    delta_seq.pop_front();
+                }
+                if delta_seq.len() == 4 {
+                    let entry = stock_market
+                        .entry(delta_seq.clone())
+                        .or_insert(zero_bananas.clone());
+                    let mut clone_entry = entry.clone();
+                    if clone_entry[ix] == 0 {
+                        clone_entry[ix] = (new_number % 10) as usize;
+                    }
+                    *entry = clone_entry;
+                }
+                number = new_number;
             });
             number
         })
         .sum::<u64>();
-    let answer2 = 0;
+
+    let answer2 = stock_market
+        .values()
+        .map(|monkeys| monkeys.iter().sum::<usize>())
+        .max()
+        .expect("No part 2 answer");
     (format!("{}", answer1), format!("{}", answer2))
 }
 
@@ -39,6 +66,18 @@ mod tests {
 100
 2024", // INPUT STRING
             "37327623", // PART 1 RESULT
+            "24",       // PART 2 RESULT
+        )
+    }
+
+    #[test]
+    fn check_day22_case02() {
+        full_test(
+            "1
+2
+3
+2024", // INPUT STRING
+            "37990510", // PART 1 RESULT
             "23",       // PART 2 RESULT
         )
     }
