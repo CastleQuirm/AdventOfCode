@@ -6,9 +6,10 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 
 pub fn day21(input_lines: &[Vec<String>]) -> (String, String) {
-    // For part 2 we'll start at the human and work through, at each level determining the
-    // minimum number of presses to achieve the goal.
-    let mut fewest_presses: Vec<HashMap<String, usize>> = Vec::from([HashMap::from([
+    // Set up the number of button presses the human needs to make to get the first
+    // robot to move its arm from the first character in the pair to the second and
+    // then press it.
+    let mut fewest_presses: HashMap<String, usize> = HashMap::from([
         ("AA".to_string(), 1),
         ("^^".to_string(), 1),
         ("vv".to_string(), 1),
@@ -34,59 +35,70 @@ pub fn day21(input_lines: &[Vec<String>]) -> (String, String) {
         ("v^".to_string(), 2),
         ("v>".to_string(), 2),
         ("v<".to_string(), 2),
-    ])]);
-    (1..25).for_each(|robot_ix| {
-        let mut this_robot_base_counts = HashMap::new();
-        for move_and_press in fewest_presses[0].keys() {
-            let options = BUTTON_SEQUENCES.get(move_and_press).expect("Pair unknown?");
-            this_robot_base_counts.insert(
+    ]);
+
+    // Determine the following robot's resulting human presses from the previous one.
+    // (So second robot using a directional pad).
+    fewest_presses = determine_next_robots_human_presses(&fewest_presses);
+
+    // For Part 1, the third robot then uses the numpad. We go straight into solving.
+    let answer1 = solve(&input_lines[0], &fewest_presses);
+
+    // In part 2 we have 25 robots using the direction pads before the 26th robot on the
+    // numpad, so iteratively update the fewest_presses hashmap before finally going to
+    // solve with the 26th robot using the numpad.
+    (2..25).for_each(|_| {
+        fewest_presses = determine_next_robots_human_presses(&fewest_presses);
+    });
+    let answer2 = solve(&input_lines[0], &fewest_presses);
+
+    (format!("{}", answer1), format!("{}", answer2))
+}
+
+fn determine_next_robots_human_presses(
+    prev_robot: &HashMap<String, usize>,
+) -> HashMap<String, usize> {
+    prev_robot
+        .keys()
+        .map(|move_and_press| {
+            (
                 move_and_press.clone(),
-                options
+                DIRECTIONAL_BUTTON_SEQUENCES
+                    .get(move_and_press)
+                    .expect("Pair unknown?")
                     .iter()
                     .map(|sequence| {
                         (0..sequence.len())
                             .map(|i| {
-                                let map_string = if i == 0 {
-                                    "A".to_string() + &sequence[0..1]
-                                } else {
-                                    sequence[i - 1..=i].to_string()
-                                };
-                                fewest_presses[robot_ix - 1]
-                                    .get(&map_string)
+                                prev_robot
+                                    .get(&get_button_pair(sequence, i))
                                     .expect("oh no")
                             })
                             .sum::<usize>()
                     })
                     .min()
                     .unwrap(),
-            );
-        }
-        fewest_presses.push(this_robot_base_counts);
-    });
+            )
+        })
+        .collect::<HashMap<String, usize>>()
+}
 
-    let answer1 = input_lines[0]
+fn solve(codes: &[String], optimal_counts: &HashMap<String, usize>) -> usize {
+    codes
         .iter()
         .map(|line| {
             (0..line.len())
                 .map(|i| {
-                    let map_string = if i == 0 {
-                        "A".to_string() + &line[0..1]
-                    } else {
-                        line[i - 1..=i].to_string()
-                    };
-                    BUTTON_SEQUENCES
-                        .get(&map_string)
+                    NUMPAD_BUTTON_SEQUENCES
+                        .get(&get_button_pair(line, i))
                         .unwrap()
                         .iter()
                         .map(|option| {
                             (0..option.len())
                                 .map(|j| {
-                                    let inner_string = if j == 0 {
-                                        "A".to_string() + &option[0..1]
-                                    } else {
-                                        option[j - 1..=j].to_string()
-                                    };
-                                    fewest_presses[1].get(&inner_string).expect("woooah")
+                                    optimal_counts
+                                        .get(&get_button_pair(option, j))
+                                        .expect("woooah")
                                 })
                                 .sum::<usize>()
                         })
@@ -96,48 +108,25 @@ pub fn day21(input_lines: &[Vec<String>]) -> (String, String) {
                 .sum::<usize>()
                 * line[0..3].parse::<usize>().expect("bad parse")
         })
-        .sum::<usize>();
+        .sum::<usize>()
+}
 
-    let answer2 = input_lines[0]
-        .iter()
-        .map(|line| {
-            (0..line.len())
-                .map(|i| {
-                    let map_string = if i == 0 {
-                        "A".to_string() + &line[0..1]
-                    } else {
-                        line[i - 1..=i].to_string()
-                    };
-                    BUTTON_SEQUENCES
-                        .get(&map_string)
-                        .unwrap()
-                        .iter()
-                        .map(|option| {
-                            (0..option.len())
-                                .map(|j| {
-                                    let inner_string = if j == 0 {
-                                        "A".to_string() + &option[0..1]
-                                    } else {
-                                        option[j - 1..=j].to_string()
-                                    };
-                                    fewest_presses[24].get(&inner_string).expect("woooah")
-                                })
-                                .sum::<usize>()
-                        })
-                        .min()
-                        .unwrap()
-                })
-                .sum::<usize>()
-                * line[0..3].parse::<usize>().expect("bad parse")
-        })
-        .sum::<usize>();
-
-    (format!("{}", answer1), format!("{}", answer2))
+fn get_button_pair(sequence: &str, target_index: usize) -> String {
+    if target_index == 0 {
+        "A".to_string() + &sequence[0..1]
+    } else {
+        sequence[target_index - 1..=target_index].to_string()
+    }
 }
 
 lazy_static! {
-    pub static ref BUTTON_SEQUENCES: HashMap<String, Vec<String>> =
+    // Wrote this out originally to have all possible button pairs. When it had to be updated from just giving a sequence to
+    // needing to list every possible sequence, I commented out any that aren't used by at least one of the test lines and/or
+    // my input. Obviously this means it might not work on others' input but the stuff to add is pretty minimal and easy, just
+    // tedious.
+    pub static ref NUMPAD_BUTTON_SEQUENCES: HashMap<String, Vec<String>> =
         HashMap::from([
+            // ("AA".to_string(), vec!["A".to_string()]),
             ("A0".to_string(), vec!["<A".to_string()]),
             ("A1".to_string(), vec!["^<<A".to_string(), "<^<A".to_string()]),
             // ("A2".to_string(), vec!["<^A".to_string(), "^<A".to_string()]),
@@ -269,6 +258,9 @@ lazy_static! {
             ("98".to_string(), vec!["<A".to_string()]),
             // ("99".to_string(), "A".to_string()),
 
+        ]);
+
+        pub static ref DIRECTIONAL_BUTTON_SEQUENCES: HashMap<String, Vec<String>> = HashMap::from([
             ("AA".to_string(), vec!["A".to_string()]),
             ("^^".to_string(), vec!["A".to_string()]),
             ("vv".to_string(), vec!["A".to_string()]),
