@@ -3,7 +3,10 @@
 
 use std::collections::HashMap;
 
-use crate::{coord::{Coord2, DELTAS_ORTH_ONLY}, grid::Grid};
+use crate::{
+    coord::{Coord2, DELTAS_ORTH_ONLY},
+    grid::Grid,
+};
 
 pub fn day20(input_lines: &[Vec<String>]) -> (String, String) {
     let maze = Grid::<MazeCells>::from_input(&input_lines[0]);
@@ -66,16 +69,20 @@ pub fn day20(input_lines: &[Vec<String>]) -> (String, String) {
         .iter()
         .map(|(loc, time)| {
             // assume for simplicity there's no corner shortcuts.
-            DELTAS_ORTH_ONLY.iter().filter(|d| {
-                main_course
-                    .get(&loc.sum(&d.mult(2)))
-                    .is_some_and(|&new_time| {
-                        // let improvement = new_time - *time;
-                        // if improvement > 0 {
-                        //     println!("found a skip of {improvement} from {:?} with d {:?}", loc, d);
-                        // }
-                        new_time >= *time + required_jump})
-            }).count()
+            DELTAS_ORTH_ONLY
+                .iter()
+                .filter(|d| {
+                    main_course
+                        .get(&loc.sum(&d.mult(2)))
+                        .is_some_and(|&new_time| {
+                            // let improvement = new_time - *time;
+                            // if improvement > 0 {
+                            //     println!("found a skip of {improvement} from {:?} with d {:?}", loc, d);
+                            // }
+                            new_time >= *time + required_jump
+                        })
+                })
+                .count()
         })
         .sum::<usize>();
 
@@ -85,14 +92,20 @@ pub fn day20(input_lines: &[Vec<String>]) -> (String, String) {
 }
 
 fn count_shortcuts(path: &[Coord2], cheat_size: i64, saving_required: usize) -> usize {
-    (0..(path.len() - saving_required)).map(|shortcut_start_ix| {
-        (shortcut_start_ix + saving_required..path.len()).filter(|&shortcut_end_ix| {
-            let start_coord = path[shortcut_start_ix];
-            let end_coord = path[shortcut_end_ix];
-            let shortcut_cost = end_coord.manhattan_dist(&start_coord);
-            shortcut_cost <= cheat_size && (shortcut_end_ix - shortcut_start_ix - shortcut_cost as usize) >= saving_required
-        }).count()
-    }).sum::<usize>()
+    (0..(path.len() - saving_required))
+        .map(|shortcut_start_ix| {
+            (shortcut_start_ix + saving_required..path.len())
+                .filter(|&shortcut_end_ix| {
+                    let start_coord = path[shortcut_start_ix];
+                    let end_coord = path[shortcut_end_ix];
+                    let shortcut_cost = end_coord.manhattan_dist(&start_coord);
+                    shortcut_cost <= cheat_size
+                        && (shortcut_end_ix - shortcut_start_ix - shortcut_cost as usize)
+                            >= saving_required
+                })
+                .count()
+        })
+        .sum::<usize>()
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
@@ -138,7 +151,7 @@ mod tests {
 #.#.#.#.#.#.###
 #...#...#...###
 ###############", // INPUT STRING
-            "3", // PART 1 RESULT // arbitrary choice of save of 38 or better
+            "3",  // PART 1 RESULT // arbitrary choice of save of 38 or better
             "29", // PART 2 RESULT
         )
     }
