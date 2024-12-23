@@ -6,24 +6,132 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 
 pub fn day21(input_lines: &[Vec<String>]) -> (String, String) {
+    // For part 2 we'll start at the human and work through, at each level determining the
+    // minimum number of presses to achieve the goal.
+    let mut fewest_presses: Vec<HashMap<String, usize>> = Vec::from([HashMap::from([
+        ("AA".to_string(), 1),
+        ("^^".to_string(), 1),
+        ("vv".to_string(), 1),
+        ("<<".to_string(), 1),
+        (">>".to_string(), 1),
+        ("A^".to_string(), 2),
+        ("Av".to_string(), 3),
+        ("A<".to_string(), 4),
+        ("A>".to_string(), 2),
+        ("^A".to_string(), 2),
+        ("^<".to_string(), 3),
+        ("^>".to_string(), 3),
+        ("^v".to_string(), 2),
+        ("<A".to_string(), 4),
+        ("<^".to_string(), 3),
+        ("<>".to_string(), 3),
+        ("<v".to_string(), 2),
+        (">A".to_string(), 2),
+        (">^".to_string(), 3),
+        ("><".to_string(), 3),
+        (">v".to_string(), 2),
+        ("vA".to_string(), 3),
+        ("v^".to_string(), 2),
+        ("v>".to_string(), 2),
+        ("v<".to_string(), 2),
+    ])]);
+    (1..25).for_each(|robot_ix| {
+        let mut this_robot_base_counts = HashMap::new();
+        for move_and_press in fewest_presses[0].keys() {
+            let options = BUTTON_SEQUENCES.get(move_and_press).expect("Pair unknown?");
+            this_robot_base_counts.insert(
+                move_and_press.clone(),
+                options
+                    .iter()
+                    .map(|sequence| {
+                        (0..sequence.len())
+                            .map(|i| {
+                                let map_string = if i == 0 {
+                                    "A".to_string() + &sequence[0..1]
+                                } else {
+                                    sequence[i - 1..=i].to_string()
+                                };
+                                fewest_presses[robot_ix - 1]
+                                    .get(&map_string)
+                                    .expect("oh no")
+                            })
+                            .sum::<usize>()
+                    })
+                    .min()
+                    .unwrap(),
+            );
+        }
+        fewest_presses.push(this_robot_base_counts);
+    });
+
     let answer1 = input_lines[0]
         .iter()
         .map(|line| {
-            let button_sequence_len = find_button_seq(line, 1, false);
-            let value = line[0..3].parse::<usize>().expect("bad parse");
-            // println!("{button_sequence_len} * {value}");
-            button_sequence_len * value
+            (0..line.len())
+                .map(|i| {
+                    let map_string = if i == 0 {
+                        "A".to_string() + &line[0..1]
+                    } else {
+                        line[i - 1..=i].to_string()
+                    };
+                    BUTTON_SEQUENCES
+                        .get(&map_string)
+                        .unwrap()
+                        .iter()
+                        .map(|option| {
+                            (0..option.len())
+                                .map(|j| {
+                                    let inner_string = if j == 0 {
+                                        "A".to_string() + &option[0..1]
+                                    } else {
+                                        option[j - 1..=j].to_string()
+                                    };
+                                    fewest_presses[1].get(&inner_string).expect("woooah")
+                                })
+                                .sum::<usize>()
+                        })
+                        .min()
+                        .unwrap()
+                })
+                .sum::<usize>()
+                * line[0..3].parse::<usize>().expect("bad parse")
         })
         .sum::<usize>();
+
     let answer2 = input_lines[0]
         .iter()
         .map(|line| {
-            let button_sequence_len = find_button_seq(line, 1, true);
-            let value = line[0..3].parse::<usize>().expect("bad parse");
-            // println!("{button_sequence_len} * {value}");
-            button_sequence_len * value
+            (0..line.len())
+                .map(|i| {
+                    let map_string = if i == 0 {
+                        "A".to_string() + &line[0..1]
+                    } else {
+                        line[i - 1..=i].to_string()
+                    };
+                    BUTTON_SEQUENCES
+                        .get(&map_string)
+                        .unwrap()
+                        .iter()
+                        .map(|option| {
+                            (0..option.len())
+                                .map(|j| {
+                                    let inner_string = if j == 0 {
+                                        "A".to_string() + &option[0..1]
+                                    } else {
+                                        option[j - 1..=j].to_string()
+                                    };
+                                    fewest_presses[24].get(&inner_string).expect("woooah")
+                                })
+                                .sum::<usize>()
+                        })
+                        .min()
+                        .unwrap()
+                })
+                .sum::<usize>()
+                * line[0..3].parse::<usize>().expect("bad parse")
         })
         .sum::<usize>();
+
     (format!("{}", answer1), format!("{}", answer2))
 }
 
@@ -190,29 +298,29 @@ lazy_static! {
         ]);
 }
 
-fn find_button_seq(line: &str, layer: usize, part2: bool) -> usize {
-    (0..line.len())
-        .map(|i| {
-            let map_string = if i == 0 {
-                "A".to_string() + &line[0..1]
-            } else {
-                line[i - 1..=i].to_string()
-            };
-            let instruction_options = BUTTON_SEQUENCES.get(&map_string).unwrap();
+// fn find_button_seq(line: &str, layer: usize) -> usize {
+//     (0..line.len())
+//         .map(|i| {
+//             let map_string = if i == 0 {
+//                 "A".to_string() + &line[0..1]
+//             } else {
+//                 line[i - 1..=i].to_string()
+//             };
+//             let instruction_options = BUTTON_SEQUENCES.get(&map_string).unwrap();
 
-            if (layer == 3 && !part2) || (layer == 25 && part2) {
-                instruction_options
-                    .iter()
-                    .map(|instruction_sequence| instruction_sequence.len())
-                    .min()
-                    .unwrap()
-            } else {
-                // instruction_options.iter().map(|instruction_sequence| find_button_seq(&instruction_sequence, layer + 1, part2)).min().unwrap()
-                find_button_seq(&instruction_options[0], layer + 1, part2)
-            }
-        })
-        .sum::<usize>()
-}
+//             if layer == 3 {
+//                 instruction_options
+//                     .iter()
+//                     .map(|instruction_sequence| instruction_sequence.len())
+//                     .min()
+//                     .unwrap()
+//             } else {
+//                 // instruction_options.iter().map(|instruction_sequence| find_button_seq(&instruction_sequence, layer + 1, part2)).min().unwrap()
+//                 find_button_seq(&instruction_options[0], layer + 1)
+//             }
+//         })
+//         .sum::<usize>()
+// }
 
 #[cfg(test)]
 mod tests {
@@ -222,9 +330,9 @@ mod tests {
     #[test]
     fn check_day21_case01() {
         full_test(
-            "379A",  // INPUT STRING
-            "24256", // PART 1 RESULT
-            "0",     // PART 2 RESULT
+            "379A",           // INPUT STRING
+            "24256",          // PART 1 RESULT
+            "29556553253044", // PART 2 RESULT
         )
     }
 
@@ -236,8 +344,8 @@ mod tests {
 179A
 456A
 379A", // INPUT STRING
-            "126384", // PART 1 RESULT
-            "0",      // PART 2 RESULT
+            "126384",          // PART 1 RESULT
+            "154115708116294", // PART 2 RESULT
         )
     }
 
