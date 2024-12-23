@@ -47,9 +47,9 @@ pub fn day21(input_lines: &[Vec<String>]) -> (String, String) {
     // In part 2 we have 25 robots using the direction pads before the 26th robot on the
     // numpad, so iteratively update the fewest_presses hashmap before finally going to
     // solve with the 26th robot using the numpad.
-    (2..25).for_each(|_| {
-        fewest_presses = determine_next_robots_human_presses(&fewest_presses);
-    });
+    for _ in 2..25 {
+        fewest_presses = determine_next_robots_human_presses(&fewest_presses)
+    }
     let answer2 = solve(&input_lines[0], &fewest_presses);
 
     (format!("{}", answer1), format!("{}", answer2))
@@ -289,30 +289,6 @@ lazy_static! {
 
         ]);
 }
-
-// fn find_button_seq(line: &str, layer: usize) -> usize {
-//     (0..line.len())
-//         .map(|i| {
-//             let map_string = if i == 0 {
-//                 "A".to_string() + &line[0..1]
-//             } else {
-//                 line[i - 1..=i].to_string()
-//             };
-//             let instruction_options = BUTTON_SEQUENCES.get(&map_string).unwrap();
-
-//             if layer == 3 {
-//                 instruction_options
-//                     .iter()
-//                     .map(|instruction_sequence| instruction_sequence.len())
-//                     .min()
-//                     .unwrap()
-//             } else {
-//                 // instruction_options.iter().map(|instruction_sequence| find_button_seq(&instruction_sequence, layer + 1, part2)).min().unwrap()
-//                 find_button_seq(&instruction_options[0], layer + 1)
-//             }
-//         })
-//         .sum::<usize>()
-// }
 
 #[cfg(test)]
 mod tests {
