@@ -39,7 +39,7 @@ impl Computer {
         let operation = self.instruction_from_num(self.mem[self.pointer]);
         match operation {
             OpInstruction::Add | OpInstruction::Multiply => self.operation_combine_two_to_third(
-                self.mem[self.pointer + 1] as usize,
+                self.mem[self.pointer + 1],
                 self.mem[self.pointer + 2],
                 self.mem[self.pointer + 3],
                 operation,

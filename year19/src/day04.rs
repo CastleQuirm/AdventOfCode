@@ -103,11 +103,6 @@ fn dfs(
         })
 }
 
-// fn valid_password(num: &usize) -> bool {
-//     let password =
-
-// }
-
 #[cfg(test)]
 mod tests {
     use super::day04;
@@ -117,8 +112,8 @@ mod tests {
     fn check_day04_case01() {
         full_test(
             "264793-803935", // INPUT STRING
-            "966",          // PART 1 RESULT
-            "0",             // PART 2 RESULT
+            "966",           // PART 1 RESULT
+            "628",           // PART 2 RESULT
         )
     }
 
