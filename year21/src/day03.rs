@@ -73,7 +73,7 @@ fn filtration(input: Vec<Vec<u64>>, value: Direction, index: usize) -> Vec<Vec<u
 
     let sum_of_chosen_bit: u64 = input
         .iter()
-        .map(|l| l[index as usize])
+        .map(|l| l[index])
         .collect::<Vec<u64>>()
         .iter()
         .sum();
@@ -89,7 +89,7 @@ fn filtration(input: Vec<Vec<u64>>, value: Direction, index: usize) -> Vec<Vec<u
 
     input
         .into_iter()
-        .filter(|l| l[index as usize] == chosen_bit)
+        .filter(|l| l[index] == chosen_bit)
         .collect::<Vec<Vec<u64>>>()
 }
 

@@ -60,7 +60,7 @@ fn determine_map(info_digits: Vec<HashSet<char>>) -> HashMap<String, u64> {
         let length = single_digit.len();
         segment_map
             .entry(length)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(single_digit.clone());
     });
 

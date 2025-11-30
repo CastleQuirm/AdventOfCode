@@ -1,4 +1,4 @@
-use std::{ops::Add, str::FromStr, string::ParseError};
+use std::{fmt::Display, ops::Add, str::FromStr, string::ParseError};
 
 pub fn day25(input_lines: &str) -> (String, String) {
     (
@@ -42,9 +42,10 @@ impl FromStr for Base5Sym {
     }
 }
 
-impl ToString for Base5Sym {
-    fn to_string(&self) -> String {
-        self.value
+impl Display for Base5Sym {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let text = self
+            .value
             .iter()
             .rev()
             .map(|i| match i {
@@ -55,9 +56,27 @@ impl ToString for Base5Sym {
                 -2 => '=',
                 _ => unreachable!(),
             })
-            .collect::<String>()
+            .collect::<String>();
+        write!(f, "{}", text)
     }
 }
+
+// impl ToString for Base5Sym {
+//     fn to_string(&self) -> String {
+//         self.value
+//             .iter()
+//             .rev()
+//             .map(|i| match i {
+//                 2 => '2',
+//                 1 => '1',
+//                 0 => '0',
+//                 -1 => '-',
+//                 -2 => '=',
+//                 _ => unreachable!(),
+//             })
+//             .collect::<String>()
+//     }
+// }
 
 impl Add for Base5Sym {
     type Output = Self;
@@ -111,7 +130,7 @@ mod tests {
 1=
 122"
             ),
-            ("2=-1=0".to_string(), "0".to_string())
+            ("2=-1=0".to_string(), "MERRY CHRISTMAS!".to_string())
         )
     }
 }

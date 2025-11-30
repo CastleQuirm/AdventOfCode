@@ -278,7 +278,7 @@ impl Tile {
             .iter()
             .next()
             .expect("No title line")
-            .split(|c| c == ' ' || c == ':')
+            .split([' ', ':'])
             .collect::<Vec<&str>>();
         let index = first_line_split
             .get(1)

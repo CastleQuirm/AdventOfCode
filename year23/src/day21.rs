@@ -164,25 +164,26 @@ impl From<char> for MazeSpace {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::day21;
-    use crate::utils::load_input;
+// No test for this day - the examples given are meaningfully different to the approach needed for solving the real puzzle.
+// #[cfg(test)]
+// mod tests {
+//     use super::day21;
+//     use crate::utils::load_input;
 
-    #[test]
-    fn check_day21_case01() {
-        full_test(
-            "",  // INPUT STRING
-            "0", // PART 1 RESULT
-            "0", // PART 2 RESULT
-        )
-    }
+//     #[test]
+//     fn check_day21_case01() {
+//         full_test(
+//             "",  // INPUT STRING
+//             "0", // PART 1 RESULT
+//             "0", // PART 2 RESULT
+//         )
+//     }
 
-    fn full_test(input_text: &str, part1_result: &str, part2_result: &str) {
-        let input_lines = load_input(input_text);
-        assert_eq!(
-            day21(&input_lines),
-            (part1_result.to_string(), part2_result.to_string())
-        );
-    }
-}
+//     fn full_test(input_text: &str, part1_result: &str, part2_result: &str) {
+//         let input_lines = load_input(input_text);
+//         assert_eq!(
+//             day21(&input_lines),
+//             (part1_result.to_string(), part2_result.to_string())
+//         );
+//     }
+// }

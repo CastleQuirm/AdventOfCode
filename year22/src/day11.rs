@@ -136,7 +136,7 @@ pub fn day11(input_lines: &str) -> (String, String) {
                     .push(new_value);
             }
             // Monkey will throw every one of the items; get the now safely mutable state and update it.
-            let mut active_monkey_state = monkey_state
+            let active_monkey_state = monkey_state
                 .get_mut(&active_monkey.id)
                 .expect("Monkey state doesn't exist");
             active_monkey_state.part2.number_inspections += active_monkey_state.part2.items.len();

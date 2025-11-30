@@ -81,7 +81,7 @@ impl Octopus {
         let max_dj = if j == 9 { 1 } else { 2 }; // NOTE: This uses knowledge from the puzzle that the grid is 10*10
 
         (min_di..max_di)
-            .map(|di| {
+            .flat_map(|di| {
                 (min_dj..max_dj)
                     .flat_map(|dj| {
                         if di != 0 || dj != 0 {
@@ -95,7 +95,6 @@ impl Octopus {
                     })
                     .collect::<Vec<Coordinate>>()
             })
-            .flatten()
             .collect::<Vec<Coordinate>>()
     }
 }

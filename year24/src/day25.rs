@@ -16,7 +16,7 @@ pub fn day25(input_lines: &[Vec<String>]) -> (String, String) {
         .sum::<usize>();
 
     let answer2 = "MERRY CHRISTMAS";
-    (format!("{}", answer1), format!("{}", answer2))
+    (format!("{}", answer1), answer2.to_string())
 }
 
 struct Schematic {
@@ -32,18 +32,25 @@ impl Schematic {
             SchematicType::Key
         };
 
-        let mut columns= [0; 5];
+        let mut columns = [0usize; 5];
         match s_type {
             SchematicType::Lock => {
-                for column_ix in 0..5 {
-                    columns[column_ix] = (1usize..7).find(|&i| lines[i].chars().nth(column_ix).unwrap() == '.').unwrap() - 1;
+                for (column_ix, column_instance) in columns.iter_mut().enumerate() {
+                    *column_instance = (1usize..7)
+                        .find(|&i| lines[i].chars().nth(column_ix).unwrap() == '.')
+                        .unwrap()
+                        - 1;
                 }
             }
             SchematicType::Key => {
-                for column_ix in 0..5 {
-                    columns[column_ix] = 5 - (0usize..6).rev().find(|&i| lines[i].chars().nth(column_ix).unwrap() == '.').unwrap();
+                for (column_ix, column_instance) in columns.iter_mut().enumerate() {
+                    *column_instance = 5
+                        - (0usize..6)
+                            .rev()
+                            .find(|&i| lines[i].chars().nth(column_ix).unwrap() == '.')
+                            .unwrap();
                 }
-            },
+            }
         }
 
         Self { s_type, columns }
@@ -108,7 +115,7 @@ mod tests {
 #.#..
 #.#.#
 #####", // INPUT STRING
-            "3", // PART 1 RESULT
+            "3",               // PART 1 RESULT
             "MERRY CHRISTMAS", // PART 2 RESULT
         )
     }

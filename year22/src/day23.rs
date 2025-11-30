@@ -119,10 +119,12 @@ fn tick(time_mod_4: usize, elves: &HashSet<Coord2>) -> HashSet<Coord2> {
 
             if let Some(candidate) = candidate_location {
                 // Check if another elf wants to move here.  If not, add this elf.  If so, remove that elf.
-                if candidate_locations.get(&candidate).is_some() {
-                    candidate_locations.remove(&candidate);
+                if let std::collections::hash_map::Entry::Vacant(e) =
+                    candidate_locations.entry(candidate)
+                {
+                    e.insert(*elf);
                 } else {
-                    candidate_locations.insert(candidate, *elf);
+                    candidate_locations.remove(&candidate);
                 }
             }
         }

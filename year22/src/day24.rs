@@ -132,8 +132,8 @@ impl Valley {
                     .location
                     .sum(&Coord2::movement(&blizzard.direction))
                 {
-                    Coord2 { x, y } if x == 0 => Coord2::new(self.width - 2, y),
-                    Coord2 { x, y } if y == 0 => Coord2::new(x, self.height - 2),
+                    Coord2 { x: 0, y } => Coord2::new(self.width - 2, y),
+                    Coord2 { x, y: 0 } => Coord2::new(x, self.height - 2),
                     Coord2 { x, y } if x == self.width - 1 => Coord2::new(1, y),
                     Coord2 { x, y } if y == self.height - 1 => Coord2::new(x, 1),
                     location => location,

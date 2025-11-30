@@ -71,8 +71,7 @@ fn day16_part2_calc(rules: &[InfoField], my_ticket: &Ticket, valid_tickets: &[Ti
         })
         .collect::<Vec<usize>>();
 
-    while !unprocessed_unique_positions.is_empty() {
-        let new_unique = unprocessed_unique_positions.pop().unwrap();
+    while let Some(new_unique) = unprocessed_unique_positions.pop() {
         let identified_rule_set = ticket_index_to_rules_map
             .get(&new_unique)
             .expect("How isn't this rule set known?")

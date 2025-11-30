@@ -162,7 +162,7 @@ impl RuleSet {
             .split(',')
             .map(|rule_txt| {
                 let rule_txt = rule_txt.to_owned();
-                if rule_txt.contains(|c| c == '<' || c == '>') {
+                if rule_txt.contains(['<', '>']) {
                     // main rule
                     let chars = rule_txt.chars().collect_vec();
                     let (variable, comparison) = (chars[0], chars[1]);

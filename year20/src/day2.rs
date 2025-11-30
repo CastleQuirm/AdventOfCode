@@ -23,7 +23,7 @@ struct RuleAndPassword {
 }
 
 fn parse_rule_and_password(line: &str) -> RuleAndPassword {
-    let params = line.split(|c| c == ' ' || c == '-').collect::<Vec<&str>>();
+    let params = line.split([' ', '-']).collect::<Vec<&str>>();
     RuleAndPassword {
         num1: params[0].parse().expect("First value wasn't a number"),
         num2: params[1].parse().expect("Second value wasn't a number"),

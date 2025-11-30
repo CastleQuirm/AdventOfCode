@@ -45,7 +45,7 @@ pub fn day21(input_lines: &str) -> (String, String) {
     let answer1 = declared_monkeys.get("root").expect("Haven't learnt root");
 
     solve_forwards(&mut declared_minus_human, &pending_monkeys, &lookup_monkeys);
-    assert!(declared_minus_human.get("root").is_none());
+    assert!(!declared_minus_human.contains_key("root"));
     let root_dependants = pending_monkeys
         .get("root")
         .unwrap()

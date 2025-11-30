@@ -1,11 +1,7 @@
 pub fn day08(input_lines: &str) -> (String, String) {
     let forest = input_lines
         .lines()
-        .map(|line| {
-            line.chars()
-                .map(|tree| tree.try_into().unwrap())
-                .collect::<Vec<u64>>()
-        })
+        .map(|line| line.chars().map(|tree| tree.into()).collect::<Vec<u64>>())
         .collect::<Vec<_>>();
     let (visibles, distances): (Vec<_>, Vec<_>) = (0..forest.len() * forest[0].len())
         .map(|z| {

@@ -18,12 +18,12 @@ pub fn day24(input_lines: &[String]) -> (u64, u64) {
     let part1 = (11111111111111..91599994399999)
         .rev()
         .find(|license_number| {
-            !license_number.to_string().contains('0') && alu.run(*license_number as u64) == Ok(0)
+            !license_number.to_string().contains('0') && alu.run(*license_number) == Ok(0)
         });
 
     // let part2 = (11111111111111..100000000000000)
     let part2 = (71111591111111..100000000000000).find(|license_number| {
-        !license_number.to_string().contains('0') && alu.run(*license_number as u64) == Ok(0)
+        !license_number.to_string().contains('0') && alu.run(*license_number) == Ok(0)
     });
 
     (
@@ -65,7 +65,7 @@ impl Program {
         for instruction in &self.instructions {
             let commands = instruction.split(' ').collect::<Vec<&str>>();
             let first_memory_index = self.get_memory_index(
-                *commands
+                commands
                     .get(1)
                     .expect("There should always be a variable name here"),
             );

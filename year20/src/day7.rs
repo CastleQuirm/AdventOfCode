@@ -24,7 +24,7 @@ pub fn day7(input_lines: &[String]) -> (u64, u64) {
     while !candidate_holder.is_empty() {
         let new_colour = candidate_holder.drain(0..1).collect::<Vec<String>>();
         let possible_colour = new_colour
-            .get(0)
+            .first()
             .expect("Didn't find anything in candidate holder");
         let holding_colours = containing.get(possible_colour);
         if let Some(colour) = holding_colours {

@@ -114,8 +114,8 @@ impl Directory {
 
     fn sum_recursively_if_under(&self) -> usize {
         self.subdirectories
-            .iter()
-            .map(|(_, d)| d.sum_recursively_if_under())
+            .values()
+            .map(|d| d.sum_recursively_if_under())
             .sum::<usize>()
             + if self.total_size <= 100_000 {
                 self.total_size

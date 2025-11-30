@@ -36,10 +36,7 @@ pub fn day19(input_lines: &[String]) -> (u64, u64) {
     let mut stitched_scanners = vec![scanner_set[0].clone()];
     let mut unstitched_scanners = scanner_set[1..].to_vec();
 
-    while !stitched_scanners.is_empty() {
-        let target_scanner = stitched_scanners
-            .pop()
-            .expect("No available targets to stitch to");
+    while let Some(target_scanner) = stitched_scanners.pop() {
         for other in &mut unstitched_scanners {
             target_scanner.stitch_if_poss(other);
         }

@@ -64,7 +64,7 @@ fn valid(p: &Passport) -> bool {
     } else {
         false
     };
-    let ecl_valid = vec!["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
+    let ecl_valid = ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
         .iter()
         .map(|s| s.to_string())
         .any(|x| &x == p.ecl.as_ref().unwrap_or(&"".to_string()));
@@ -101,7 +101,7 @@ impl Passport {
 
         let broken_string = input_lines
             .iter()
-            .flat_map(|line| line.split(|c| c == ' '))
+            .flat_map(|line| line.split(' '))
             .collect::<Vec<&str>>();
 
         for element in broken_string {

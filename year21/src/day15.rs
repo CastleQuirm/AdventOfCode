@@ -138,7 +138,7 @@ impl CandidateHeap {
         }
     }
     fn add_candidate(&mut self, coord: Coordinate, cost: u64) {
-        let list_for_cost = self.by_size.entry(cost).or_insert_with(Vec::new);
+        let list_for_cost = self.by_size.entry(cost).or_default();
         list_for_cost.push(coord)
     }
 }
