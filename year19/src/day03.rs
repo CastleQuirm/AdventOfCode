@@ -27,13 +27,12 @@ pub fn day03(input_lines: &[Vec<String>]) -> (String, String) {
 
     let intersections = segments1
         .iter()
-        .map(|segment1| {
+        .flat_map(|segment1| {
             segments2
                 .iter()
                 .filter_map(|segment2| wire_intersection(segment1, segment2))
                 .collect::<Vec<Coord2>>()
         })
-        .flatten()
         .collect::<Vec<Coord2>>();
 
     // Find the one closest to the origin.
