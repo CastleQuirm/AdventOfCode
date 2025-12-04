@@ -1,3 +1,6 @@
+pub mod coord;
+pub mod directions;
+
 use std::{collections::HashSet, fmt::Display};
 
 use crate::coord::{Coord2, DELTAS_ORTH_AND_DIAG, DELTAS_ORTH_ONLY};
@@ -13,7 +16,7 @@ pub struct Grid<T> {
 }
 
 impl<T: std::convert::From<u32>> Grid<T> {
-    pub fn _from_digits(input_lines: &[String]) -> Self {
+    pub fn from_digits(input_lines: &[String]) -> Self {
         Grid {
             grid: input_lines
                 .iter()
@@ -29,7 +32,7 @@ impl<T: std::convert::From<u32>> Grid<T> {
 }
 
 impl<T: std::convert::From<u32> + Clone> Grid<T> {
-    pub fn _from_digits_with_border(input_lines: &[String], border: &T) -> Self {
+    pub fn from_digits_with_border(input_lines: &[String], border: &T) -> Self {
         let line_len = input_lines[0].len();
         let mut grid = Vec::from([vec![border.clone(); line_len + 2]]);
         for line in input_lines {
@@ -82,7 +85,7 @@ impl<T: std::convert::Into<char> + Copy> Display for Grid<T> {
 }
 
 impl<T: std::convert::From<char> + Clone> Grid<T> {
-    pub fn _from_input_with_border(input_lines: &[String], border: &T) -> Self {
+    pub fn from_input_with_border(input_lines: &[String], border: &T) -> Self {
         let line_len = input_lines[0].len();
         let mut grid = Vec::from([vec![border.clone(); line_len + 2]]);
         for line in input_lines {
@@ -104,7 +107,7 @@ impl<T: std::convert::From<char> + Clone> Grid<T> {
 impl<T: Clone> Grid<T> {
     /// Initialize a Grid with `len_x` elements in its X co-ord, `len_y` elements in its Y co-ord,
     /// and a starting value of `init_element` in every cell.
-    pub fn _initialize(len_x: usize, len_y: usize, init_element: T) -> Self {
+    pub fn initialize(len_x: usize, len_y: usize, init_element: T) -> Self {
         let mut line = Vec::new();
         for _ in 0..len_x {
             line.push(init_element.clone());
@@ -122,7 +125,7 @@ impl<T: Clone> Grid<T> {
     // TODO add an initialize_with_border() for single calls and non-mutable versions
     // (plus more efficient code!)
 
-    pub fn _add_border(&mut self, border_element: &T) {
+    pub fn add_border(&mut self, border_element: &T) {
         let line_len = self.grid[0].len();
         for row in &mut self.grid {
             row.insert(0, border_element.clone());
@@ -134,7 +137,7 @@ impl<T: Clone> Grid<T> {
         self.has_border = true;
     }
 
-    pub fn _get(&self, coord: &Coord2) -> T {
+    pub fn get(&self, coord: &Coord2) -> T {
         self.peek(coord).clone()
     }
 
@@ -170,15 +173,15 @@ impl<T: Eq> Grid<T> {
     /// returns them in a HashSet.
     ///
     /// Indifferent to borders.
-    pub fn _find_elements(&self, element: &T) -> HashSet<Coord2> {
-        self._filter_elements(&(|t: &T| t == element))
+    pub fn find_elements(&self, element: &T) -> HashSet<Coord2> {
+        self.filter_elements(&(|t: &T| t == element))
     }
 
     /// Find the coordinates of every cell that meets a given predicate in the grid and
     /// returns them in a HashSet.
     ///
     /// Indifferent to borders.
-    pub fn _filter_elements(&self, predicate: &dyn Fn(&T) -> bool) -> HashSet<Coord2> {
+    pub fn filter_elements(&self, predicate: &dyn Fn(&T) -> bool) -> HashSet<Coord2> {
         self.grid
             .iter()
             .enumerate()
@@ -205,8 +208,8 @@ impl<T: Eq> Grid<T> {
     /// stdout in such a case, but in either case this suggests a bug in the usage.
     ///
     /// Indifferent to borders.
-    pub fn _find_single_element(&self, element: &T) -> Option<Coord2> {
-        let possible_elements = self._find_elements(element);
+    pub fn find_single_element(&self, element: &T) -> Option<Coord2> {
+        let possible_elements = self.find_elements(element);
         if possible_elements.len() == 1 {
             Some(*possible_elements.iter().next().unwrap())
         } else if possible_elements.is_empty() {
@@ -225,7 +228,7 @@ impl<T: Eq> Grid<T> {
     /// This function utilises borders: cell coordinates will be 0-indexed without, 1-indexed with
     /// a border (as usual) and exploration will be successfully handled at the edges in cases
     /// without a border.
-    pub fn _find_region(&self, start_coord: &Coord2) -> (HashSet<Coord2>, usize) {
+    pub fn find_region(&self, start_coord: &Coord2) -> (HashSet<Coord2>, usize) {
         let area_val = self.peek(start_coord);
         let mut region = HashSet::from([*start_coord]);
         let mut perimeter: usize = 4;
@@ -299,12 +302,12 @@ impl<T> Grid<T> {
     }
 
     /// Returns the width of the grid, including the border if there is one.
-    pub fn _width(&self) -> usize {
+    pub fn width(&self) -> usize {
         self.grid[0].len()
     }
 
     /// Returns the height of the grid, including the border if there is one.
-    pub fn _height(&self) -> usize {
+    pub fn height(&self) -> usize {
         self.grid.len()
     }
 }

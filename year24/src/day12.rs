@@ -3,10 +3,10 @@
 
 use std::collections::HashSet;
 
-use crate::{
+use grid::{
     coord::Coord2,
     directions::{CompassDirection, Rotation},
-    grid::Grid,
+    Grid,
 };
 
 pub fn day12(input_lines: &[Vec<String>]) -> (String, String) {

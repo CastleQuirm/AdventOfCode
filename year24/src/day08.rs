@@ -4,7 +4,7 @@
 use itertools::Itertools;
 use std::collections::HashSet;
 
-use crate::{coord::Coord2, grid::Grid};
+use grid::{coord::Coord2, Grid};
 
 pub fn day08(input_lines: &[Vec<String>]) -> (String, String) {
     let map = Grid::<char>::from_input(&input_lines[0]);

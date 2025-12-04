@@ -3,7 +3,7 @@
 
 use std::collections::HashSet;
 
-use crate::{coord::Coord2, directions::CompassDirection, grid::Grid};
+use grid::{coord::Coord2, directions::CompassDirection, Grid};
 
 pub fn day15(input_lines: &[Vec<String>]) -> (String, String) {
     let mut warehouse = Grid::<WarehouseSpace>::from_input(&input_lines[0]);

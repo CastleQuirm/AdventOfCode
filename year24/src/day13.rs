@@ -5,7 +5,7 @@ use lazy_static::lazy_static;
 use num::Integer;
 use regex::Regex;
 
-use crate::coord::Coord2;
+use grid::coord::Coord2;
 
 pub fn day13(input_lines: &[Vec<String>]) -> (String, String) {
     let (solutions1, solutions2): (Vec<Option<i64>>, Vec<Option<i64>>) = input_lines

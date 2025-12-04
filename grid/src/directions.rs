@@ -79,49 +79,49 @@ impl Direction {
     }
 }
 
-// #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
-// pub enum CompassDirection {
-//     North,
-//     East,
-//     South,
-//     West,
-// }
+#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
+pub enum CompassDirection {
+    North,
+    East,
+    South,
+    West,
+}
 
-// impl CompassDirection {
-//     pub fn _opposite(&self) -> Self {
-//         self.rotate(&Rotation::_Reverse)
-//     }
+impl CompassDirection {
+    pub fn opposite(&self) -> Self {
+        self.rotate(&Rotation::_Reverse)
+    }
 
-//     pub fn rotate(&self, rotation: &Rotation) -> Self {
-//         // Guess I could implement a 'degrees' system to make this a bit less text heavy but...eh
-//         match (self, rotation) {
-//             (direction, Rotation::_Straight) => *direction,
-//             (Self::North, Rotation::Left) => Self::West,
-//             (Self::North, Rotation::Right) => Self::East,
-//             (Self::North, Rotation::_Reverse) => Self::South,
-//             (Self::East, Rotation::Left) => Self::North,
-//             (Self::East, Rotation::Right) => Self::South,
-//             (Self::East, Rotation::_Reverse) => Self::West,
-//             (Self::South, Rotation::Left) => Self::East,
-//             (Self::South, Rotation::Right) => Self::West,
-//             (Self::South, Rotation::_Reverse) => Self::North,
-//             (Self::West, Rotation::Left) => Self::South,
-//             (Self::West, Rotation::Right) => Self::North,
-//             (Self::West, Rotation::_Reverse) => Self::East,
-//         }
-//     }
+    pub fn rotate(&self, rotation: &Rotation) -> Self {
+        // Guess I could implement a 'degrees' system to make this a bit less text heavy but...eh
+        match (self, rotation) {
+            (direction, Rotation::_Straight) => *direction,
+            (Self::North, Rotation::Left) => Self::West,
+            (Self::North, Rotation::Right) => Self::East,
+            (Self::North, Rotation::_Reverse) => Self::South,
+            (Self::East, Rotation::Left) => Self::North,
+            (Self::East, Rotation::Right) => Self::South,
+            (Self::East, Rotation::_Reverse) => Self::West,
+            (Self::South, Rotation::Left) => Self::East,
+            (Self::South, Rotation::Right) => Self::West,
+            (Self::South, Rotation::_Reverse) => Self::North,
+            (Self::West, Rotation::Left) => Self::South,
+            (Self::West, Rotation::Right) => Self::North,
+            (Self::West, Rotation::_Reverse) => Self::East,
+        }
+    }
 
-//     /// Produce an iterator of each CompassDirection (starting with North and moving clockwise)
-//     pub fn iter() -> impl Iterator<Item = CompassDirection> {
-//         [
-//             CompassDirection::North,
-//             CompassDirection::East,
-//             CompassDirection::South,
-//             CompassDirection::West,
-//         ]
-//         .into_iter()
-//     }
-// }
+    /// Produce an iterator of each CompassDirection (starting with North and moving clockwise)
+    pub fn iter() -> impl Iterator<Item = CompassDirection> {
+        [
+            CompassDirection::North,
+            CompassDirection::East,
+            CompassDirection::South,
+            CompassDirection::West,
+        ]
+        .into_iter()
+    }
+}
 
 #[derive(Eq, PartialEq, Hash, Debug)]
 pub enum Rotation {

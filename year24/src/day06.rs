@@ -3,7 +3,7 @@
 
 use std::collections::HashSet;
 
-use crate::{coord::Coord2, directions::CompassDirection, grid::Grid};
+use grid::{coord::Coord2, directions::CompassDirection, Grid};
 
 pub fn day06(input_lines: &[Vec<String>]) -> (String, String) {
     let mut map =
@@ -21,7 +21,7 @@ pub fn day06(input_lines: &[Vec<String>]) -> (String, String) {
         let next_location = guard_location.compass_sum(&guard_direction);
         match map.get(&next_location) {
             MapLocation::Obstacle => {
-                guard_direction = guard_direction.rotate(&crate::directions::Rotation::Right)
+                guard_direction = guard_direction.rotate(&grid::directions::Rotation::Right)
             }
             MapLocation::Unvisited if !potential_added_obstacles.contains(&next_location) => {
                 // Spin off alternative reality where we've placed an obstacle
@@ -64,7 +64,7 @@ fn test_obstacle(
         let next_location = guard_location.compass_sum(&guard_direction);
         match map.get(&next_location) {
             MapLocation::Obstacle => {
-                guard_direction = guard_direction.rotate(&crate::directions::Rotation::Right)
+                guard_direction = guard_direction.rotate(&grid::directions::Rotation::Right)
             }
             _ => {
                 let (new_cell_val, in_loop) = map

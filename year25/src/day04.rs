@@ -1,7 +1,8 @@
 // Potential improvements:
 //
 
-use crate::grid::Grid;
+// use crate::grid::Grid;
+use grid::Grid;
 
 pub fn day04(input_lines: &[Vec<String>]) -> (String, String) {
     let layout = Grid::<PaperSpace>::from_input(&input_lines[0]);

@@ -3,7 +3,7 @@
 
 use std::collections::HashSet;
 
-use crate::coord::{Coord2, DELTAS_ORTH_ONLY};
+use grid::coord::{Coord2, DELTAS_ORTH_ONLY};
 
 pub fn day18(input_lines: &[Vec<String>]) -> (String, String) {
     let (grid_size, part1_block_count) = if input_lines[0].len() < 100 {

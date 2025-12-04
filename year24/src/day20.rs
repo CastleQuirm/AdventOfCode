@@ -3,9 +3,9 @@
 
 use std::collections::HashMap;
 
-use crate::{
+use grid::{
     coord::{Coord2, DELTAS_ORTH_ONLY},
-    grid::Grid,
+    Grid,
 };
 
 pub fn day20(input_lines: &[Vec<String>]) -> (String, String) {

@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::thread::sleep;
 use std::time::Duration;
 
-use crate::coord::Coord2;
+use grid::coord::Coord2;
 use lazy_static::lazy_static;
 use regex::Regex;
 

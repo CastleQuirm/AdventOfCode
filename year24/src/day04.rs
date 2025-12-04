@@ -1,10 +1,8 @@
 // Potential improvements:
 //
 
-use crate::{
-    coord::{DELTAS_DIAG_ONLY, DELTAS_ORTH_AND_DIAG},
-    grid::Grid,
-};
+use grid::coord::{DELTAS_DIAG_ONLY, DELTAS_ORTH_AND_DIAG};
+use grid::Grid;
 
 pub fn day04(input_lines: &[Vec<String>]) -> (String, String) {
     let mut wordsearch = Grid::<char>::from_input(&input_lines[0]);

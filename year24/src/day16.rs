@@ -3,7 +3,7 @@
 
 use std::collections::{BinaryHeap, HashSet};
 
-use crate::{coord::Coord2, directions::CompassDirection, grid::Grid};
+use grid::{coord::Coord2, directions::CompassDirection, Grid};
 
 pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
     let maze = Grid::<MazeMap>::from_input(&input_lines[0]);
@@ -50,7 +50,7 @@ pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
                     facing: next_explore
                         .reindeer
                         .facing
-                        .rotate(&crate::directions::Rotation::Left),
+                        .rotate(&grid::directions::Rotation::Left),
                 },
                 cost: next_explore.cost + 1000,
                 visited_locs: next_explore.visited_locs.clone(),
@@ -61,7 +61,7 @@ pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
                     facing: next_explore
                         .reindeer
                         .facing
-                        .rotate(&crate::directions::Rotation::Right),
+                        .rotate(&grid::directions::Rotation::Right),
                 },
                 cost: next_explore.cost + 1000,
                 visited_locs: next_explore.visited_locs.clone(),
