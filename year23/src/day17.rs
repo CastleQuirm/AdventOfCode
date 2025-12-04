@@ -1,9 +1,9 @@
 // Potential improvements:
 //
 
-use crate::directions::CompassDirection::{self, East};
-use crate::directions::Rotation::{Left, Right, Straight};
-use crate::{coord::Coord2, grid::Grid};
+use grid::directions::CompassDirection::{self, East};
+use grid::directions::Rotation::{Left, Right, Straight};
+use grid::{coord::Coord2, Grid};
 use std::collections::hash_map::Entry::Vacant;
 use std::collections::{HashMap, HashSet};
 

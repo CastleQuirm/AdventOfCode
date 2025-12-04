@@ -12,3 +12,4 @@ regex = "1.10"
 roots = "0.0.8"
 anyhow = "1.0.75"
 rand = "0.8.5"
+grid = { path = "../grid" }

@@ -50,7 +50,7 @@ impl Coord2 {
         (self.x - other.x).abs() + (self.y - other.y).abs()
     }
 
-    pub fn _plus(&self, x: i64, y: i64) -> Self {
+    pub fn plus(&self, x: i64, y: i64) -> Self {
         Self {
             x: self.x + x,
             y: self.y + y,

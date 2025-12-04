@@ -3,7 +3,7 @@
 
 use std::collections::HashSet;
 
-use crate::{coord::Coord2, grid::Grid};
+use grid::{coord::Coord2, Grid};
 
 pub fn day21(input_lines: &[Vec<String>]) -> (String, String) {
     // Create a garden. We don't add a border since in part 1 we can't reach the edge and in part 2

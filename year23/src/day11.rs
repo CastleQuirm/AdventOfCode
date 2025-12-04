@@ -1,11 +1,9 @@
 // Potential improvements:
 //
 
-use std::collections::HashSet;
-
+use grid::coord::Coord2;
 use itertools::Itertools;
-
-use crate::coord::Coord2;
+use std::collections::HashSet;
 
 pub fn day11(input_lines: &[Vec<String>]) -> (String, String) {
     let galaxies = input_lines[0]

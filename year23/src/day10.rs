@@ -3,9 +3,9 @@
 
 use std::collections::HashSet;
 
-use crate::coord::Coord2;
-use crate::directions::CompassDirection::{self, East, North, South, West};
-use crate::grid::Grid;
+use grid::coord::Coord2;
+use grid::directions::CompassDirection::{self, East, North, South, West};
+use grid::Grid;
 
 pub fn day10(input_lines: &[Vec<String>]) -> (String, String) {
     // Build the map and add a border of plain ground.

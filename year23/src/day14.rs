@@ -4,9 +4,9 @@
 use std::collections::hash_map::Entry::Vacant;
 use std::collections::HashMap;
 
-use crate::coord::Coord2;
-use crate::directions::CompassDirection::{self, East, North, South, West};
-use crate::grid::Grid;
+use grid::coord::Coord2;
+use grid::directions::CompassDirection::{self, East, North, South, West};
+use grid::Grid;
 use itertools::Itertools;
 
 pub fn day14(input_lines: &[Vec<String>]) -> (String, String) {

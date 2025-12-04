@@ -3,7 +3,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use crate::{coord::Coord2, grid::Grid};
+use grid::{coord::Coord2, Grid};
 
 pub fn day03(input_lines: &[Vec<String>]) -> (String, String) {
     // Set up a grid of the input lines. This will be useful for searching for symbols.

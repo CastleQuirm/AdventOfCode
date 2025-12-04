@@ -5,7 +5,7 @@ use std::collections::HashSet;
 
 use itertools::Itertools;
 
-use crate::coord::{Coord2, Coord3};
+use grid::coord::{Coord2, Coord3};
 
 pub fn day24(input_lines: &[Vec<String>]) -> (String, String) {
     let hailstones = input_lines[0]

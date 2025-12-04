@@ -3,8 +3,8 @@
 
 use std::collections::HashSet;
 
-use crate::directions::CompassDirection::{self, East, North, South, West};
-use crate::{coord::Coord2, grid::Grid};
+use grid::directions::CompassDirection::{self, East, North, South, West};
+use grid::{coord::Coord2, Grid};
 
 pub fn day16(input_lines: &[Vec<String>]) -> (String, String) {
     let mut maze = Grid::<MirrorType>::from_input(&input_lines[0]);
@@ -72,6 +72,7 @@ fn calculate_active_cells(
     // directions that we know light is travelling out from.
     let mut activated_spaces = Grid {
         grid: vec![vec![LightDirections::none(); maze.grid[0].len()]; maze.grid.len()],
+        has_border: false,
     };
     let east_beam = LightDirections {
         directions: HashSet::from([starting_dir]),

@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use itertools::Itertools;
 use regex::Regex;
 
-use crate::{coord::Coord2, grid::Grid};
+use grid::{coord::Coord2, Grid};
 
 pub fn day22(input_lines: &[Vec<String>]) -> (String, String) {
     // Read the set of bricks, ordered from their lowest starting point.

@@ -5,13 +5,13 @@ use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
 
-use crate::{
+use grid::{
     coord::Coord2,
     directions::{
         CompassDirection::{self, East, North, South, West},
         Rotation,
     },
-    grid::Grid,
+    Grid,
 };
 
 pub fn day23(input_lines: &[Vec<String>]) -> (String, String) {

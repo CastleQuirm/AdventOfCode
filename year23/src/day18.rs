@@ -1,9 +1,9 @@
 // Potential improvements:
 //
 
-use crate::coord::Coord2;
-use crate::directions::Direction;
-use crate::directions::Rotation::{Left, Right};
+use grid::coord::Coord2;
+use grid::directions::Direction;
+use grid::directions::Rotation::{Left, Right};
 
 pub fn day18(input_lines: &[Vec<String>]) -> (String, String) {
     let answer1 = determine_area(
