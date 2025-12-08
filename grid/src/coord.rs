@@ -2,7 +2,8 @@
 // use std::collections::HashSet;
 
 use lazy_static::lazy_static;
-use std::collections::HashSet;
+use regex::Regex;
+use std::{collections::HashSet, str::FromStr, string::ParseError, sync::OnceLock};
 
 use anyhow::Result;
 
@@ -196,9 +197,9 @@ pub struct Coord3 {
 }
 
 impl Coord3 {
-    // pub fn new(x: i64, y: i64, z: i64) -> Self {
-    //     Self { x, y, z }
-    // }
+    pub fn new(x: i64, y: i64, z: i64) -> Self {
+        Self { x, y, z }
+    }
 
     // pub fn movement(direction: &Direction) -> Self {
     //     match direction {
@@ -235,13 +236,30 @@ impl Coord3 {
     //     self.z += other.z;
     // }
 
-    // pub fn diff(&self, other: &Self) -> Self {
-    //     Self {
-    //         x: self.x - other.x,
-    //         y: self.y - other.y,
-    //         z: self.z - other.z,
-    //     }
-    // }
+    pub fn diff(&self, other: &Self) -> Self {
+        Self {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
+        }
+    }
+
+    /// Returns the SQUARE of the Euclidean (straight-line) distance
+    /// between two Coord3s. Allows comparison of distances without
+    /// messing around with non-integers.
+    /// Performs all squares and sums with check/expect, so will panic
+    /// with a message if anything overfFlows.
+    pub fn eucl_dist_squared(self, other: &Coord3) -> i64 {
+        let delta = self.diff(other);
+        delta
+            .x
+            .checked_pow(2)
+            .expect("Very large x")
+            .checked_add(delta.y.checked_pow(2).expect("Very large y"))
+            .expect("x + y is too big")
+            .checked_add(delta.z.checked_pow(2).expect("Very large z"))
+            .expect("Total is too big")
+    }
 
     // pub fn unit_deltas() -> HashSet<Self> {
     //     HashSet::from([
@@ -272,20 +290,20 @@ impl Coord3 {
     // }
 }
 
-// static RE3: OnceCell<Regex> = OnceCell::new();
+static RE3: OnceLock<Regex> = OnceLock::new();
 
-// impl FromStr for Coord3 {
-//     type Err = ParseError;
+impl FromStr for Coord3 {
+    type Err = ParseError;
 
-//     fn from_str(s: &str) -> Result<Self, Self::Err> {
-//         Ok(RE3
-//             .get_or_init(|| Regex::new(r"(-?\d+),(-?\d+),(-?\d+)").unwrap())
-//             .captures(s)
-//             .map(|cap| Self {
-//                 x: cap[1].parse::<i64>().unwrap(),
-//                 y: cap[2].parse::<i64>().unwrap(),
-//                 z: cap[3].parse::<i64>().unwrap(),
-//             })
-//             .expect("Didn't parse"))
-//     }
-// }
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(RE3
+            .get_or_init(|| Regex::new(r"(-?\d+),(-?\d+),(-?\d+)").unwrap())
+            .captures(s)
+            .map(|cap| Self {
+                x: cap[1].parse::<i64>().unwrap(),
+                y: cap[2].parse::<i64>().unwrap(),
+                z: cap[3].parse::<i64>().unwrap(),
+            })
+            .expect("Didn't parse"))
+    }
+}

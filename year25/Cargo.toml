@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 grid = { path = "../grid" }
+itertools = "0.14.0"
