@@ -45,7 +45,10 @@ pub fn day17(input_lines: &[Vec<String>]) -> (String, String) {
         }
 
         // Update the water sources
-        water_sources = new_sources.into_iter().filter(|&c| c.y < max_depth).collect();
+        water_sources = new_sources
+            .into_iter()
+            .filter(|&c| c.y < max_depth)
+            .collect();
     }
 
     // from a source:

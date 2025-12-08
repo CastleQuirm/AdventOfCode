@@ -6,10 +6,10 @@ use regex::Regex;
 use std::{collections::HashMap, ops::Add};
 
 pub fn day04(input_lines: &[Vec<String>]) -> (String, String) {
-    let mut full_rota: HashMap<Date<FixedOffset>, Night> = HashMap::new();
+    let mut full_rota: HashMap<NaiveDate, Night> = HashMap::new();
+    let re = Regex::new(r"\[(.+)\] (.+)").unwrap();
     for line in &input_lines[0] {
         // find date
-        let re = Regex::new(r"\[(.+)\] (.+)").unwrap();
         let (full_date, log) = re
             .captures(line)
             .map(|cap| {
@@ -26,7 +26,7 @@ pub fn day04(input_lines: &[Vec<String>]) -> (String, String) {
             .expect("Regex didn't match");
 
         // Get the date this really applies to
-        let day = full_date.date();
+        let day = full_date.date_naive();
         let hour = full_date.hour();
         let day = if hour == 23 {
             day.add(Duration::days(1))

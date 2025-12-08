@@ -10,7 +10,7 @@ pub fn day12(input_lines: &[Vec<String>]) -> (String, String) {
     let mut rules = ['.'; 32];
     for rule in &input_lines[1] {
         let input_val = treat_as_binary(
-            rule.trim_end_matches(|c| c == '#' || c == '.')
+            rule.trim_end_matches(['#', '.'])
                 .strip_suffix(" => ")
                 .expect("Didn't understand rule"),
         );

@@ -18,8 +18,7 @@ pub fn day19(input_lines: &[Vec<String>]) -> (String, String) {
 
     let program = input_lines[0][1..]
         .iter()
-        .enumerate()
-        .map(|(_line_no, line)| {
+        .map(|line| {
             let parsed = command_regex.captures(line).expect("Didn't match");
             Command {
                 // line: line_no,
