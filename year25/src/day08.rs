@@ -7,31 +7,26 @@ use grid::coord::Coord3;
 use itertools::Itertools;
 
 pub fn day08(input_lines: &[Vec<String>]) -> (String, String) {
-    let coords = input_lines[0]
-        .iter()
-        .map(|line| Coord3::from_str(line).expect("Bad coord"))
-        .collect::<Vec<Coord3>>();
-    let cables = coords
-        .iter()
-        .enumerate()
-        .combinations(2)
-        .map(|combi| Cabling {
-            square_dist: combi[0].1.eucl_dist_squared(combi[1].1),
-            first: combi[0].0,
-            second: combi[1].0,
-        })
-        .sorted()
-        .collect::<Vec<Cabling>>();
-
-    // Create a set of routers to track state.
+    // Create a set of routers and connections to use.
     let mut routers = input_lines[0]
         .iter()
         .enumerate()
-        .map(|(index, _)| Router {
+        .map(|(index, line)| Router {
             index,
+            location: Coord3::from_str(line).expect("Bad coord"),
             conn_type: ConnectionType::Unconnected,
         })
-        .collect::<Vec<_>>();
+        .collect::<Vec<Router>>();
+    let cables = routers
+        .iter()
+        .combinations(2)
+        .map(|combi| Cabling {
+            square_dist: combi[0].location.eucl_dist_squared(&combi[1].location),
+            first: combi[0].index,
+            second: combi[1].index,
+        })
+        .sorted()
+        .collect::<Vec<Cabling>>();
 
     let part1_conns = if routers.len() == 20 {
         10 // test code
@@ -53,7 +48,9 @@ pub fn day08(input_lines: &[Vec<String>]) -> (String, String) {
     network_sizes.reverse();
     let answer1 = network_sizes[0..3].iter().product::<usize>();
 
-    // And part2...
+    // And for part2, continue adding cables until everything's in the same network.
+    // We can tell everything's powered because the first router will be powering
+    // all the routers.
     let mut further_cables = cables[part1_conns..].iter();
     let mut cand_cable = cables[part1_conns];
     while routers[0].powered_count() != Some(routers.len()) {
@@ -62,7 +59,7 @@ pub fn day08(input_lines: &[Vec<String>]) -> (String, String) {
         cand_cable = *next_cable;
     }
 
-    let answer2 = coords[cand_cable.first].x * coords[cand_cable.second].x;
+    let answer2 = routers[cand_cable.first].location.x * routers[cand_cable.second].location.x;
     (format!("{}", answer1), format!("{}", answer2))
 }
 
@@ -84,6 +81,7 @@ impl Cabling {
 #[derive(Clone, Debug)]
 struct Router {
     index: usize,
+    location: Coord3,
     conn_type: ConnectionType,
 }
 
@@ -108,7 +106,7 @@ impl Router {
                 .source_becomes_powered(new_source, array),
         };
 
-        // New source needs updating to (a) make sure its a Source and (b) has all the contents of the other
+        // New source needs updating to (a) make sure it's a Source and (b) has all the contents of the other
         let updating_source = array.get_mut(new_source).expect("Bad index");
         match &updating_source.conn_type {
             ConnectionType::Unconnected => {
