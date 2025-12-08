@@ -50,7 +50,7 @@ fn determine_value(line: &str) -> u64 {
                 .get(alphabetic_digit)
                 .expect("Didn't find the digit")
         })
-        .fold(0, |number, acc| (number * 10 + acc))
+        .fold(0, |number, acc| number * 10 + acc)
 }
 
 fn determine_map(info_digits: Vec<HashSet<char>>) -> HashMap<String, u64> {
