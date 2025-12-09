@@ -1,8 +1,26 @@
 // Potential improvements:
 //
 
-pub fn day09(_input_lines: &[Vec<String>]) -> (String, String) {
-    let answer1 = 0;
+use std::str::FromStr;
+
+use grid::coord::Coord2;
+use itertools::Itertools;
+
+pub fn day09(input_lines: &[Vec<String>]) -> (String, String) {
+    let corners = input_lines[0]
+        .iter()
+        .map(|line| Coord2::from_str(line).expect("Bad coord"))
+        .collect::<Vec<Coord2>>();
+    let answer1 = corners
+        .iter()
+        .combinations(2)
+        .map(|pair| {
+            let delta = pair[0].diff(pair[1]);
+            ((delta.x + 1) * (delta.y + 1)).abs()
+        })
+        .max()
+        .unwrap();
+
     let answer2 = 0;
     (format!("{}", answer1), format!("{}", answer2))
 }
@@ -15,9 +33,16 @@ mod tests {
     #[test]
     fn check_day09_case01() {
         full_test(
-            "",  // INPUT STRING
-            "0", // PART 1 RESULT
-            "0", // PART 2 RESULT
+            "7,1
+11,1
+11,7
+9,7
+9,5
+2,5
+2,3
+7,3", // INPUT STRING
+            "50", // PART 1 RESULT
+            "0",  // PART 2 RESULT
         )
     }
 
